@@ -14,16 +14,13 @@ namespace Xioru.Grain.Account
 {
     public partial class AccountGrain : Orleans.Grain, IAccountGrain
     {
-        // TODO: move to appsettings
-        public const string HostName = "http://api.domain.com";
-        public const string MailerBox = "no-reply@domain.com";
-
         private readonly IPersistentState<AccountState> _state;
         private readonly ILogger<AccountGrain> _log;
         private readonly IGrainFactory _grainFactory;
 
         private readonly MailerSection _mailerConfig;
         private readonly AuthSection _authConfig;
+        private readonly ApiSection _apiConfig;
 
         private AccountState State => _state.State;
 
@@ -44,6 +41,10 @@ namespace Xioru.Grain.Account
             _authConfig = config
                 .GetSection(AuthSection.SectionName)
                 .Get<AuthSection>();
+
+            _apiConfig = config
+                .GetSection(ApiSection.SectionName)
+                .Get<ApiSection>();
         }
 
         public string AccountId => this.GetPrimaryKeyString();
@@ -105,7 +106,7 @@ namespace Xioru.Grain.Account
             sb.AppendLine("We recently received a request to create an account.");
             sb.AppendLine("To verify that you made this request, we're sending this confirmation email.");
             sb.Append("1. First way - click link: ");
-            sb.Append($"{HostName}/confirm?account=");
+            sb.Append($"{_apiConfig.HostName}/confirm?account=");
             sb.Append(HttpUtility.UrlEncode(email));
             sb.AppendLine($"&code={State.ConfirmCode}");
             sb.AppendLine($"2. Second way - type code: {State.ConfirmCode}");
@@ -115,7 +116,10 @@ namespace Xioru.Grain.Account
             sb.AppendLine("Or ignore this email.");
 
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(MailerBox, MailerBox));
+            message.From.Add(new MailboxAddress(
+                name: _mailerConfig.SenderMail,
+                address: _mailerConfig.SenderMail));
+
             message.To.Add(new MailboxAddress(email, email));
             message.Subject = "Need confirm email";
 

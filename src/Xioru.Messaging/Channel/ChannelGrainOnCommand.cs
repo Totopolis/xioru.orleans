@@ -64,7 +64,6 @@ namespace Xioru.Messaging.Channel
                 }
                 catch (Exception ex)
                 {
-                    // TODO: почему в бот не отправляется сообщение с ошибкой?
                     _log.LogError("Internal error", ex);
                     var message = $"Internal error: {ex.Message}";
                     await SendMessage(message);

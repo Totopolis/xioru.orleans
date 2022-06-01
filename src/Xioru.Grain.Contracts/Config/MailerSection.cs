@@ -13,5 +13,8 @@
         public string UserName { get; set; } = default!;
 
         public string Password { get; set; } = default!;
+
+        // like no-reply@domain.com
+        public string SenderMail { get; set; } = default!;
     }
 }
