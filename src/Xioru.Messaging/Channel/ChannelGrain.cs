@@ -23,7 +23,7 @@ namespace Xioru.Messaging.Channel
         private Lazy<IAsyncStream<ChannelOutcomingMessage>> _outcomingStream;
 
         public ChannelGrain(
-            [PersistentState("state", "iotStore")] IPersistentState<ChannelState> state,
+            [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<ChannelState> state,
             IServiceProvider services) : base(state, services)
         {
             _outcomingStream = new Lazy<IAsyncStream<ChannelOutcomingMessage>>(

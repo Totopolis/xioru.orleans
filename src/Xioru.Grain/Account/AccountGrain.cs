@@ -7,6 +7,7 @@ using Orleans.Runtime;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Web;
+using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.Account;
 using Xioru.Grain.Contracts.Config;
 
@@ -25,7 +26,7 @@ namespace Xioru.Grain.Account
         private AccountState State => _state.State;
 
         public AccountGrain(
-            [PersistentState("state", "iotStore")] IPersistentState<AccountState> state,
+            [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<AccountState> state,
             ILogger<AccountGrain> log,
             IGrainFactory grainFactory,
             IConfiguration config)

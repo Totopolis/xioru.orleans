@@ -2,6 +2,8 @@
 {
     public static class GrainConstants
     {
+        public const string StateStorageName = "mainStateStore";
+
         public const string ProjectRepositoryStreamNamespace = "ProjectRepositoryStream";
 
         public const string ClusterRepositoryStreamNamespace = "ClusterRepositoryStream";

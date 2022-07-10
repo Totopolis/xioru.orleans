@@ -24,7 +24,7 @@ namespace Xioru.Grain.Project
         protected ProjectState State => _state.State;
 
         public ProjectGrain(
-            [PersistentState("state", "iotStore")] IPersistentState<ProjectState> state,
+            [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<ProjectState> state,
             IServiceProvider services)
         {
             _state = state;

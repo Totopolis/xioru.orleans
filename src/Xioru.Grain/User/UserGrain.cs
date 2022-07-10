@@ -14,7 +14,7 @@ namespace Xioru.Grain.User
         IUserGrain
     {
         public UserGrain(
-            [PersistentState("state", "iotStore")] IPersistentState<UserState> state,
+            [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<UserState> state,
             IServiceProvider services) : base(state, services)
         {
         }

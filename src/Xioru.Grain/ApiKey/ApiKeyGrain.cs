@@ -14,7 +14,7 @@ namespace Xioru.Grain.ApiKey
         IApiKeyGrain 
     {
         public ApiKeyGrain(
-            [PersistentState("state", "iotStore")] IPersistentState<ApiKeyState> state,
+            [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<ApiKeyState> state,
             IServiceProvider services) : base(state, services)
         {
         }
