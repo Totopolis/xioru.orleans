@@ -84,10 +84,14 @@ namespace Xioru.Grain.AbstractGrain
             await OnCreateEmitEvent(createCommand);
 
             _log.LogInformation($"Grain {createCommand.Name} created in project {createCommand.ProjectId}");
+
+            // 4. User logic
+            await OnCreated();
         }
 
         protected abstract Task OnCreateApplyState(T_CREATE_COMMAND createCommand);
         protected abstract Task OnCreateEmitEvent(T_CREATE_COMMAND createCommand);
+        protected abstract Task OnCreated();
 
         public async Task Delete()
         {
@@ -104,9 +108,13 @@ namespace Xioru.Grain.AbstractGrain
             await _state.ClearStateAsync();
 
             _log.LogInformation($"Grain {objName} deleted in project {projectId}");
+
+            // 3. User logic
+            await OnDeleted();
         }
 
         protected abstract Task OnDeleteEmitEvent();
+        protected abstract Task OnDeleted();
 
         public async Task Update(T_UPDATE_COMMAND updateCommand)
         {
@@ -140,10 +148,14 @@ namespace Xioru.Grain.AbstractGrain
             await OnUpdateEmitEvent(updateCommand);
 
             _log.LogInformation($"Grain {State.Name} updated");
+
+            // 4. User logic
+            await OnUpdated();
         }
 
         protected abstract Task OnUpdateApplyState(T_UPDATE_COMMAND updateCommand);
         protected abstract Task OnUpdateEmitEvent(T_UPDATE_COMMAND updateCommand);
+        protected abstract Task OnUpdated();
 
         protected void CheckState()
         {

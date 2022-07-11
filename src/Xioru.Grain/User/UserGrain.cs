@@ -35,10 +35,14 @@ namespace Xioru.Grain.User
                 Login: State.Login));
         }
 
+        protected override Task OnCreated() => Task.CompletedTask;
+
         protected override async Task OnDeleteEmitEvent()
         {
             await EmitEvent(GrainMessage.MessageKind.Delete);
         }
+
+        protected override Task OnDeleted() => Task.CompletedTask;
 
         protected override Task OnUpdateApplyState(UpdateUserCommand updateCommand)
         {
@@ -52,5 +56,7 @@ namespace Xioru.Grain.User
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray()));
         }
+
+        protected override Task OnUpdated() => Task.CompletedTask;
     }
 }
