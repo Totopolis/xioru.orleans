@@ -50,15 +50,17 @@ namespace Xioru.Messaging.Channel
                 ChatId: State.ChatId));
         }
 
+        protected override Task OnCreated() => Task.CompletedTask;
+
         protected override async Task OnDeleteEmitEvent()
         {
             await EmitEvent(GrainMessage.MessageKind.Delete);
         }
 
-        protected override Task OnUpdateApplyState(UpdateChannelCommand updateCommand)
-        {
-            return Task.CompletedTask;
-        }
+        protected override Task OnDeleted() => Task.CompletedTask;
+
+        protected override Task OnUpdateApplyState(
+            UpdateChannelCommand updateCommand) => Task.CompletedTask;
 
         protected override async Task OnUpdateEmitEvent(UpdateChannelCommand updateCommand)
         {
@@ -67,6 +69,8 @@ namespace Xioru.Messaging.Channel
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray()));
         }
+
+        protected override Task OnUpdated() => Task.CompletedTask;
 
         public async Task SendMessage(string textMessage)
         {

@@ -37,10 +37,14 @@ namespace Xioru.Grain.ApiKey
                 ApiKey: State.ApiKey));
         }
 
+        protected override Task OnCreated() => Task.CompletedTask;
+
         protected override async Task OnDeleteEmitEvent()
         {
             await EmitEvent(GrainMessage.MessageKind.Delete);
         }
+
+        protected override Task OnDeleted() => Task.CompletedTask;
 
         protected override Task OnUpdateApplyState(UpdateApiKeyCommand updateCommand)
         {
@@ -54,5 +58,7 @@ namespace Xioru.Grain.ApiKey
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray()));
         }
+
+        protected override Task OnUpdated() => Task.CompletedTask;
     }
 }
