@@ -3,17 +3,15 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans;
-using Xioru.Grain.Contracts;
 using Xioru.Messaging.Contracts.Config;
 using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
 {
-
-    [ImplicitStreamSubscription(GrainConstants.ClusterRepositoryStreamNamespace)]
     public class DiscordMessengerGrain : MessengerGrain, IDiscordMessengerGrain
     {
         private readonly DiscordSocketClient _discordClient;
+
         public DiscordMessengerGrain(
             ILogger<MessengerGrain> logger,
             IGrainFactory grainFactory,

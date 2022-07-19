@@ -1,10 +1,8 @@
-﻿using Discord;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Runtime;
 using Orleans.Streams;
-using Orleans.Streams.Core;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Project;
@@ -16,7 +14,6 @@ using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
 {
-    [ImplicitStreamSubscription(MessagingConstants.ChannelOutcomingStreamNamespace)]
     public abstract partial class MessengerGrain :
         Orleans.Grain,
         IMessengerGrain,

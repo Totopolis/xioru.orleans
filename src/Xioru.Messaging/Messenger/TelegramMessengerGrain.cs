@@ -1,19 +1,16 @@
-﻿using Telegram.Bot;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans;
-using Xioru.Messaging.Contracts.Config;
-using Xioru.Messaging.Contracts.Messenger;
+using Telegram.Bot;
+using Telegram.Bot.Exceptions;
+using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Polling;
-using Telegram.Bot.Exceptions;
-using Xioru.Grain.Contracts;
+using Xioru.Messaging.Contracts.Config;
+using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
 {
-
-    [ImplicitStreamSubscription(GrainConstants.ClusterRepositoryStreamNamespace)]
     public class TelegramMessengerGrain : MessengerGrain, ITelegramMessengerGrain
     {
         private readonly ITelegramBotClient _telegramClient;
@@ -46,10 +43,11 @@ namespace Xioru.Messaging.Messenger
                 ThrowPendingUpdates = true,
             };
 
-            _telegramClient.StartReceiving(updateHandler: HandleUpdateAsync,
-                               pollingErrorHandler: HandlePollingError,
-                               receiverOptions: receiverOptions,
-                               cancellationToken: _cts.Token);
+            _telegramClient.StartReceiving(
+                updateHandler: HandleUpdateAsync,
+                pollingErrorHandler: HandlePollingError,
+                receiverOptions: receiverOptions,
+                cancellationToken: _cts.Token);
 
             var self = await _telegramClient.GetMeAsync();
             _logger.LogInformation($"Start listening for @{self.Username}");
@@ -62,7 +60,10 @@ namespace Xioru.Messaging.Messenger
             //TODO: checks needed?
         }
 
-        private Task HandlePollingError(ITelegramBotClient botClient, Exception exception, CancellationToken _)
+        private Task HandlePollingError(
+            ITelegramBotClient botClient,
+            Exception exception,
+            CancellationToken _)
         {
             var errorMessage = exception switch
             {
@@ -74,7 +75,10 @@ namespace Xioru.Messaging.Messenger
             return Task.CompletedTask;
         }
 
-        async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken _)
+        async Task HandleUpdateAsync(
+            ITelegramBotClient botClient,
+            Update update,
+            CancellationToken _)
         {
             if (update.Type != UpdateType.Message)
             {
