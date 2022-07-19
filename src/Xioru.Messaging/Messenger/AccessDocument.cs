@@ -1,13 +1,12 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
 {
     internal class AccessDocument
     {
-        [BsonId]
+        [BsonId] //TODO: consider making objectId
         public Guid Id { get; set; }
-
-        public Guid MessengerId { get; set; } = Guid.Empty;
 
         public string ChatId { get; set; } = default!;
 

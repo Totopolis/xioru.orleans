@@ -44,7 +44,7 @@ namespace Xioru.Messaging.MessengerCommand
             var projectName = context.Arguments[0];
             if (projectName == "you_project_name" || projectName.Contains(' '))
             {
-                return CommandResult.LogicError("Select other name");
+                return CommandResult.LogicError("Project name cannot contain spaces and be named 'you_project_name'");
             }
 
             // 3. check project name already used

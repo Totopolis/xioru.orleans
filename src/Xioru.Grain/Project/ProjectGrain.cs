@@ -99,7 +99,7 @@ namespace Xioru.Grain.Project
         protected async Task EmitEvent<T_EVENT>(
             T_EVENT @event,
             GrainMessage.MessageKind kind = GrainMessage.MessageKind.Other)
-            where T_EVENT : notnull
+            where T_EVENT : class
         {
             var grainId = this.GetPrimaryKey();
 

@@ -1,11 +1,14 @@
 ﻿using Discord;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Runtime;
 using Orleans.Streams;
 using Orleans.Streams.Core;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Project;
+using Xioru.Messaging.Channel;
 using Xioru.Messaging.Contracts;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Config;
@@ -14,34 +17,36 @@ using Xioru.Messaging.Contracts.Messenger;
 namespace Xioru.Messaging.Messenger
 {
     [ImplicitStreamSubscription(MessagingConstants.ChannelOutcomingStreamNamespace)]
-    [ImplicitStreamSubscription(GrainConstants.ClusterRepositoryStreamNamespace)]
-    public partial class MessengerGrain :
+    public abstract partial class MessengerGrain :
         Orleans.Grain,
         IMessengerGrain,
         IRemindable,
-        //IStreamSubscriptionObserver,
         IAsyncObserver<ChannelOutcomingMessage>,
         IAsyncObserver<GrainMessage>
     {
-        private readonly ILogger<MessengerGrain> _log;
-        private readonly IGrainFactory _grainFactory;
-        private readonly IMessengerRepository _repository;
+        protected readonly ILogger<MessengerGrain> _logger;
+        protected readonly IGrainFactory _grainFactory;
+        protected readonly IMessengerRepository _repository;
 
-        private MessengerSection? _config = null;
+        protected MessengerSection? _config = null;
         private readonly Dictionary<string, IMessengerCommand> _commands;
 
         private IAsyncStream<GrainMessage> _clusterRepositoryStream = default!;
         private IAsyncStream<ChannelOutcomingMessage> _channelOutcomingStream = default!;
 
+        protected abstract MessengerType MessengerType { get; }
+
         public MessengerGrain(
-            ILogger<MessengerGrain> log,
+            ILogger<MessengerGrain> logger,
             IGrainFactory grainFactory,
             IMessengerRepository repository,
-            IEnumerable<IMessengerCommand> commands)
+            IEnumerable<IMessengerCommand> commands,
+            IOptions<BotsConfigSection> config)
         {
-            _log = log;
+            _logger = logger;
             _grainFactory = grainFactory;
             _repository = repository;
+            _config = config.Value.Configs[this.MessengerType];
 
             _commands = new Dictionary<string, IMessengerCommand>();
 
@@ -59,12 +64,10 @@ namespace Xioru.Messaging.Messenger
 
         public override async Task OnActivateAsync()
         {
-            var id = this.GetPrimaryKey();
-
             try
             {
                 // init repository
-                await _repository.StartAsync(id);
+                await _repository.StartAsync(this.MessengerType);
 
                 // init subscriptions
                 var streamProvider = this.GetStreamProvider("SMSProvider");
@@ -77,39 +80,34 @@ namespace Xioru.Messaging.Messenger
 
                 _channelOutcomingStream = await streamProvider
                     .GetStreamAndSingleSubscribe<ChannelOutcomingMessage>(
-                        streamId: id,
+                        streamId: Guid.Empty,
                         streamNamespace: MessagingConstants.ChannelOutcomingStreamNamespace,
                         observer: this);
 
                 // prevent from sleep
                 await RegisterOrUpdateReminder(
                     "KeepAlive",
-                    TimeSpan.FromMinutes(1),
-                    TimeSpan.FromMinutes(1));
+                    TimeSpan.FromMinutes(15),
+                    TimeSpan.FromMinutes(15));
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, $"Error during activate messenger grain '{id}'");
+                _logger.LogError(ex, $"Error during activate messenger grain for '{MessengerType}'");
             }
 
             await base.OnActivateAsync();
         }
 
-        public override async Task OnDeactivateAsync()
-        {
-            await _discord.StopAsync();
-
-            await base.OnDeactivateAsync();
-        }
 
         public Task OnCompletedAsync()
         {
+            _logger.LogDebug($"{MessengerType} completed");
             return Task.CompletedTask;
         }
 
         public Task OnErrorAsync(Exception ex)
         {
-            _log.LogError(ex, "Error at consume stream in MessengerGrain");
+            _logger.LogError(ex, "Error at consume stream in MessengerGrain");
             return Task.CompletedTask;
         }
 
@@ -122,7 +120,10 @@ namespace Xioru.Messaging.Messenger
                 return;
             }
 
-            await SendDirectMessage(item.ChatId, item.Message);
+            if (item.MessengerType == this.MessengerType)  //TODO: different streams mb?
+            {
+                await SendDirectMessage(item.ChatId, item.Message);
+            }
         }
 
         public async Task OnNextAsync(
@@ -139,11 +140,11 @@ namespace Xioru.Messaging.Messenger
                 return;
             }
 
-            if (item.GrainType == "ProjectGrain")
+            if (item.GrainType == nameof(ProjectGrain))
             {
                 await _repository.OnProjectDeleted(item.GrainId);
             }
-            else if (item.GrainType == "ChannelGrain")
+            else if (item.GrainType == nameof(ChannelGrain))
             {
                 await _repository.OnChannelDeleted(item.GrainId);
             }
@@ -158,48 +159,13 @@ namespace Xioru.Messaging.Messenger
                 MessagingConstants.ChannelIncomingStreamNamespace);
         }
 
-        public async Task StartAsync(MessengerSection config)
-        {
-            if (_config != null)
-            {
-                throw new Exception("Messenger already initialized");
-            }
-
-            _config = config;
-
-            switch (_config.Type)
-            {
-                case MessengerType.Discord:
-                    await StartDiscord();
-                    break;
-                case MessengerType.Telegram:
-                    throw new NotImplementedException();
-                case MessengerType.Slack:
-                    throw new NotImplementedException();
-                case MessengerType.Teams:
-                    throw new NotImplementedException();
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        private async Task SendDirectMessage(string chatId, string message)
-        {
-            // TODO: switch telega, slack, ...
-            if (ulong.TryParse(chatId, out var channelId))
-            {
-                var channel = await _discord.GetChannelAsync(channelId) as IMessageChannel;
-
-                if (channel != null)
-                {
-                    await channel.SendMessageAsync(message);
-                }
-            }
-        }
-
         public Task ReceiveReminder(string reminderName, TickStatus status)
         {
             return Task.CompletedTask;
         }
+
+        public abstract Task StartAsync();
+
+        protected abstract Task SendDirectMessage(string chatId, string message);
     }
 }

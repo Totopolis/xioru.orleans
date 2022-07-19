@@ -14,7 +14,7 @@ namespace Xioru.Messaging
             this IServiceCollection services,
             IConfiguration config)
         {
-            services.AddTransient<IMessengerRepository, MessengerRepository>();
+            services.AddTransient<IMessengerRepository, MongoMessengerRepository>();
 
             // register user messenger commands
             services.AddTransient<IMessengerCommand, UnameCommand>();

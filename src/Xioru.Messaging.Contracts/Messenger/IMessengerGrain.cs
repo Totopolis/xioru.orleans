@@ -5,6 +5,6 @@ namespace Xioru.Messaging.Contracts.Messenger
 {
     public interface IMessengerGrain : IGrainWithGuidKey
     {
-        Task StartAsync(MessengerSection config);
+        Task StartAsync();
     }
 }

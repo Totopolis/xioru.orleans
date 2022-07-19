@@ -3,7 +3,7 @@ using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
 {
-    public partial class MessengerGrain
+    public partial class MessengerGrain //TODO: move to handler ?
     {
         public async Task OnMessage(string message, string chatId)
         {
@@ -34,8 +34,7 @@ namespace Xioru.Messaging.Messenger
                     IsSupervisor = _config.Supervisors.Any(x => x == chatId),
                     ChatId = chatId,
                     Manager = _repository,
-                    MessengerType = _config!.Type,
-                    MessengerId = _config!.Id,
+                    MessengerType = MessengerType
                 };
 
                 var commandText = segments[0].TrimStart('/');
