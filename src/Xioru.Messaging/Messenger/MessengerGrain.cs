@@ -25,7 +25,7 @@ namespace Xioru.Messaging.Messenger
         protected readonly IGrainFactory _grainFactory;
         protected readonly IMessengerRepository _repository;
 
-        protected MessengerSection? _config = null;
+        protected MessengerSection? _config = default!;
         private readonly Dictionary<string, IMessengerCommand> _commands;
 
         private IAsyncStream<GrainMessage> _clusterRepositoryStream = default!;
@@ -38,12 +38,16 @@ namespace Xioru.Messaging.Messenger
             IGrainFactory grainFactory,
             IMessengerRepository repository,
             IEnumerable<IMessengerCommand> commands,
-            IOptions<BotsConfigSection> config)
+            IOptions<BotsConfigSection> options)
         {
             _logger = logger;
             _grainFactory = grainFactory;
             _repository = repository;
-            _config = config.Value.Configs[this.MessengerType];
+
+            if (!options.Value.Configs.TryGetValue(this.MessengerType, out _config))
+            {
+                _logger.LogError($"Configuration for {MessengerType.ToString()} messenger type not found");
+            }
 
             _commands = new Dictionary<string, IMessengerCommand>();
 
@@ -59,7 +63,7 @@ namespace Xioru.Messaging.Messenger
                 .ForEach(x => _commands.Add($"{x.CommandName}", x));
         }
 
-        public override async Task OnActivateAsync()
+        public virtual async Task StartAsync()
         {
             try
             {
@@ -91,10 +95,7 @@ namespace Xioru.Messaging.Messenger
             {
                 _logger.LogError(ex, $"Error during activate messenger grain for '{MessengerType}'");
             }
-
-            await base.OnActivateAsync();
         }
-
 
         public Task OnCompletedAsync()
         {
@@ -112,12 +113,9 @@ namespace Xioru.Messaging.Messenger
             ChannelOutcomingMessage item,
             StreamSequenceToken token)
         {
-            if (_config == null)
-            {
-                return;
-            }
-
-            if (item.MessengerType == this.MessengerType)  //TODO: different streams mb?
+            // TODO: different streams mb?
+            // No, dc/tg will block us as spam
+            if (item.MessengerType == this.MessengerType)
             {
                 await SendDirectMessage(item.ChatId, item.Message);
             }
@@ -127,11 +125,6 @@ namespace Xioru.Messaging.Messenger
             GrainMessage item,
             StreamSequenceToken token)
         {
-            if (_config == null)
-            {
-                return;
-            }
-
             if (item.Kind != GrainMessage.MessageKind.Delete)
             {
                 return;
@@ -156,12 +149,7 @@ namespace Xioru.Messaging.Messenger
                 MessagingConstants.ChannelIncomingStreamNamespace);
         }
 
-        public Task ReceiveReminder(string reminderName, TickStatus status)
-        {
-            return Task.CompletedTask;
-        }
-
-        public abstract Task StartAsync();
+        public Task ReceiveReminder(string reminderName, TickStatus status) => Task.CompletedTask;
 
         protected abstract Task SendDirectMessage(string chatId, string message);
     }

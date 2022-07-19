@@ -17,10 +17,9 @@ namespace Xioru.Messaging.Messenger
             IGrainFactory grainFactory,
             IMessengerRepository repository,
             IEnumerable<IMessengerCommand> commands,
-            IOptions<BotsConfigSection> botsConfig,
-            DiscordSocketClient discordClient) : base(logger, grainFactory, repository, commands, botsConfig)
+            IOptions<BotsConfigSection> options) : base(logger, grainFactory, repository, commands, options)
         {
-            _discordClient = discordClient;
+            _discordClient = new DiscordSocketClient();
         }
 
         protected override MessengerType MessengerType => MessengerType.Discord;
@@ -29,17 +28,28 @@ namespace Xioru.Messaging.Messenger
         {
             await _discordClient.StopAsync();
 
-            await base.OnDeactivateAsync(); //TODO: increase deactivation time
+            // TODO: increase deactivation time
+            await base.OnDeactivateAsync();
         }
 
         public override async Task StartAsync()
         {
+            if (_config == null ||
+                _discordClient.LoginState == LoginState.LoggedIn)
+            {
+                // TODO: need exception, logging?
+                return;
+            }
+
             _discordClient.Log += LogAsync;
             _discordClient.Ready += ReadyAsync;
             _discordClient.MessageReceived += MessageReceivedAsync;
 
             await _discordClient.LoginAsync(TokenType.Bot, _config!.Token);
             await _discordClient.StartAsync();
+
+            // subscribe to cluster and channelOutcoming streams
+            await base.StartAsync();
         }
 
         private Task LogAsync(LogMessage log)
@@ -73,6 +83,11 @@ namespace Xioru.Messaging.Messenger
 
         protected override async Task SendDirectMessage(string chatId, string message)
         {
+            if (_discordClient.LoginState != LoginState.LoggedIn)
+            {
+                return;
+            }
+
             if (ulong.TryParse(chatId, out var channelId))
             {
                 var channel = await _discordClient.GetChannelAsync(channelId) as IMessageChannel;

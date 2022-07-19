@@ -6,6 +6,6 @@ namespace Xioru.Messaging.Contracts.Config
     {
         public const string SectionName = "Bots";
 
-        public Dictionary<MessengerType, MessengerSection> Configs { get; set; } = new Dictionary<MessengerType, MessengerSection>();
+        public Dictionary<MessengerType, MessengerSection> Configs { get; set; } = new();
     }
 }

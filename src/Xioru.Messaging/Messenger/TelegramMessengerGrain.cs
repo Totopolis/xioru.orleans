@@ -13,18 +13,16 @@ namespace Xioru.Messaging.Messenger
 {
     public class TelegramMessengerGrain : MessengerGrain, ITelegramMessengerGrain
     {
-        private readonly ITelegramBotClient _telegramClient;
-        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private TelegramBotClient? _telegramClient = default!;
+        private CancellationTokenSource _cts = new();
 
         public TelegramMessengerGrain(
             ILogger<MessengerGrain> logger,
             IGrainFactory grainFactory,
             IMessengerRepository repository,
             IEnumerable<IMessengerCommand> commands,
-            IOptions<BotsConfigSection> botsConfig,
-            ITelegramBotClient telegramBotClient) : base(logger, grainFactory, repository, commands, botsConfig)
+            IOptions<BotsConfigSection> options) : base(logger, grainFactory, repository, commands, options)
         {
-            _telegramClient = telegramBotClient;
         }
 
         protected override MessengerType MessengerType => MessengerType.Telegram;
@@ -32,11 +30,22 @@ namespace Xioru.Messaging.Messenger
         public override async Task OnDeactivateAsync()
         {
             _cts.Cancel();
-            await base.OnDeactivateAsync(); //TODO: increase deactivation time
+
+            // TODO: increase deactivation time
+            await base.OnDeactivateAsync();
         }
 
         public override async Task StartAsync()
         {
+            if (_config == null ||
+                _telegramClient != null)
+            {
+                // TODO: need exception, logging?
+                return;
+            }
+
+            _telegramClient = new TelegramBotClient(_config.Token);
+
             var receiverOptions = new ReceiverOptions()
             {
                 AllowedUpdates = Array.Empty<UpdateType>(),
@@ -49,12 +58,20 @@ namespace Xioru.Messaging.Messenger
                 receiverOptions: receiverOptions,
                 cancellationToken: _cts.Token);
 
+            // subscribe to cluster and channelOutcoming streams
+            await base.StartAsync();
+
             var self = await _telegramClient.GetMeAsync();
             _logger.LogInformation($"Start listening for @{self.Username}");
         }
 
         protected override async Task SendDirectMessage(string chatId, string message)
         {
+            if (_telegramClient == null)
+            {
+                return;
+            }
+
             var internalId = long.TryParse(chatId, out var num) ? new ChatId(num) : new ChatId("@" + chatId);
             await _telegramClient.SendTextMessageAsync(internalId, message);
             //TODO: checks needed?
@@ -75,7 +92,7 @@ namespace Xioru.Messaging.Messenger
             return Task.CompletedTask;
         }
 
-        async Task HandleUpdateAsync(
+        private async Task HandleUpdateAsync(
             ITelegramBotClient botClient,
             Update update,
             CancellationToken _)
