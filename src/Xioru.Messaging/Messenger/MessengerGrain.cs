@@ -7,6 +7,8 @@ using Orleans.Streams;
 using Orleans.Streams.Core;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Project;
+using Xioru.Messaging.Channel;
 using Xioru.Messaging.Contracts;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Config;
@@ -15,7 +17,6 @@ using Xioru.Messaging.Contracts.Messenger;
 namespace Xioru.Messaging.Messenger
 {
     [ImplicitStreamSubscription(MessagingConstants.ChannelOutcomingStreamNamespace)]
-    [ImplicitStreamSubscription(GrainConstants.ClusterRepositoryStreamNamespace)]
     public abstract partial class MessengerGrain :
         Orleans.Grain,
         IMessengerGrain,
@@ -23,7 +24,7 @@ namespace Xioru.Messaging.Messenger
         IAsyncObserver<ChannelOutcomingMessage>,
         IAsyncObserver<GrainMessage>
     {
-        protected readonly ILogger<MessengerGrain> _log;
+        protected readonly ILogger<MessengerGrain> _logger;
         protected readonly IGrainFactory _grainFactory;
         protected readonly IMessengerRepository _repository;
 
@@ -36,13 +37,13 @@ namespace Xioru.Messaging.Messenger
         protected abstract MessengerType MessengerType { get; }
 
         public MessengerGrain(
-            ILogger<MessengerGrain> log,
+            ILogger<MessengerGrain> logger,
             IGrainFactory grainFactory,
             IMessengerRepository repository,
             IEnumerable<IMessengerCommand> commands,
             IOptions<BotsConfigSection> config)
         {
-            _log = log;
+            _logger = logger;
             _grainFactory = grainFactory;
             _repository = repository;
             _config = config.Value.Configs[this.MessengerType];
@@ -63,12 +64,10 @@ namespace Xioru.Messaging.Messenger
 
         public override async Task OnActivateAsync()
         {
-            var id = this.GetPrimaryKey();
-
             try
             {
                 // init repository
-                await _repository.StartAsync(id);
+                await _repository.StartAsync(this.MessengerType);
 
                 // init subscriptions
                 var streamProvider = this.GetStreamProvider("SMSProvider");
@@ -81,19 +80,19 @@ namespace Xioru.Messaging.Messenger
 
                 _channelOutcomingStream = await streamProvider
                     .GetStreamAndSingleSubscribe<ChannelOutcomingMessage>(
-                        streamId: id,
+                        streamId: Guid.Empty,
                         streamNamespace: MessagingConstants.ChannelOutcomingStreamNamespace,
                         observer: this);
 
                 // prevent from sleep
                 await RegisterOrUpdateReminder(
                     "KeepAlive",
-                    TimeSpan.FromMinutes(1),
-                    TimeSpan.FromMinutes(1));
+                    TimeSpan.FromMinutes(15),
+                    TimeSpan.FromMinutes(15));
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, $"Error during activate messenger grain '{id}'");
+                _logger.LogError(ex, $"Error during activate messenger grain for '{MessengerType}'");
             }
 
             await base.OnActivateAsync();
@@ -102,12 +101,13 @@ namespace Xioru.Messaging.Messenger
 
         public Task OnCompletedAsync()
         {
+            _logger.LogDebug($"{MessengerType} completed");
             return Task.CompletedTask;
         }
 
         public Task OnErrorAsync(Exception ex)
         {
-            _log.LogError(ex, "Error at consume stream in MessengerGrain");
+            _logger.LogError(ex, "Error at consume stream in MessengerGrain");
             return Task.CompletedTask;
         }
 
@@ -120,7 +120,10 @@ namespace Xioru.Messaging.Messenger
                 return;
             }
 
-            await SendDirectMessage(item.ChatId, item.Message);
+            if (item.MessengerType == this.MessengerType)  //TODO: different streams mb?
+            {
+                await SendDirectMessage(item.ChatId, item.Message);
+            }
         }
 
         public async Task OnNextAsync(
@@ -137,11 +140,11 @@ namespace Xioru.Messaging.Messenger
                 return;
             }
 
-            if (item.GrainType == "ProjectGrain")
+            if (item.GrainType == nameof(ProjectGrain))
             {
                 await _repository.OnProjectDeleted(item.GrainId);
             }
-            else if (item.GrainType == "ChannelGrain")
+            else if (item.GrainType == nameof(ChannelGrain))
             {
                 await _repository.OnChannelDeleted(item.GrainId);
             }

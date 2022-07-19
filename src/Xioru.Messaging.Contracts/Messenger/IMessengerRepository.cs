@@ -1,8 +1,8 @@
 ﻿namespace Xioru.Messaging.Contracts.Messenger
 {
-    public interface IMessengerRepository
+    public interface IMessengerRepository // TODO: consider making two interfaces out ot this one (ISP)
     {
-        Task StartAsync(Guid messengerId);
+        Task StartAsync(MessengerType type);
 
         bool TryGetCurrentChannel(string chatId, out AccessRecord channel);
 

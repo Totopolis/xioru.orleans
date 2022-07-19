@@ -3,46 +3,50 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans;
+using Xioru.Grain.Contracts;
 using Xioru.Messaging.Contracts.Config;
 using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
 {
+
+    [ImplicitStreamSubscription(GrainConstants.ClusterRepositoryStreamNamespace)]
     public class DiscordMessengerGrain : MessengerGrain, IDiscordMessengerGrain
     {
-        private readonly DiscordSocketClient _discord = new DiscordSocketClient(); //TODO: inject?
+        private readonly DiscordSocketClient _discordClient;
         public DiscordMessengerGrain(
             ILogger<MessengerGrain> logger,
             IGrainFactory grainFactory,
             IMessengerRepository repository,
             IEnumerable<IMessengerCommand> commands,
-            IOptions<BotsConfigSection> botsConfig) : base(logger, grainFactory, repository, commands, botsConfig)
+            IOptions<BotsConfigSection> botsConfig,
+            DiscordSocketClient discordClient) : base(logger, grainFactory, repository, commands, botsConfig)
         {
-
+            _discordClient = discordClient;
         }
 
         protected override MessengerType MessengerType => MessengerType.Discord;
 
         public override async Task OnDeactivateAsync()
         {
-            await _discord.StopAsync();
+            await _discordClient.StopAsync();
 
             await base.OnDeactivateAsync(); //TODO: increase deactivation time
         }
 
         public override async Task StartAsync()
         {
-            _discord.Log += LogAsync;
-            _discord.Ready += ReadyAsync;
-            _discord.MessageReceived += MessageReceivedAsync;
+            _discordClient.Log += LogAsync;
+            _discordClient.Ready += ReadyAsync;
+            _discordClient.MessageReceived += MessageReceivedAsync;
 
-            await _discord.LoginAsync(TokenType.Bot, _config!.Token);
-            await _discord.StartAsync();
+            await _discordClient.LoginAsync(TokenType.Bot, _config!.Token);
+            await _discordClient.StartAsync();
         }
 
         private Task LogAsync(LogMessage log)
         {
-            _log.LogInformation(log.ToString());
+            _logger.LogInformation(log.ToString());
             return Task.CompletedTask;
         }
 
@@ -50,7 +54,7 @@ namespace Xioru.Messaging.Messenger
         // connection and it is now safe to access the cache.
         private Task ReadyAsync()
         {
-            _log.LogInformation($"{_discord.CurrentUser} is connected!");
+            _logger.LogInformation($"{_discordClient.CurrentUser} is connected!");
             return Task.CompletedTask;
         }
 
@@ -59,7 +63,7 @@ namespace Xioru.Messaging.Messenger
         private async Task MessageReceivedAsync(SocketMessage message)
         {
             // The bot should never respond to itself.
-            if (message.Author.Id == _discord.CurrentUser.Id)
+            if (message.Author.Id == _discordClient.CurrentUser.Id)
             {
                 return;
             }
@@ -73,7 +77,7 @@ namespace Xioru.Messaging.Messenger
         {
             if (ulong.TryParse(chatId, out var channelId))
             {
-                var channel = await _discord.GetChannelAsync(channelId) as IMessageChannel;
+                var channel = await _discordClient.GetChannelAsync(channelId) as IMessageChannel;
 
                 if (channel != null)
                 {
@@ -81,12 +85,12 @@ namespace Xioru.Messaging.Messenger
                 }
                 else
                 {
-                    _log.LogWarning($"Failed attempt to send internal message to {chatId} ({message})");
+                    _logger.LogWarning($"Failed attempt to send internal message to {chatId} ({message})");
                 }
             }
             else
             {
-                _log.LogWarning($"Failed attempt to parse {chatId} for sending a message ({message})");
+                _logger.LogWarning($"Failed attempt to parse {chatId} for sending a message ({message})");
             }
         }
     }

@@ -4,40 +4,34 @@ using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
 {
-    internal class MessengerRepository : IMessengerRepository
+    internal class MongoMessengerRepository : IMessengerRepository
     {
-        public const string MessengerAccessCollection = "MessengerAccess";
-        public const string MessengerInviteCollection = "MessengerInvite";
-
         private readonly IMongoDatabase _database;
-        private readonly ILogger<MessengerRepository> _log;
+        private readonly ILogger<MongoMessengerRepository> _log;
 
-        private readonly IMongoCollection<AccessDocument> _accessCollection;
-        private readonly IMongoCollection<InviteDocument> _inviteCollection;
+        private IMongoCollection<AccessDocument>? _accessCollection;
+        private IMongoCollection<InviteDocument>? _inviteCollection;
 
-        private Guid _id;
         private List<AccessDocument> _access = default!;
 
-        public MessengerRepository(
+        public MongoMessengerRepository(
             IMongoDatabase database,
-            ILogger<MessengerRepository> log)
+            ILogger<MongoMessengerRepository> log)
         {
             _database = database;
             _log = log;
-
-            _accessCollection = _database
-                .GetCollection<AccessDocument>(MessengerAccessCollection);
-
-            _inviteCollection = _database
-                .GetCollection<InviteDocument>(MessengerInviteCollection);
         }
 
-        public async Task StartAsync(Guid messengerId)
+        public async Task StartAsync(MessengerType type)
         {
-            _id = messengerId;
+            _inviteCollection = _database
+                .GetCollection<InviteDocument>(type.ToString() + "Access");
+            _accessCollection = _database
+                .GetCollection<AccessDocument>(type.ToString() + "Invite");
 
+            // cannot it be filled from the outside?
             _access = await _accessCollection
-                .Find(x => x.MessengerId == _id)
+                .Find(FilterDefinition<AccessDocument>.Empty)
                 .ToListAsync();
         }
 
@@ -132,7 +126,6 @@ namespace Xioru.Messaging.Messenger
             var access = new AccessDocument
             {
                 Id = Guid.NewGuid(),
-                MessengerId = _id,
                 ChatId = chatId,
                 ChannelId = channelId,
                 ProjectName = projectName,
@@ -140,7 +133,7 @@ namespace Xioru.Messaging.Messenger
                 IsCurrent = true
             };
 
-            await _accessCollection.InsertOneAsync(access);
+            await _accessCollection!.InsertOneAsync(access);
 
             _access.Add(access);
 
@@ -182,7 +175,7 @@ namespace Xioru.Messaging.Messenger
                 ProjectId = projectId
             };
 
-            await _inviteCollection.InsertOneAsync(invite);
+            await _inviteCollection!.InsertOneAsync(invite);
         }
 
         public bool CheckInvite(string code, out Guid projectId)
@@ -211,7 +204,7 @@ namespace Xioru.Messaging.Messenger
             _access.RemoveAll(x => x.ChannelId == channelId);
 
             await _accessCollection.DeleteManyAsync(
-                x => x.ChannelId == channelId && x.MessengerId == _id);
+                x => x.ChannelId == channelId);
         }
     }
 }

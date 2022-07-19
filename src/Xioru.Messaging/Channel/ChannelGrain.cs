@@ -77,6 +77,7 @@ namespace Xioru.Messaging.Channel
             await _outcomingStream.Value
                 .OnNextAsync(new ChannelOutcomingMessage
                 {
+                    MessengerType = State.MessengerType, //TODO: different streams mb?
                     ChatId = State.ChatId,
                     Message = textMessage
                 });

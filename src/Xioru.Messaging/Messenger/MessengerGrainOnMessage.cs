@@ -3,7 +3,7 @@ using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
 {
-    public partial class MessengerGrain //TODO: move to handler
+    public partial class MessengerGrain //TODO: move to handler ?
     {
         public async Task OnMessage(string message, string chatId)
         {
