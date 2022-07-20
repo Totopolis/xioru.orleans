@@ -1,6 +1,7 @@
 ﻿using Orleans;
 using System.Text;
 using Xioru.Messaging.Contracts.Command;
+using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 
@@ -22,10 +23,10 @@ namespace Xioru.Messaging.MessengerCommand
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine($"ChatId: {context.ChatId}");
+            var fString = new FormattedString("ChatId: ", Formatting.Bold);
+            fString.Append(context.ChatId);
 
-            return Task.FromResult(CommandResult.Success(sb.ToString()));
+            return Task.FromResult(CommandResult.Success(fString));
         }
     }
 }

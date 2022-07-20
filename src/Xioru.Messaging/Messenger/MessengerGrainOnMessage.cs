@@ -1,4 +1,5 @@
 ﻿using Xioru.Messaging.Contracts.Channel;
+using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
@@ -14,7 +15,7 @@ namespace Xioru.Messaging.Messenger
                 return;
             }
 
-            var resultText = string.Empty;
+            var resultText = new FormattedString();
 
             using var reader = new StringReader(message);
             var line = await reader.ReadLineAsync();
@@ -79,7 +80,7 @@ namespace Xioru.Messaging.Messenger
                 }
 
                 var result = await command.Execute(context);
-                resultText += result.Message + Environment.NewLine;
+                resultText.Append(result.Message); // + Environment.NewLine; //to discord grain?
 
                 // abort if not successed
                 if (!result.IsSuccess)

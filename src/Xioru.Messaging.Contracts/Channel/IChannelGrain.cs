@@ -1,5 +1,6 @@
 ﻿using Orleans;
 using Xioru.Messaging.Contracts.Command;
+using Xioru.Messaging.Contracts.Formatting;
 
 namespace Xioru.Messaging.Contracts.Channel
 {
@@ -13,7 +14,7 @@ namespace Xioru.Messaging.Contracts.Channel
 
         Task<ChannelProjection> GetProjection();
 
-        Task SendMessage(string textMessage);
+        Task SendMessage(FormattedString textMessage);
 
         Task<CommandResult> ExecuteCommand(string command, bool isSupervisor = false);
     }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Orleans;
 using Xioru.Messaging.Contracts.Config;
+using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
@@ -81,7 +82,7 @@ namespace Xioru.Messaging.Messenger
                 chatId: message.Channel.Id.ToString());
         }
 
-        protected override async Task SendDirectMessage(string chatId, string message)
+        protected override async Task SendDirectMessage(string chatId, FormattedString message)
         {
             if (_discordClient.LoginState != LoginState.LoggedIn)
             {

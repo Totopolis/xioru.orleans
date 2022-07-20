@@ -1,4 +1,5 @@
-﻿using Xioru.Messaging.Contracts.Messenger;
+﻿using Xioru.Messaging.Contracts.Formatting;
+using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Contracts.Channel
 {
@@ -8,6 +9,6 @@ namespace Xioru.Messaging.Contracts.Channel
 
         public string ChatId { get; set; } = default!;
 
-        public string Message { get; set; } = default!;
+        public FormattedString Message { get; set; } = default!;
     }
 }
