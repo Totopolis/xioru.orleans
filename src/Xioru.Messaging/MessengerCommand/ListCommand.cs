@@ -33,8 +33,6 @@ namespace Xioru.Messaging.MessengerCommand
 
             var grainDescriptions = await readModel.GetGrains();
 
-
-            
             var fString = new FormattedString("> List of the platform objects", Formatting.Bold);
             fString.Append("```");
 

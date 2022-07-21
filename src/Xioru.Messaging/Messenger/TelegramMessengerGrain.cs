@@ -64,18 +64,40 @@ namespace Xioru.Messaging.Messenger
 
             var self = await _telegramClient.GetMeAsync();
             _logger.LogInformation($"Start listening for @{self.Username}");
+
+            await SendDirectMessage("1098810534", new FormattedString("Александр Пушкин", Formatting.Bold).Append(" начал писать свои первые произведения уже в семь лет. ")
+                .Append("В годы учебы в Лицее он прославился, когда прочитал свое стихотворение Гавриилу Державину. ", Formatting.Italic)
+                .Append("Пушкин первым из русских писателей начал зарабатывать литературным трудом. Он создавал не только лирические стихи, но и сказки, историческую прозу и произведения в поддержку революционеров — за вольнодумство поэта даже отправляли в ссылки.", Formatting.Italic | Formatting.Bold))
+        ;
         }
 
         protected override async Task SendDirectMessage(string chatId, FormattedString message)
         {
+
             if (_telegramClient == null)
             {
+                _logger.LogError("Telegram client are not initialized. Failed attempt to send message\n{Message}\n", message);
                 return;
             }
 
             var internalId = long.TryParse(chatId, out var num) ? new ChatId(num) : new ChatId("@" + chatId);
-            var formattedMessage = message.ToString(replaces: new Dictionary<string, string> { { ":", @"\:" } }, boldFormatter: bs => $"*{bs}*");
-            await _telegramClient.SendTextMessageAsync(internalId, formattedMessage, ParseMode.MarkdownV2);
+            var formattedMessages = message.ToStringBatch(
+                //replaces: _telegramSpecificReplaces,
+                boldFormatter: bstr => $"<b>{bstr}</b>",
+                italicFormatter: istr => $"<i>{istr}</i>",
+                limit: 100);
+
+            foreach (var formattedMessage in formattedMessages)
+            {
+                try
+                {
+                    await _telegramClient.SendTextMessageAsync(internalId, formattedMessage, ParseMode.Html);
+                }
+                catch(Exception ex)
+                {
+                    await _telegramClient.SendTextMessageAsync(internalId, formattedMessage);
+                }
+            }
         }
 
         private Task HandlePollingError(
@@ -85,7 +107,8 @@ namespace Xioru.Messaging.Messenger
         {
             var errorMessage = exception switch
             {
-                ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+                ApiRequestException apiRequestException 
+                    => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
                 _ => exception.ToString()
             };
 
@@ -106,11 +129,17 @@ namespace Xioru.Messaging.Messenger
 
             if (update.Message == null || update.Message.Text == null)
             {
-                _logger.LogError($"Telegram updatemessage is empty");
+                _logger.LogError($"Telegram update message is empty");
                 return;
             }
 
             await OnMessage(update.Message.Text, update.Message.Chat.Id.ToString());
         }
+
+        private readonly Dictionary<string, string> _telegramSpecificReplaces = new Dictionary<string, string> {
+            {"_", @"\_"}, {"*", @"\*"}, {"[", @"\["}, {"]", @"\]"}, {"{", @"\{"}, {"}", @"\}"}, 
+            {"~", @"\~"}, {"`", @"\`"}, {">", @"\>"}, {"#", @"\#"}, {"+", @"\+"}, {"-", @"\-"},
+            {"=", @"\="}, {"|", @"\|"}, {".", @"\."}, {"!", @"\!"} 
+        };
     }
 }

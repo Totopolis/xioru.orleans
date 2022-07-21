@@ -6,19 +6,19 @@ namespace Xioru.Messaging.Contracts.Formatting
     {
         public FormattedString(string str, Formatting formatting = Formatting.None)
         {
-            _formattedElements = new List<FormattingElement> { new FormattingElement(str, formatting) };
+            _formattedElements = new List<(string, Formatting)> { (str, formatting) };
         }
 
         public FormattedString()
         {
-            _formattedElements = new List<FormattingElement>();
+            _formattedElements = new List<(string, Formatting)>();
         }
 
-        private List<FormattingElement> _formattedElements;
+        private List<(string Text, Formatting Formatting)> _formattedElements;
 
         public FormattedString Append(string text, Formatting formatting = Formatting.None)
         {
-            _formattedElements.Add(new FormattingElement(text, formatting));
+            _formattedElements.Add((text, formatting));
             return this;
         }
 
@@ -33,30 +33,72 @@ namespace Xioru.Messaging.Contracts.Formatting
             return string.Join(string.Empty, _formattedElements);
         }
 
-        public string ToString(
+        public IReadOnlyList<string> ToStringBatch(
             Dictionary<string, string>? replaces = null,
             Func<string, string>? boldFormatter = null,
             Func<string, string>? italicFormatter = null,
-            Func<string, string>? underlineFormatter = null
-            )
+            Func<string, string>? underlineFormatter = null,
+            int limit = int.MaxValue)
         {
             var sb = new StringBuilder();
-            _formattedElements.ForEach(elm =>
+            var messageBuilders = new List<StringBuilder> { sb };
+            foreach(var elm in _formattedElements)
             {
-                if (replaces != null)
+                WrapElement(elm.Text, elm.Formatting);
+            };
+
+            return messageBuilders.Select(sb => sb.ToString()).ToList();
+
+            void WrapElement(string rawText, Formatting formatting)
+            {
+                var escapedString = Escape(rawText, replaces);
+                var strWithAppliedRules = ApplyFormatRules(escapedString, formatting);
+                if (sb.Length + strWithAppliedRules.Length > limit)
                 {
-                    elm.Escape(replaces);
+                    var serviceAdditionLength = strWithAppliedRules.Length - rawText.Length;
+                    var rawLength = limit - sb.Length - serviceAdditionLength;
+                    if (rawLength > 0)
+                    {
+                        WrapElement(rawText.Substring(0, rawLength), formatting);
+                    }
+                    else 
+                    {
+                        rawLength = 0; 
+                    }
+
+                    sb = new StringBuilder();
+                    messageBuilders.Add(sb);
+                    WrapElement(rawText.Substring(rawLength), formatting);
                 }
+                else
+                {
+                    sb.Append(strWithAppliedRules);
+                }
+            }
 
-                var elmString = elm.ToString();
-                if (elm.Formatting.HasFlag(Formatting.Bold) && boldFormatter != null) elmString = boldFormatter(elmString);
-                if (elm.Formatting.HasFlag(Formatting.Italic) && italicFormatter != null) elmString = italicFormatter(elmString);
-                if (elm.Formatting.HasFlag(Formatting.Underline) && underlineFormatter != null) elmString = underlineFormatter(elmString);
-                
-                sb.Append(elmString);
-            });
+            string ApplyFormatRules(string text, Formatting formatting)
+            {
+                if (formatting.HasFlag(Formatting.Bold) && boldFormatter != null)
+                    text = boldFormatter(text);
+                if (formatting.HasFlag(Formatting.Italic) && italicFormatter != null)
+                    text = italicFormatter(text);
+                if (formatting.HasFlag(Formatting.Underline) && underlineFormatter != null)
+                    text = underlineFormatter(text);
+                return text;
+            }
+        }
 
-            return sb.ToString();
+        private string Escape(string rawText, Dictionary<string, string>? replaces)
+        {
+            var ret = rawText;
+            if (replaces != null)
+            {
+                foreach (var c in replaces.Keys)
+                {
+                    ret = ret.Replace(c, replaces[c]);
+                }
+            }
+            return ret;
         }
 
         public static implicit operator string(FormattedString self)
@@ -67,31 +109,6 @@ namespace Xioru.Messaging.Contracts.Formatting
         public static implicit operator FormattedString(string self)
         {
             return new FormattedString(self);
-        }
-    }
-
-    internal class FormattingElement
-    {
-        private string _text;
-        public Formatting Formatting { get; }
-
-        public FormattingElement(string text, Formatting formatting = Formatting.None)
-        {
-            _text = text;
-            Formatting = formatting;
-        }
-
-        public void Escape(Dictionary<string, string> replaces)
-        {
-            foreach (var c in replaces.Keys)
-            {
-                _text = _text.Replace(c, replaces[c]);
-            }
-        }
-
-        public override string ToString()
-        {
-            return _text;
         }
     }
 
