@@ -1,7 +1,9 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Orleans;
 using Xioru.Messaging.Channel;
+using Xioru.Messaging.Contracts.Config;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 using Xioru.Messaging.MessengerCommand;
@@ -37,7 +39,40 @@ namespace Xioru.Messaging
             // mappers
             services.AddAutoMapper(typeof(ChannelGrain));
 
+            // register messengers
+            var messengersSection = config.GetSection(BotsConfigSection.SectionName);
+            if (messengersSection.Exists())
+            {
+                var messengersConfigs = messengersSection.Get<BotsConfigSection>()?.Configs;
+
+                if (messengersConfigs != null)
+                {
+                    services.AddOptions<BotsConfigSection>()
+                        .BindConfiguration(BotsConfigSection.SectionName);
+
+                    services.RegisterMessengerIfEnabled<IDiscordMessengerGrain>(
+                        messengersConfigs, MessengerType.Discord);
+
+                    services.RegisterMessengerIfEnabled<ITelegramMessengerGrain>(
+                        messengersConfigs, MessengerType.Telegram);
+                }
+            }
+
             return services;
+        }
+
+        private static void RegisterMessengerIfEnabled<T>(
+            this IServiceCollection services,
+            Dictionary<MessengerType, MessengerSection> configs,
+            MessengerType messengerType) where T : IMessengerGrain
+        {
+            if (configs.TryGetValue(messengerType, out var messenger)
+                && messenger != null
+                && messenger.Enable)
+            {
+                services.AddTransient<IMessengerGrain>(
+                    sb => sb.GetService<IGrainFactory>()!.GetGrain<T>(Guid.Empty));
+            }
         }
     }
 }
