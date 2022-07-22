@@ -112,7 +112,7 @@ namespace Xioru.Messaging.Contracts.Formatting
         }
     }
 
-    [Flags]
+    [Flags] //mb make hierarchy?
     public enum Formatting
     {
         None = 0,

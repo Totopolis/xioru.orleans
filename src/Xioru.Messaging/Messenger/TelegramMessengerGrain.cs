@@ -64,11 +64,6 @@ namespace Xioru.Messaging.Messenger
 
             var self = await _telegramClient.GetMeAsync();
             _logger.LogInformation($"Start listening for @{self.Username}");
-
-            await SendDirectMessage("1098810534", new FormattedString("Александр Пушкин", Formatting.Bold).Append(" начал писать свои первые произведения уже в семь лет. ")
-                .Append("В годы учебы в Лицее он прославился, когда прочитал свое стихотворение Гавриилу Державину. ", Formatting.Italic)
-                .Append("Пушкин первым из русских писателей начал зарабатывать литературным трудом. Он создавал не только лирические стихи, но и сказки, историческую прозу и произведения в поддержку революционеров — за вольнодумство поэта даже отправляли в ссылки.", Formatting.Italic | Formatting.Bold))
-        ;
         }
 
         protected override async Task SendDirectMessage(string chatId, FormattedString message)
@@ -82,16 +77,16 @@ namespace Xioru.Messaging.Messenger
 
             var internalId = long.TryParse(chatId, out var num) ? new ChatId(num) : new ChatId("@" + chatId);
             var formattedMessages = message.ToStringBatch(
-                //replaces: _telegramSpecificReplaces,
-                boldFormatter: bstr => $"<b>{bstr}</b>",
-                italicFormatter: istr => $"<i>{istr}</i>",
+                replaces: _telegramSpecificReplaces,
+                boldFormatter: bstr => $"*{bstr}*",
+                italicFormatter: istr => $"_{istr}_",
                 limit: 100);
 
             foreach (var formattedMessage in formattedMessages)
             {
                 try
                 {
-                    await _telegramClient.SendTextMessageAsync(internalId, formattedMessage, ParseMode.Html);
+                    await _telegramClient.SendTextMessageAsync(internalId, formattedMessage, ParseMode.MarkdownV2);
                 }
                 catch(Exception ex)
                 {
