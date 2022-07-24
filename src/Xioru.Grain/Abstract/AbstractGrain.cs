@@ -180,6 +180,7 @@ namespace Xioru.Grain.AbstractGrain
             var grainEvent = new GrainMessage
             {
                 ProjectId = State.ProjectId,
+                BaseGrainType = typeof(T).BaseType!.Name,
                 GrainType = typeof(T).Name,
                 GrainId = this.GetPrimaryKey(),
                 GrainName = State.Name,
