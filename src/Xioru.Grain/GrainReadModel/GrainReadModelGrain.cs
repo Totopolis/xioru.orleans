@@ -30,15 +30,20 @@ namespace Xioru.Grain.GrainReadModel
             _log = log;
         }
 
-        public override Task OnActivateAsync()
+        public override async Task OnActivateAsync()
         {
             // activated only prjId instances by implicit streaming
             var dbNamePrefix = this.GetPrimaryKey().ToString("N");
             
             _grainCollection = _database.GetCollection<GrainDocument>(
                 $"{dbNamePrefix}-{GrainReadModelCollectionName}");
+            var indexDefenition = Builders<GrainDocument>.IndexKeys
+                .Text(d => d.GrainName)
+                .Text(d => d.GrainType);
+            var indexModel = new CreateIndexModel<GrainDocument>(indexDefenition);
 
-            return base.OnActivateAsync();
+            await _grainCollection.Indexes.CreateOneAsync(indexModel);
+            await base.OnActivateAsync();
         }
 
         public async Task<long> GrainsCount()
@@ -74,9 +79,11 @@ namespace Xioru.Grain.GrainReadModel
                 };
         }
 
-        public async Task<GrainDescription[]> GetGrains()
+        public async Task<GrainDescription[]> GetGrains(string? filterText = null)
         {
-            var filter = Builders<GrainDocument>.Filter.Empty;
+            var filter = filterText == null
+                ? Builders<GrainDocument>.Filter.Empty
+                : Builders<GrainDocument>.Filter.Text(filterText);
             var list = await _grainCollection.Find(filter).ToListAsync();
 
             var result = list.Count == 0 ? new GrainDescription[0] :

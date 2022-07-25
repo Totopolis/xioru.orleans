@@ -27,7 +27,6 @@ namespace Xioru.Messaging
             services.AddTransient<IMessengerCommand, StartCommand>();
             services.AddTransient<IMessengerCommand, MecCommand>();
             services.AddTransient<IMessengerCommand, LeaveCommand>();
-            services.AddTransient<IMessengerCommand, ListCommand>();
 
             // supervisor commands
             services.AddTransient<IMessengerCommand, SinviteCommand>();

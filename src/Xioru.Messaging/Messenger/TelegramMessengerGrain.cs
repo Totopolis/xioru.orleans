@@ -76,23 +76,20 @@ namespace Xioru.Messaging.Messenger
             }
 
             var internalId = long.TryParse(chatId, out var num) ? new ChatId(num) : new ChatId("@" + chatId);
-            var formattedMessages = message.ToStringBatch(
+            var formattedMessage = message.ToString(
                 replaces: _telegramSpecificReplaces,
                 boldFormatter: bstr => $"*{bstr}*",
                 italicFormatter: istr => $"_{istr}_",
-                limit: 100);
+                limit: 4000);
 
-            foreach (var formattedMessage in formattedMessages)
+            try
             {
-                try
-                {
-                    await _telegramClient.SendTextMessageAsync(internalId, formattedMessage, ParseMode.MarkdownV2);
-                }
-                catch(Exception ex)
-                {
-                    await _telegramClient.SendTextMessageAsync(internalId, formattedMessage);
-                }
+                await _telegramClient.SendTextMessageAsync(internalId, formattedMessage, ParseMode.MarkdownV2);
             }
+            catch
+            {
+                await _telegramClient.SendTextMessageAsync(internalId, formattedMessage);
+            }            
         }
 
         private Task HandlePollingError(

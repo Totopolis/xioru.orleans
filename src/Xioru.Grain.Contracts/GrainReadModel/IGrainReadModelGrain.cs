@@ -26,6 +26,6 @@ namespace Xioru.Grain.Contracts.GrainReadModel
         Task<GrainDescription?> GetGrainById(Guid id);
 
         // tod: use filtering and paging
-        Task<GrainDescription[]> GetGrains();
+        Task<GrainDescription[]> GetGrains(string? filterText = null);
     }
 }
