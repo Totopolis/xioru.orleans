@@ -6,6 +6,7 @@ using Xioru.Grain.AbstractGrain;
 using Xioru.Grain.Contracts;
 using Xioru.Messaging.Contracts;
 using Xioru.Messaging.Contracts.Channel;
+using Xioru.Messaging.Contracts.Formatting;
 
 namespace Xioru.Messaging.Channel
 {
@@ -72,7 +73,7 @@ namespace Xioru.Messaging.Channel
 
         protected override Task OnUpdated() => Task.CompletedTask;
 
-        public async Task SendMessage(string textMessage)
+        public async Task SendMessage(FormattedString textMessage)
         {
             await _outcomingStream.Value
                 .OnNextAsync(new ChannelOutcomingMessage

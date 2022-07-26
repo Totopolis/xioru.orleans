@@ -10,6 +10,7 @@ using Xioru.Messaging.Channel;
 using Xioru.Messaging.Contracts;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Config;
+using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
@@ -151,6 +152,6 @@ namespace Xioru.Messaging.Messenger
 
         public Task ReceiveReminder(string reminderName, TickStatus status) => Task.CompletedTask;
 
-        protected abstract Task SendDirectMessage(string chatId, string message);
+        protected abstract Task SendDirectMessage(string chatId, FormattedString message);
     }
 }

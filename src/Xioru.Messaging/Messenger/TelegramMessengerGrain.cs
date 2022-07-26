@@ -7,6 +7,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Xioru.Messaging.Contracts.Config;
+using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
@@ -65,16 +66,30 @@ namespace Xioru.Messaging.Messenger
             _logger.LogInformation($"Start listening for @{self.Username}");
         }
 
-        protected override async Task SendDirectMessage(string chatId, string message)
+        protected override async Task SendDirectMessage(string chatId, FormattedString message)
         {
+
             if (_telegramClient == null)
             {
+                _logger.LogError("Telegram client are not initialized. Failed attempt to send message\n{Message}\n", message);
                 return;
             }
 
             var internalId = long.TryParse(chatId, out var num) ? new ChatId(num) : new ChatId("@" + chatId);
-            await _telegramClient.SendTextMessageAsync(internalId, message);
-            //TODO: checks needed?
+            var formattedMessage = message.ToString(
+                replaces: _telegramSpecificReplaces,
+                boldFormatter: bstr => $"*{bstr}*",
+                italicFormatter: istr => $"_{istr}_",
+                limit: 4000);
+
+            try
+            {
+                await _telegramClient.SendTextMessageAsync(internalId, formattedMessage, ParseMode.MarkdownV2);
+            }
+            catch
+            {
+                await _telegramClient.SendTextMessageAsync(internalId, formattedMessage);
+            }            
         }
 
         private Task HandlePollingError(
@@ -84,7 +99,8 @@ namespace Xioru.Messaging.Messenger
         {
             var errorMessage = exception switch
             {
-                ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+                ApiRequestException apiRequestException 
+                    => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
                 _ => exception.ToString()
             };
 
@@ -105,11 +121,17 @@ namespace Xioru.Messaging.Messenger
 
             if (update.Message == null || update.Message.Text == null)
             {
-                _logger.LogError($"Telegram updatemessage is empty");
+                _logger.LogError($"Telegram update message is empty");
                 return;
             }
 
             await OnMessage(update.Message.Text, update.Message.Chat.Id.ToString());
         }
+
+        private readonly Dictionary<string, string> _telegramSpecificReplaces = new Dictionary<string, string> {
+            {"_", @"\_"}, {"*", @"\*"}, {"[", @"\["}, {"]", @"\]"}, {"{", @"\{"}, {"}", @"\}"}, 
+            {"~", @"\~"}, {"`", @"\`"}, {">", @"\>"}, {"#", @"\#"}, {"+", @"\+"}, {"-", @"\-"},
+            {"=", @"\="}, {"|", @"\|"}, {".", @"\."}, {"!", @"\!"} 
+        };
     }
 }

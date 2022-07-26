@@ -1,8 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Orleans;
+using Orleans.Runtime;
 using Orleans.Streams;
 using Orleans.Streams.Core;
+using System.Text.RegularExpressions;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.GrainReadModel;
 
@@ -30,7 +33,7 @@ namespace Xioru.Grain.GrainReadModel
             _log = log;
         }
 
-        public override Task OnActivateAsync()
+        public override async Task OnActivateAsync()
         {
             // activated only prjId instances by implicit streaming
             var dbNamePrefix = this.GetPrimaryKey().ToString("N");
@@ -38,7 +41,7 @@ namespace Xioru.Grain.GrainReadModel
             _grainCollection = _database.GetCollection<GrainDocument>(
                 $"{dbNamePrefix}-{GrainReadModelCollectionName}");
 
-            return base.OnActivateAsync();
+            await base.OnActivateAsync();
         }
 
         public async Task<long> GrainsCount()
@@ -74,9 +77,17 @@ namespace Xioru.Grain.GrainReadModel
                 };
         }
 
-        public async Task<GrainDescription[]> GetGrains()
+        public async Task<GrainDescription[]> GetGrains(string? filterText = null)
         {
-            var filter = Builders<GrainDocument>.Filter.Empty;
+            var filter = filterText == null
+                ? Builders<GrainDocument>.Filter.Empty
+                : Builders<GrainDocument>.Filter.Or(
+                    Builders<GrainDocument>.Filter.Regex(x => x.GrainName, 
+                        new BsonRegularExpression(
+                        new Regex(filterText, RegexOptions.IgnoreCase))),
+                    Builders<GrainDocument>.Filter.Regex(x => x.GrainType,
+                        new BsonRegularExpression(
+                        new Regex(filterText, RegexOptions.IgnoreCase))));
             var list = await _grainCollection.Find(filter).ToListAsync();
 
             var result = list.Count == 0 ? new GrainDescription[0] :

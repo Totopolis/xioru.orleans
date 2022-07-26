@@ -43,10 +43,9 @@ namespace Xioru.Messaging.CommandExecutor
             {
                 return CommandResult.LogicError("Multiline command not supported");
             }
+            var segments = SplitArguments(commandText);
 
-            var segments = commandText.Split(" ");
-
-            if (segments == null || segments.Length <= 0 || !segments![0].StartsWith('/'))
+            if (segments == null || segments.Count <= 0 || !segments![0].StartsWith('/'))
             {
                 return CommandResult.Success(string.Empty);
             }
@@ -60,7 +59,7 @@ namespace Xioru.Messaging.CommandExecutor
 
             var segment0 = segments[0].TrimStart('/');
 
-            if (segments.Length >= 2 &&
+            if (segments.Count >= 2 &&
                 _commands.TryGetValue($"{segment0}.{segments[1].ToLower()}", out var command))
             {
                 context.Arguments = segments.Skip(2).ToArray();
@@ -81,6 +80,34 @@ namespace Xioru.Messaging.CommandExecutor
 
             var result = await command.Execute(context);
             return result;
+        }
+
+        private static IReadOnlyList<string> SplitArguments(string commandText)
+        {
+            const char divider = '\"';
+
+            var quoteDevidedSegments = commandText.Split(divider);
+            if (quoteDevidedSegments.Length % 2 == 0)
+            {
+                throw new ArgumentException("Missing symbol '\"'");
+            }
+
+            var ret = new List<string>();
+            for(int i = 0; i < quoteDevidedSegments.Length; i++)
+            {
+                var segment = quoteDevidedSegments[i];
+                if (i % 2 == 0)
+                {
+                    ret.AddRange(segment.Split(' ')
+                        .Where(x => !string.IsNullOrWhiteSpace(x))); 
+                }
+                else
+                {
+                    ret.Add(segment);
+                }
+            }
+
+            return ret;
         }
     }
 }
