@@ -1,8 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Orleans;
+using Orleans.Runtime;
 using Orleans.Streams;
 using Orleans.Streams.Core;
+using System.Text.RegularExpressions;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.GrainReadModel;
 
@@ -37,12 +40,7 @@ namespace Xioru.Grain.GrainReadModel
             
             _grainCollection = _database.GetCollection<GrainDocument>(
                 $"{dbNamePrefix}-{GrainReadModelCollectionName}");
-            var indexDefenition = Builders<GrainDocument>.IndexKeys
-                .Text(d => d.GrainName)
-                .Text(d => d.GrainType);
-            var indexModel = new CreateIndexModel<GrainDocument>(indexDefenition);
 
-            await _grainCollection.Indexes.CreateOneAsync(indexModel);
             await base.OnActivateAsync();
         }
 
@@ -83,7 +81,13 @@ namespace Xioru.Grain.GrainReadModel
         {
             var filter = filterText == null
                 ? Builders<GrainDocument>.Filter.Empty
-                : Builders<GrainDocument>.Filter.Text(filterText);
+                : Builders<GrainDocument>.Filter.Or(
+                    Builders<GrainDocument>.Filter.Regex(x => x.GrainName, 
+                        new BsonRegularExpression(
+                        new Regex(filterText, RegexOptions.IgnoreCase))),
+                    Builders<GrainDocument>.Filter.Regex(x => x.GrainType,
+                        new BsonRegularExpression(
+                        new Regex(filterText, RegexOptions.IgnoreCase))));
             var list = await _grainCollection.Find(filter).ToListAsync();
 
             var result = list.Count == 0 ? new GrainDescription[0] :
