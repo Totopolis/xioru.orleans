@@ -8,28 +8,30 @@ using Orleans.Streams.Core;
 using System.Text.RegularExpressions;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.GrainReadModel;
+using Xioru.Grain.Contracts.Messages;
 
 namespace Xioru.Grain.GrainReadModel
 {
     [ImplicitStreamSubscription(GrainConstants.ProjectRepositoryStreamNamespace)]
-    public partial class GrainReadModelGrain :
+    public class GrainReadModelGrain :
         Orleans.Grain,
         IGrainReadModelGrain,
-        IStreamSubscriptionObserver,
-        IAsyncObserver<GrainMessage>
+        IStreamSubscriptionObserver
     {
         public const string GrainReadModelCollectionName = "GrainReadModel";
 
         private readonly IMongoDatabase _database;
         private readonly ILogger<GrainReadModelGrain> _log;
-
-        private IMongoCollection<GrainDocument> _grainCollection = default!;
+        private readonly IReadModelEventHandler _eventHandler;
+        private IMongoCollection<GrainInfo> _grainCollection = default!;
 
         public GrainReadModelGrain(
             IMongoDatabase database,
+            IReadModelEventHandler eventHandler,
             ILogger<GrainReadModelGrain> log)
         {
             _database = database;
+            _eventHandler = eventHandler;
             _log = log;
         }
 
@@ -38,8 +40,9 @@ namespace Xioru.Grain.GrainReadModel
             // activated only prjId instances by implicit streaming
             var dbNamePrefix = this.GetPrimaryKey().ToString("N");
             
-            _grainCollection = _database.GetCollection<GrainDocument>(
-                $"{dbNamePrefix}-{GrainReadModelCollectionName}");
+            var collectionName = $"{dbNamePrefix}-{GrainReadModelCollectionName}";
+            _eventHandler.SetCollectionName(collectionName);
+            _grainCollection = _database.GetCollection<GrainInfo>(collectionName);
 
             await base.OnActivateAsync();
         }
@@ -80,12 +83,12 @@ namespace Xioru.Grain.GrainReadModel
         public async Task<GrainDescription[]> GetGrains(string? filterText = null)
         {
             var filter = filterText == null
-                ? Builders<GrainDocument>.Filter.Empty
-                : Builders<GrainDocument>.Filter.Or(
-                    Builders<GrainDocument>.Filter.Regex(x => x.GrainName, 
+                ? Builders<GrainInfo>.Filter.Empty
+                : Builders<GrainInfo>.Filter.Or(
+                    Builders<GrainInfo>.Filter.Regex(x => x.GrainName, 
                         new BsonRegularExpression(
                         new Regex(filterText, RegexOptions.IgnoreCase))),
-                    Builders<GrainDocument>.Filter.Regex(x => x.GrainType,
+                    Builders<GrainInfo>.Filter.Regex(x => x.GrainType,
                         new BsonRegularExpression(
                         new Regex(filterText, RegexOptions.IgnoreCase))));
             var list = await _grainCollection.Find(filter).ToListAsync();
@@ -104,49 +107,9 @@ namespace Xioru.Grain.GrainReadModel
 
         public async Task OnSubscribed(IStreamSubscriptionHandleFactory handleFactory)
         {
-            var handle = handleFactory.Create<GrainMessage>();
-            await handle.ResumeAsync(this);
-        }
+            var crHandle = handleFactory.Create<GrainCreatedEvent>();
+            await crHandle.ResumeAsync(_eventHandler);
 
-        public async Task OnNextAsync(GrainMessage item, StreamSequenceToken token = default!)
-        {
-            try
-            {
-                switch (item.Kind)
-                {
-                    case GrainMessage.MessageKind.Create:
-                        await OnCreateEvent(item);
-                        break;
-
-                    case GrainMessage.MessageKind.Update:
-                        await OnUpdateEvent(item);
-                        break;
-
-                    case GrainMessage.MessageKind.Delete:
-                        await OnDeleteEvent(item);
-                        break;
-
-                    case GrainMessage.MessageKind.Other:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, "Error at consume stream in ProjectReadModel");
-            }
-        }
-
-        public Task OnCompletedAsync()
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task OnErrorAsync(Exception ex)
-        {
-            _log.LogError(ex, "Error at consume stream in ProjectReadModel");
-            return Task.CompletedTask;
         }
     }
 }

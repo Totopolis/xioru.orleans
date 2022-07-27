@@ -1,12 +1,13 @@
-﻿using Orleans.Runtime;
+﻿using Microsoft.Extensions.Logging;
+using Orleans.Runtime;
 using Xioru.Grain.AbstractGrain;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.ApiKey;
+using Xioru.Grain.Contracts.ApiKey.Events;
 
 namespace Xioru.Grain.ApiKey
 {
     public class ApiKeyGrain : AbstractGrain<
-        ApiKeyGrain,
         ApiKeyState,
         CreateApiKeyCommand,
         UpdateApiKeyCommand,
@@ -15,7 +16,8 @@ namespace Xioru.Grain.ApiKey
     {
         public ApiKeyGrain(
             [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<ApiKeyState> state,
-            IServiceProvider services) : base(state, services)
+            ILoggerFactory loggerFactory,
+            IServiceProvider services) : base(state, loggerFactory, services)
         {
         }
 
@@ -29,7 +31,7 @@ namespace Xioru.Grain.ApiKey
 
         protected override async Task OnCreateEmitEvent(CreateApiKeyCommand createCommand)
         {
-            await EmitEvent(GrainMessage.MessageKind.Create, new ApiKeyCreatedEvent(
+            await EmitEvent(new ApiKeyCreatedEvent(
                 DisplayName: State.DisplayName,
                 Description: State.Description,
                 Tags: State.Tags.ToArray(),
@@ -39,12 +41,10 @@ namespace Xioru.Grain.ApiKey
 
         protected override Task OnCreated() => Task.CompletedTask;
 
-        protected override async Task OnDeleteEmitEvent()
+        protected override async Task EmitDeleteEvent()
         {
-            await EmitEvent(GrainMessage.MessageKind.Delete);
+            await EmitEvent(new ApiKeyDeletedEvent());
         }
-
-        protected override Task OnDeleted() => Task.CompletedTask;
 
         protected override Task OnUpdateApplyState(UpdateApiKeyCommand updateCommand)
         {
@@ -53,7 +53,7 @@ namespace Xioru.Grain.ApiKey
 
         protected override async Task OnUpdateEmitEvent(UpdateApiKeyCommand updateCommand)
         {
-            await EmitEvent(GrainMessage.MessageKind.Create, new ApiKeyUpdatedEvent(
+            await EmitEvent(new ApiKeyUpdatedEvent(
                 DisplayName: updateCommand.DisplayName,
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray()));

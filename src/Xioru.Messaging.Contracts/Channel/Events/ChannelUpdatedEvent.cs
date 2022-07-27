@@ -1,8 +1,8 @@
 ﻿using Xioru.Grain.Contracts.AbstractGrain;
 
-namespace Xioru.Grain.Contracts.User
+namespace Xioru.Messaging.Contracts.Channel.Events
 {
-    public record UserUpdatedEvent(
+    public record ChannelUpdatedEvent(
         string DisplayName,
         string Description,
         string[] Tags) : AbstractGrainUpdatedEvent(

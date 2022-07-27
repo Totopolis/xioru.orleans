@@ -4,6 +4,8 @@ using Orleans;
 using Orleans.Streams;
 using Orleans.Streams.Core;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.Messages;
+using Xioru.Grain.Contracts.Project.Events;
 using Xioru.Grain.Contracts.ProjectReadModel;
 using Xioru.Grain.Project;
 
@@ -15,7 +17,7 @@ namespace Xioru.Grain.ProjectReadModel
         Orleans.Grain,
         IProjectReadModelGrain,
         IStreamSubscriptionObserver,
-        IAsyncObserver<GrainMessage>
+        IAsyncObserver<GrainEvent>
     {
         public const string ClusterProjectCollection = "ProjectReadModel";
 
@@ -88,49 +90,40 @@ namespace Xioru.Grain.ProjectReadModel
             return Task.CompletedTask;
         }
 
-        public async Task OnNextAsync(GrainMessage item, StreamSequenceToken token = default!)
+        public async Task OnNextAsync(GrainEvent grainEvent, StreamSequenceToken token = default!)
         {
-            if (item.GrainType != typeof(ProjectGrain).Name)
+            switch (grainEvent)
             {
-                return;
-            }
-
-            switch (item.Kind)
-            {
-                case GrainMessage.MessageKind.Create:
+                case ProjectCreatedEvent:
                     var docToInsert = new ProjectDocument
                     {
-                        ProjectId = item.GrainId,
-                        ProjectName = item.GrainName
+                        ProjectId = grainEvent.Metadata!.GrainId,
+                        ProjectName = grainEvent.Metadata!.GrainName
                     };
 
                     await _collection1.InsertOneAsync(docToInsert);
                     break;
-                case GrainMessage.MessageKind.Update:
+                case ProjectUpdatedEvent:
                     var docToUpdate = new ProjectDocument
                     {
-                        ProjectId = item.GrainId,
-                        ProjectName = item.GrainName
+                        ProjectId = grainEvent.Metadata!.GrainId,
+                        ProjectName = grainEvent.Metadata.GrainName
                     };
 
                     await _collection1.ReplaceOneAsync(
-                        x => x.ProjectId == item.GrainId,
+                        x => x.ProjectId == grainEvent.Metadata.GrainId,
                         docToUpdate);
                     break;
-                case GrainMessage.MessageKind.Delete:
+                case ProjectDeletedEvent:
                     await _collection1
-                        .DeleteOneAsync(x => x.ProjectId == item.GrainId);
-                    break;
-                case GrainMessage.MessageKind.Other:
-                    break;
-                default:
+                        .DeleteOneAsync(x => x.ProjectId == grainEvent.Metadata!.GrainId);
                     break;
             }
         }
 
         public async Task OnSubscribed(IStreamSubscriptionHandleFactory handleFactory)
         {
-            var handle = handleFactory.Create<GrainMessage>();
+            var handle = handleFactory.Create<GrainEvent>();
             await handle.ResumeAsync(this);
         }
     }

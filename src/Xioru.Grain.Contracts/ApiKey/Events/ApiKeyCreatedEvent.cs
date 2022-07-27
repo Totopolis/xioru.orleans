@@ -1,13 +1,14 @@
 ﻿using Xioru.Grain.Contracts.AbstractGrain;
 
-namespace Xioru.Grain.Contracts.User
+namespace Xioru.Grain.Contracts.ApiKey.Events
 {
-    public record UserCreatedEvent(
+    public record ApiKeyCreatedEvent(
         string DisplayName,
         string Description,
         string[] Tags,
         //
-        string Login) : AbstractGrainCreatedEvent(
+        DateTime Created,
+        Guid ApiKey) : AbstractGrainCreatedEvent(
             DisplayName,
             Description,
             Tags);

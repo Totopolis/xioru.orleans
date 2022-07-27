@@ -8,11 +8,11 @@ using Orleans.Streams;
 using System.Text.Json;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.AbstractGrain;
+using Xioru.Grain.Contracts.Messages;
 
 namespace Xioru.Grain.AbstractGrain
 {
     public abstract class AbstractGrain<
-        T,
         T_STATE,
         T_CREATE_COMMAND,
         T_UPDATE_COMMAND,
@@ -23,11 +23,11 @@ namespace Xioru.Grain.AbstractGrain
         where T_UPDATE_COMMAND : notnull, UpdateAbstractGrainCommand
         where T_PROJECTION : AbstractGrainProjection
     {
-        private IAsyncStream<GrainMessage> _projectRepositoryStream = default!;
-        private IAsyncStream<GrainMessage> _clusterRepositoryStream = default!;
+        private IAsyncStream<GrainEvent> _projectRepositoryStream = default!;
+        private IAsyncStream<GrainEvent> _clusterRepositoryStream = default!;
 
         protected readonly IPersistentState<T_STATE> _state;
-        protected readonly ILogger<T> _log;
+        protected readonly ILogger _log;
         protected readonly IMapper _mapper;
         protected readonly IGrainFactory _grainFactory;
         protected readonly IValidator<T_CREATE_COMMAND> _createValidator;
@@ -37,10 +37,11 @@ namespace Xioru.Grain.AbstractGrain
 
         public AbstractGrain(
             IPersistentState<T_STATE> state,
+            ILoggerFactory loggerFactory,
             IServiceProvider services)
         {
             _state = state;
-            _log = services.GetRequiredService<ILogger<T>>();
+            _log = loggerFactory.CreateLogger(this.GetType());
             _mapper = services.GetRequiredService<IMapper>();
             _grainFactory = services.GetRequiredService<IGrainFactory>();
 
@@ -102,7 +103,7 @@ namespace Xioru.Grain.AbstractGrain
             var objName = State.Name;
 
             // 1. Event sourcing
-            await OnDeleteEmitEvent();
+            await EmitDeleteEvent();
 
             // 2. Delete state after emit event!!!
             await _state.ClearStateAsync();
@@ -113,8 +114,9 @@ namespace Xioru.Grain.AbstractGrain
             await OnDeleted();
         }
 
-        protected abstract Task OnDeleteEmitEvent();
-        protected abstract Task OnDeleted();
+        protected abstract Task EmitDeleteEvent();
+
+        protected virtual Task OnDeleted() => Task.CompletedTask;
 
         public async Task Update(T_UPDATE_COMMAND updateCommand)
         {
@@ -170,50 +172,43 @@ namespace Xioru.Grain.AbstractGrain
             }
         }
 
-        protected async Task EmitEvent(
-            GrainMessage.MessageKind kind = GrainMessage.MessageKind.Other,
-            object? @event = null)
+        protected async Task EmitEvent(GrainEvent grainEvent)
         {
+            grainEvent = grainEvent ?? throw new ArgumentNullException(nameof(grainEvent));
             // 1. Prepare event
-            var json = @event == null ? string.Empty : JsonSerializer.Serialize(@event);
-
-            var grainEvent = new GrainMessage
+            grainEvent.Metadata = new GrainEventMetadata
             {
                 ProjectId = State.ProjectId,
-                BaseGrainType = typeof(T).BaseType!.Name,
-                GrainType = typeof(T).Name,
+                BaseGrainType = this.GetType().BaseType!.Name,
+                GrainType = this.GetType().Name,
                 GrainId = this.GetPrimaryKey(),
                 GrainName = State.Name,
-                Kind = kind,
-                CreatedUtc = DateTime.UtcNow,
-                BaseEventType = @event == null ? string.Empty : @event.GetType().BaseType!.Name,
-                EventType = @event == null ? string.Empty : @event.GetType().Name,
-                EventBody = json
+                CreatedUtc = DateTime.UtcNow
             };
 
             // 2. Emit to project stream
             if (_projectRepositoryStream == null)
             {
-                var _streamProvider = GetStreamProvider("SMSProvider");
+                var streamProvider = GetStreamProvider("SMSProvider");
 
-                _projectRepositoryStream = _streamProvider.GetStream<GrainMessage>(
+                _projectRepositoryStream = streamProvider.GetStream<GrainEvent>(
                     streamId: State.ProjectId,
                     streamNamespace: GrainConstants.ProjectRepositoryStreamNamespace);
             }
 
-            await _projectRepositoryStream.OnNextAsync(grainEvent);
+            await _projectRepositoryStream.OnNextAsync(grainEvent!);
 
             // 3. Emit to global cluster stream
             if (_clusterRepositoryStream == null)
             {
-                var _streamProvider = GetStreamProvider("SMSProvider");
+                var streamProvider = GetStreamProvider("SMSProvider");
 
-                _clusterRepositoryStream = _streamProvider.GetStream<GrainMessage>(
+                _clusterRepositoryStream = streamProvider.GetStream<GrainEvent>(
                     streamId: GrainConstants.ClusterStreamId,
                     streamNamespace: GrainConstants.ClusterRepositoryStreamNamespace);
             }
 
-            await _clusterRepositoryStream.OnNextAsync(grainEvent);
+            await _clusterRepositoryStream.OnNextAsync(grainEvent!);
         }
 
         public Task<T_PROJECTION> GetProjection()

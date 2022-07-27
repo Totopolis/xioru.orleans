@@ -2,7 +2,8 @@
 
 namespace Xioru.Grain.GrainReadModel
 {
-    internal class GrainDocument
+    [BsonDiscriminator(nameof(GrainInfo))]
+    public class GrainInfo
     {
         public string GrainName { get; set; } = default!;
 
