@@ -2,22 +2,15 @@
 using MongoDB.Driver;
 using Orleans.Streams;
 using Xioru.Grain.Contracts.Messages;
+using Xioru.Grain.GrainReadModel.State;
 
 namespace Xioru.Grain.GrainReadModel
 {
-    public interface IReadModelEventHandler :
-        IAsyncObserver<GrainCreatedEvent>,
-        IAsyncObserver<GrainUpdatedEvent>,
-        IAsyncObserver<GrainDeletedEvent>
-    { 
-        void SetCollectionName(string collectionName);
-    }
-
     public class ReadModelEventHandler : IReadModelEventHandler
     {
         private readonly IMongoDatabase _database;
         private readonly IMapper _mapper;
-        private IMongoCollection<GrainInfo>? _grainCollection;
+        private IMongoCollection<GrainDetailsDocument>? _grainCollection;
 
         public ReadModelEventHandler(IMongoDatabase database, IMapper mapper)
         {
@@ -27,14 +20,14 @@ namespace Xioru.Grain.GrainReadModel
 
         public async Task OnNextAsync(GrainCreatedEvent grainEvent, StreamSequenceToken _)
         {
-            var infoModel = _mapper.Map<GrainInfo>(grainEvent);
+            var infoModel = _mapper.Map<GrainDetailsDocument>(grainEvent);
 
             await _grainCollection!.InsertOneAsync(infoModel);
         }
 
         public async Task OnNextAsync(GrainUpdatedEvent grainEvent, StreamSequenceToken _)
         {
-            var infoModel = _mapper.Map<GrainInfo>(grainEvent);
+            var infoModel = _mapper.Map<GrainDetailsDocument>(grainEvent);
 
             await _grainCollection.ReplaceOneAsync(
                 x => x.GrainId == grainEvent.Metadata!.GrainId,
@@ -61,7 +54,7 @@ namespace Xioru.Grain.GrainReadModel
 
         public void SetCollectionName(string collectionName)
         {
-            _grainCollection = _database.GetCollection<GrainInfo>(collectionName);
+            _grainCollection = _database.GetCollection<GrainDetailsDocument>(collectionName);
         }
     }
 }

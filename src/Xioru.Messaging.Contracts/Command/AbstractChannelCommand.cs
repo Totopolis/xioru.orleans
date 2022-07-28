@@ -86,7 +86,7 @@ namespace Xioru.Messaging.Contracts.Command
 
         protected abstract Task<CommandResult> ExecuteInternal(ChannelCommandContext context);
 
-        protected async Task<GrainDescription> CheckGrain(
+        protected async Task<GrainDetails> CheckGrain(
             string grainName,
             string? grainType = null)
         {

@@ -1,9 +1,10 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace Xioru.Grain.GrainReadModel
+namespace Xioru.Grain.GrainReadModel.State
 {
-    [BsonDiscriminator(nameof(GrainInfo))]
-    public class GrainInfo
+    [BsonKnownTypes(typeof(TechnoGrainDetailsDocument))]
+    [BsonDiscriminator(nameof(GrainDetailsDocument))]
+    public class GrainDetailsDocument
     {
         public string GrainName { get; set; } = default!;
 

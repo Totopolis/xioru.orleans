@@ -2,10 +2,10 @@
 using Ofg.Core.Contracts.Handler;
 using Ofg.Core.Contracts.Variable;
 
-namespace Xioru.Grain.GrainReadModel
+namespace Xioru.Grain.GrainReadModel.State
 {
-    [BsonDiscriminator(nameof(TechnoGrainInfo))]
-    public class TechnoGrainInfo : GrainInfo
+    [BsonDiscriminator(nameof(TechnoGrainDetailsDocument))]
+    public class TechnoGrainDetailsDocument : GrainDetailsDocument
     {
         public string DisplayName { get; set; }
 

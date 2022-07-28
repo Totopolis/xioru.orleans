@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Orleans;
@@ -9,6 +10,7 @@ using System.Text.RegularExpressions;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Grain.Contracts.Messages;
+using Xioru.Grain.GrainReadModel.State;
 
 namespace Xioru.Grain.GrainReadModel
 {
@@ -21,16 +23,19 @@ namespace Xioru.Grain.GrainReadModel
         public const string GrainReadModelCollectionName = "GrainReadModel";
 
         private readonly IMongoDatabase _database;
-        private readonly ILogger<GrainReadModelGrain> _log;
         private readonly IReadModelEventHandler _eventHandler;
-        private IMongoCollection<GrainInfo> _grainCollection = default!;
+        private readonly IMapper _mapper;
+        private readonly ILogger<GrainReadModelGrain> _log;
+        private IMongoCollection<GrainDetailsDocument> _grainCollection = default!;
 
         public GrainReadModelGrain(
             IMongoDatabase database,
             IReadModelEventHandler eventHandler,
+            IMapper mapper,
             ILogger<GrainReadModelGrain> log)
         {
             _database = database;
+            _mapper = mapper;
             _eventHandler = eventHandler;
             _log = log;
         }
@@ -42,7 +47,7 @@ namespace Xioru.Grain.GrainReadModel
             
             var collectionName = $"{dbNamePrefix}-{GrainReadModelCollectionName}";
             _eventHandler.SetCollectionName(collectionName);
-            _grainCollection = _database.GetCollection<GrainInfo>(collectionName);
+            _grainCollection = _database.GetCollection<GrainDetailsDocument>(collectionName);
 
             await base.OnActivateAsync();
         }
@@ -52,54 +57,39 @@ namespace Xioru.Grain.GrainReadModel
             return await _grainCollection.CountDocumentsAsync(x => true);
         }
 
-        public async Task<GrainDescription?> GetGrainByName(string name)
+        public async Task<GrainDetails?> GetGrainByName(string name)
         {
             var grainCursor = await _grainCollection.FindAsync(x => x.GrainName == name);
             var grain = await grainCursor.FirstOrDefaultAsync();
 
             return grain == null ? null :
-                new GrainDescription()
-                {
-                    GrainName = grain.GrainName,
-                    GrainType = grain.GrainType,
-                    GrainId = grain.GrainId
-                };
+                _mapper.Map<GrainDetails>(grain);
         }
 
-        public async Task<GrainDescription?> GetGrainById(Guid id)
+        public async Task<GrainDetails?> GetGrainById(Guid id)
         {
             var grainCursor = await _grainCollection.FindAsync(x => x.GrainId == id);
             var grain = await grainCursor.FirstOrDefaultAsync();
 
             return grain == null ? null :
-                new GrainDescription()
-                {
-                    GrainName = grain.GrainName,
-                    GrainType = grain.GrainType,
-                    GrainId = grain.GrainId
-                };
+                _mapper.Map<GrainDetails>(grain);
         }
 
-        public async Task<GrainDescription[]> GetGrains(string? filterText = null)
+        public async Task<IReadOnlyCollection<GrainDetails>> GetGrains(string? filterText = null)
         {
             var filter = filterText == null
-                ? Builders<GrainInfo>.Filter.Empty
-                : Builders<GrainInfo>.Filter.Or(
-                    Builders<GrainInfo>.Filter.Regex(x => x.GrainName, 
+                ? Builders<GrainDetailsDocument>.Filter.Empty
+                : Builders<GrainDetailsDocument>.Filter.Or(
+                    Builders<GrainDetailsDocument>.Filter.Regex(x => x.GrainName, 
                         new BsonRegularExpression(
                         new Regex(filterText, RegexOptions.IgnoreCase))),
-                    Builders<GrainInfo>.Filter.Regex(x => x.GrainType,
+                    Builders<GrainDetailsDocument>.Filter.Regex(x => x.GrainType,
                         new BsonRegularExpression(
                         new Regex(filterText, RegexOptions.IgnoreCase))));
             var list = await _grainCollection.Find(filter).ToListAsync();
 
-            var result = list.Count == 0 ? new GrainDescription[0] :
-                list.Select(x => new GrainDescription()
-                {
-                    GrainId = x.GrainId,
-                    GrainName = x.GrainName,
-                    GrainType = x.GrainType,
-                })
+            var result = list.Count == 0 ? Array.Empty<GrainDetails>() :
+                list.Select(_mapper.Map<GrainDetails>)
                 .ToArray();
 
             return result;
@@ -109,7 +99,6 @@ namespace Xioru.Grain.GrainReadModel
         {
             var crHandle = handleFactory.Create<GrainCreatedEvent>();
             await crHandle.ResumeAsync(_eventHandler);
-
         }
     }
 }
