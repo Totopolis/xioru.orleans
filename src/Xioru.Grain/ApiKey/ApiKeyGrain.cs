@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Orleans.Runtime;
+﻿using Orleans.Runtime;
 using Xioru.Grain.AbstractGrain;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.ApiKey;

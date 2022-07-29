@@ -59,12 +59,10 @@ namespace Xioru.Messaging.MessengerCommand
             // 4. create project
             var projectId = Guid.NewGuid();
             var project = _factory.GetGrain<IProjectGrain>(projectId);
-            await project.Create(new CreateProjectCommand
-            {
-                Name = projectName,
-                DisplayName = projectName,
-                Description = String.Empty
-            });
+            await project.Create(new CreateProjectCommand(
+                Name: projectName,
+                DisplayName: projectName,
+                Description: String.Empty));
 
             // 5. create channel
             var channelId = Guid.NewGuid();
