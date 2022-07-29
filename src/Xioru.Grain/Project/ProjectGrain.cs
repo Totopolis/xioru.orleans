@@ -6,15 +6,17 @@ using Orleans.Runtime;
 using Orleans.Streams;
 using System.Text.Json;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.Messages;
 using Xioru.Grain.Contracts.Project;
+using Xioru.Grain.Contracts.Project.Events;
 using Xioru.Grain.Contracts.ProjectReadModel;
 
 namespace Xioru.Grain.Project
 {
     public class ProjectGrain : Orleans.Grain, IProjectGrain
     {
-        private IAsyncStream<GrainMessage> _projectRepositoryStream = default!;
-        private IAsyncStream<GrainMessage> _clusterRepositoryStream = default!;
+        private IAsyncStream<GrainEvent> _projectRepositoryStream = default!;
+        private IAsyncStream<GrainEvent> _clusterRepositoryStream = default!;
 
         protected readonly IPersistentState<ProjectState> _state;
         protected readonly ILogger<ProjectGrain> _log;
@@ -72,7 +74,7 @@ namespace Xioru.Grain.Project
             await _state.WriteStateAsync();
 
             // 3. Event sourcing
-            await EmitEvent(new ProjectCreatedEvent(), GrainMessage.MessageKind.Create);
+            await EmitEvent(new ProjectCreatedEvent());
 
             _log.LogInformation($"Project {createCommand.Name} created");
         }
@@ -91,31 +93,24 @@ namespace Xioru.Grain.Project
             await _state.ClearStateAsync();
 
             // 2. Event sourcing
-            await EmitEvent(new ProjectDeletedEvent(), GrainMessage.MessageKind.Delete);
+            await EmitEvent(new ProjectDeletedEvent());
 
             _log.LogInformation($"Project {projectName}");
         }
 
         protected async Task EmitEvent<T_EVENT>(
-            T_EVENT @event,
-            GrainMessage.MessageKind kind = GrainMessage.MessageKind.Other)
-            where T_EVENT : class
+            T_EVENT grainEvent)
+            where T_EVENT : GrainEvent
         {
             var grainId = this.GetPrimaryKey();
 
-            // 1. Prepare event
-            var json = JsonSerializer.Serialize(@event);
-
-            var grainEvent = new GrainMessage
+            grainEvent!.Metadata = new GrainEventMetadata
             {
                 ProjectId = grainId,
                 GrainType = typeof(ProjectGrain).Name,
-                GrainId = this.GetPrimaryKey(),
+                GrainId = grainId,
                 GrainName = State.Name,
-                Kind = kind,
-                CreatedUtc = DateTime.UtcNow,
-                EventType = typeof(T_EVENT).Name,
-                EventBody = json
+                CreatedUtc = DateTime.UtcNow
             };
 
             // 2. Emit to project stream
@@ -123,7 +118,7 @@ namespace Xioru.Grain.Project
             {
                 var _streamProvider = GetStreamProvider("SMSProvider");
 
-                _projectRepositoryStream = _streamProvider.GetStream<GrainMessage>(
+                _projectRepositoryStream = _streamProvider.GetStream<GrainEvent>(
                     streamId: grainId,
                     streamNamespace: GrainConstants.ProjectRepositoryStreamNamespace);
             }
@@ -135,7 +130,7 @@ namespace Xioru.Grain.Project
             {
                 var _streamProvider = GetStreamProvider("SMSProvider");
 
-                _clusterRepositoryStream = _streamProvider.GetStream<GrainMessage>(
+                _clusterRepositoryStream = _streamProvider.GetStream<GrainEvent>(
                     streamId: GrainConstants.ClusterStreamId,
                     streamNamespace: GrainConstants.ClusterRepositoryStreamNamespace);
             }

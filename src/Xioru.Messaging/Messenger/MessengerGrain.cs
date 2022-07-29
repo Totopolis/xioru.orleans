@@ -5,10 +5,13 @@ using Orleans.Runtime;
 using Orleans.Streams;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.Messages;
+using Xioru.Grain.Contracts.Project.Events;
 using Xioru.Grain.Project;
 using Xioru.Messaging.Channel;
 using Xioru.Messaging.Contracts;
 using Xioru.Messaging.Contracts.Channel;
+using Xioru.Messaging.Contracts.Channel.Events;
 using Xioru.Messaging.Contracts.Config;
 using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
@@ -20,7 +23,7 @@ namespace Xioru.Messaging.Messenger
         IMessengerGrain,
         IRemindable,
         IAsyncObserver<ChannelOutcomingMessage>,
-        IAsyncObserver<GrainMessage>
+        IAsyncObserver<GrainEvent>
     {
         protected readonly ILogger<MessengerGrain> _logger;
         protected readonly IGrainFactory _grainFactory;
@@ -29,7 +32,7 @@ namespace Xioru.Messaging.Messenger
         protected MessengerSection? _config = default!;
         private readonly Dictionary<string, IMessengerCommand> _commands;
 
-        private IAsyncStream<GrainMessage> _clusterRepositoryStream = default!;
+        private IAsyncStream<GrainEvent> _clusterRepositoryStream = default!;
         private IAsyncStream<ChannelOutcomingMessage> _channelOutcomingStream = default!;
 
         protected abstract MessengerType MessengerType { get; }
@@ -75,7 +78,7 @@ namespace Xioru.Messaging.Messenger
                 var streamProvider = this.GetStreamProvider("SMSProvider");
 
                 _clusterRepositoryStream = await streamProvider
-                    .GetStreamAndSingleSubscribe<GrainMessage>(
+                    .GetStreamAndSingleSubscribe<GrainEvent>(
                         streamId: GrainConstants.ClusterStreamId,
                         streamNamespace: GrainConstants.ClusterRepositoryStreamNamespace,
                         observer: this);
@@ -123,21 +126,18 @@ namespace Xioru.Messaging.Messenger
         }
 
         public async Task OnNextAsync(
-            GrainMessage item,
+            GrainEvent grainEvent,
             StreamSequenceToken token)
         {
-            if (item.Kind != GrainMessage.MessageKind.Delete)
+            switch (grainEvent)
             {
-                return;
-            }
+                case ProjectDeletedEvent:
+                    await _repository.OnProjectDeleted(grainEvent.Metadata!.GrainId);
+                    break;
 
-            if (item.GrainType == nameof(ProjectGrain))
-            {
-                await _repository.OnProjectDeleted(item.GrainId);
-            }
-            else if (item.GrainType == nameof(ChannelGrain))
-            {
-                await _repository.OnChannelDeleted(item.GrainId);
+                case ChannelDeletedEvent:
+                    await _repository.OnChannelDeleted(grainEvent.Metadata!.GrainId);
+                    break;
             }
         }
 

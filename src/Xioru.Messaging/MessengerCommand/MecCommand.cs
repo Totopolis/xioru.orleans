@@ -23,7 +23,7 @@ namespace Xioru.Messaging.MessengerCommand
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
-            var fString = new FormattedString("ChatId: ", Formatting.Bold);
+            var fString = new FormattedString("ChatId: ", StringFormatting.Bold);
             fString.Append(context.ChatId);
 
             return Task.FromResult(CommandResult.Success(fString));

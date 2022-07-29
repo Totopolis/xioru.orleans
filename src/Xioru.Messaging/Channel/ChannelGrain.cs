@@ -1,18 +1,20 @@
-﻿using Orleans;
+﻿using Microsoft.Extensions.Logging;
+using Orleans;
 using Orleans.Runtime;
 using Orleans.Streams;
 using Orleans.Streams.Core;
 using Xioru.Grain.AbstractGrain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.Messages;
 using Xioru.Messaging.Contracts;
 using Xioru.Messaging.Contracts.Channel;
+using Xioru.Messaging.Contracts.Channel.Events;
 using Xioru.Messaging.Contracts.Formatting;
 
 namespace Xioru.Messaging.Channel
 {
     [ImplicitStreamSubscription(MessagingConstants.ChannelIncomingStreamNamespace)]
     public partial class ChannelGrain : AbstractGrain<
-        ChannelGrain,
         ChannelState,
         CreateChannelCommand,
         UpdateChannelCommand,
@@ -42,7 +44,7 @@ namespace Xioru.Messaging.Channel
 
         protected override async Task OnCreateEmitEvent(CreateChannelCommand createCommand)
         {
-            await EmitEvent(GrainMessage.MessageKind.Create, new ChannelCreatedEvent(
+            await EmitEvent(new ChannelCreatedEvent(
                 DisplayName: State.DisplayName,
                 Description: State.Description,
                 Tags: State.Tags.ToArray(),
@@ -53,19 +55,17 @@ namespace Xioru.Messaging.Channel
 
         protected override Task OnCreated() => Task.CompletedTask;
 
-        protected override async Task OnDeleteEmitEvent()
+        protected override async Task EmitDeleteEvent()
         {
-            await EmitEvent(GrainMessage.MessageKind.Delete);
+            await EmitEvent(new ChannelDeletedEvent());
         }
-
-        protected override Task OnDeleted() => Task.CompletedTask;
 
         protected override Task OnUpdateApplyState(
             UpdateChannelCommand updateCommand) => Task.CompletedTask;
 
         protected override async Task OnUpdateEmitEvent(UpdateChannelCommand updateCommand)
         {
-            await EmitEvent(GrainMessage.MessageKind.Create, new ChannelUpdatedEvent(
+            await EmitEvent(new ChannelUpdatedEvent(
                 DisplayName: updateCommand.DisplayName,
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray()));

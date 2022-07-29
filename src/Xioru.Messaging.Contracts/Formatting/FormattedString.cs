@@ -5,19 +5,19 @@ namespace Xioru.Messaging.Contracts.Formatting
     public class FormattedString
     {
         private const string _limitComment = "\n\nСообщение усечено. Уточните запрос";
-        public FormattedString(string str, Formatting formatting = Formatting.None)
+        public FormattedString(string str, StringFormatting formatting = StringFormatting.None)
         {
-            _formattedElements = new List<(string, Formatting)> { (str, formatting) };
+            _formattedElements = new List<(string, StringFormatting)> { (str, formatting) };
         }
 
         public FormattedString()
         {
-            _formattedElements = new List<(string, Formatting)>();
+            _formattedElements = new List<(string, StringFormatting)>();
         }
 
-        private List<(string Text, Formatting Formatting)> _formattedElements;
+        private List<(string Text, StringFormatting Formatting)> _formattedElements;
 
-        public FormattedString Append(string text, Formatting formatting = Formatting.None)
+        public FormattedString Append(string text, StringFormatting formatting = StringFormatting.None)
         {
             _formattedElements.Add((text, formatting));
             return this;
@@ -58,7 +58,7 @@ namespace Xioru.Messaging.Contracts.Formatting
                         strApplied = 
                             ApplyFormatRules(Escape(cuttedText, replaces), elm.Formatting);
                         strApplied += 
-                            ApplyFormatRules(Escape(_limitComment, replaces), Formatting.Bold);
+                            ApplyFormatRules(Escape(_limitComment, replaces), StringFormatting.Bold);
                     }
 
                     break;
@@ -69,12 +69,12 @@ namespace Xioru.Messaging.Contracts.Formatting
 
             return builder.ToString();
 
-            string ApplyFormatRules(string text, Formatting formatting)
+            string ApplyFormatRules(string text, StringFormatting formatting)
             {
-                if (formatting.HasFlag(Formatting.Bold)) text = boldFormatter(text);
-                if (formatting.HasFlag(Formatting.Italic) && italicFormatter != null)
+                if (formatting.HasFlag(StringFormatting.Bold)) text = boldFormatter(text);
+                if (formatting.HasFlag(StringFormatting.Italic) && italicFormatter != null)
                     text = italicFormatter(text);
-                if (formatting.HasFlag(Formatting.Underline) && underlineFormatter != null)
+                if (formatting.HasFlag(StringFormatting.Underline) && underlineFormatter != null)
                     text = underlineFormatter(text);
                 return text;
             }
@@ -105,7 +105,7 @@ namespace Xioru.Messaging.Contracts.Formatting
     }
 
     [Flags] //mb make hierarchy?
-    public enum Formatting
+    public enum StringFormatting
     {
         None = 0,
         Bold = 1,

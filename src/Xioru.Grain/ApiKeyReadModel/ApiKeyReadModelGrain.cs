@@ -7,8 +7,9 @@ using Orleans.Streams.Core;
 using System.Text.Json;
 using Xioru.Grain.ApiKey;
 using Xioru.Grain.Contracts;
-using Xioru.Grain.Contracts.ApiKey;
+using Xioru.Grain.Contracts.ApiKey.Events;
 using Xioru.Grain.Contracts.ApiKeyReadModel;
+using Xioru.Grain.Contracts.Messages;
 
 namespace Xioru.Grain.ApiKeyReadModel
 {
@@ -18,13 +19,13 @@ namespace Xioru.Grain.ApiKeyReadModel
         Orleans.Grain,
         IApiKeyReadModelGrain,
         IStreamSubscriptionObserver,
-        IAsyncObserver<GrainMessage>
+        IAsyncObserver<GrainEvent>
     {
         public const string ClusterApiKeyCollection = "ApiKeyReadModel";
 
         private readonly IMongoDatabase _database;
         private readonly IMemoryCache _memoryCache;
-        private readonly IMongoCollection<ApiKeyDocument> _collection1;
+        private readonly IMongoCollection<ApiKeyDocument> _apiKeyCollection;
         private readonly ILogger<ApiKeyReadModelGrain> _log;
 
         public ApiKeyReadModelGrain(
@@ -36,7 +37,7 @@ namespace Xioru.Grain.ApiKeyReadModel
             _memoryCache = memoryCache;
             _log = log;
 
-            _collection1 = _database
+            _apiKeyCollection = _database
                 .GetCollection<ApiKeyDocument>(ClusterApiKeyCollection);
         }
 
@@ -49,7 +50,7 @@ namespace Xioru.Grain.ApiKeyReadModel
                     // cacheEntry.SlidingExpiration = TimeSpan.FromSeconds(3);
                     cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(20);
 
-                    var projectCursor = await _collection1.FindAsync(x => x.ApiKey == apiKey);
+                    var projectCursor = await _apiKeyCollection.FindAsync(x => x.ApiKey == apiKey);
                     var record = await projectCursor.FirstOrDefaultAsync();
 
                     return record == null ? null : new ApiKeyDescription
@@ -74,43 +75,28 @@ namespace Xioru.Grain.ApiKeyReadModel
             return Task.CompletedTask;
         }
 
-        public async Task OnNextAsync(GrainMessage item, StreamSequenceToken token = default!)
+        public async Task OnNextAsync(GrainEvent grainEvent, StreamSequenceToken token = default!)
         {
-            if (item.GrainType != typeof(ApiKeyGrain).Name)
+            switch (grainEvent)
             {
-                return;
-            }
-
-            switch (item.Kind)
-            {
-                case GrainMessage.MessageKind.Create:
-                    var createdEvent = JsonSerializer
-                        .Deserialize<ApiKeyCreatedEvent>(item.EventBody);
-
-                    if (createdEvent == null)
-                    {
-                        _log.LogError($"Bad apikey created event, apikeyId={item.GrainId}");
-                        break;
-                    }
+                case ApiKeyCreatedEvent createdEvent:
 
                     var docToInsert = new ApiKeyDocument
                     {
                         ApiKey = createdEvent.ApiKey,
                         Created = createdEvent.Created,
-                        ProjectId = item.ProjectId,
-                        GrainId = item.GrainId
+                        ProjectId = grainEvent.Metadata!.ProjectId,
+                        GrainId = grainEvent.Metadata.GrainId
                     };
 
-                    await _collection1.InsertOneAsync(docToInsert);
+                    await _apiKeyCollection.InsertOneAsync(docToInsert);
                     break;
 
-                case GrainMessage.MessageKind.Delete:
-                    await _collection1
-                        .DeleteOneAsync(x => x.GrainId == item.GrainId);
+                case ApiKeyDeletedEvent:
+                    await _apiKeyCollection
+                        .DeleteOneAsync(x => x.GrainId == grainEvent.Metadata!.GrainId);
                     break;
 
-                case GrainMessage.MessageKind.Other:
-                    break;
                 default:
                     break;
             }
@@ -118,7 +104,7 @@ namespace Xioru.Grain.ApiKeyReadModel
 
         public async Task OnSubscribed(IStreamSubscriptionHandleFactory handleFactory)
         {
-            var handle = handleFactory.Create<GrainMessage>();
+            var handle = handleFactory.Create<GrainEvent>();
             await handle.ResumeAsync(this);
         }
     }

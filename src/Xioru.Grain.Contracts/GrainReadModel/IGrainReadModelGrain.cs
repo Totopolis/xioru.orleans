@@ -15,7 +15,7 @@ namespace Xioru.Grain.Contracts.GrainReadModel
         /// <returns>
         /// Return description (name, type, id) or null if not found
         /// </returns>
-        Task<GrainDescription?> GetGrainByName(string name);
+        Task<GrainDetails?> GetGrainByName(string name);
 
         /// <summary>
         /// Get grain description by name
@@ -23,9 +23,9 @@ namespace Xioru.Grain.Contracts.GrainReadModel
         /// <returns>
         /// Return description (name, type, id) or null if not found
         /// </returns>
-        Task<GrainDescription?> GetGrainById(Guid id);
+        Task<GrainDetails?> GetGrainById(Guid id);
 
         // tod: use filtering and paging
-        Task<GrainDescription[]> GetGrains(string? filterText = null);
+        Task<IReadOnlyCollection<GrainDetails>> GetGrains(string? filterText = null);
     }
 }
