@@ -4,12 +4,4 @@
     {
         public GrainEventMetadata? Metadata { get; set; }
     }
-
-    public enum MessageKind //TODO: remove
-    {
-        Create,
-        Update,
-        Delete,
-        Other
-    }
 }

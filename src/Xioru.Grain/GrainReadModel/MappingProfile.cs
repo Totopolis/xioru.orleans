@@ -18,6 +18,12 @@ namespace Xioru.Grain.GrainReadModel
                 .ForMember(dest => dest.GrainName, opt => opt.MapFrom(src => src.Metadata!.GrainName))
                 .IncludeAllDerived();
 
+            CreateMap<GrainUpdatedEvent, GrainDetailsDocument>()
+                .ForMember(dest => dest.GrainId, opt => opt.MapFrom(src => src.Metadata!.GrainId))
+                .ForMember(dest => dest.GrainType, opt => opt.MapFrom(src => src.Metadata!.GrainType))
+                .ForMember(dest => dest.GrainName, opt => opt.MapFrom(src => src.Metadata!.GrainName))
+                .IncludeAllDerived();
+
             CreateMap<TechnoCreatedEvent, TechnoGrainDetailsDocument>();
             CreateMap<TechnoUpdatedEvent, TechnoGrainDetailsDocument>();
             

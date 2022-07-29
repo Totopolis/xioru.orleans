@@ -17,26 +17,24 @@ namespace Xioru.Grain.GrainReadModel
     [ImplicitStreamSubscription(GrainConstants.ProjectRepositoryStreamNamespace)]
     public class GrainReadModelGrain :
         Orleans.Grain,
+        IAsyncObserver<GrainEvent>,
         IGrainReadModelGrain,
         IStreamSubscriptionObserver
     {
         public const string GrainReadModelCollectionName = "GrainReadModel";
 
         private readonly IMongoDatabase _database;
-        private readonly IReadModelEventHandler _eventHandler;
         private readonly IMapper _mapper;
         private readonly ILogger<GrainReadModelGrain> _log;
         private IMongoCollection<GrainDetailsDocument> _grainCollection = default!;
 
         public GrainReadModelGrain(
             IMongoDatabase database,
-            IReadModelEventHandler eventHandler,
             IMapper mapper,
             ILogger<GrainReadModelGrain> log)
         {
             _database = database;
             _mapper = mapper;
-            _eventHandler = eventHandler;
             _log = log;
         }
 
@@ -46,7 +44,6 @@ namespace Xioru.Grain.GrainReadModel
             var dbNamePrefix = this.GetPrimaryKey().ToString("N");
             
             var collectionName = $"{dbNamePrefix}-{GrainReadModelCollectionName}";
-            _eventHandler.SetCollectionName(collectionName);
             _grainCollection = _database.GetCollection<GrainDetailsDocument>(collectionName);
 
             await base.OnActivateAsync();
@@ -97,8 +94,42 @@ namespace Xioru.Grain.GrainReadModel
 
         public async Task OnSubscribed(IStreamSubscriptionHandleFactory handleFactory)
         {
-            var crHandle = handleFactory.Create<GrainCreatedEvent>();
-            await crHandle.ResumeAsync(_eventHandler);
+            var handle = handleFactory.Create<GrainEvent>();
+            await handle.ResumeAsync(this);
+        }
+
+        public async Task OnNextAsync(GrainEvent grainEvent, StreamSequenceToken? _ = null)
+        {
+            switch (grainEvent)
+            {
+                case GrainCreatedEvent:
+                    var createModel = _mapper.Map<GrainDetailsDocument>(grainEvent);
+                    await _grainCollection!.InsertOneAsync(createModel);
+                    break;
+                case GrainUpdatedEvent:
+                    var updateModel = _mapper.Map<GrainDetailsDocument>(grainEvent);
+                    await _grainCollection.ReplaceOneAsync(
+                        x => x.GrainId == grainEvent.Metadata!.GrainId,
+                        updateModel);
+                    break;
+                case GrainDeletedEvent:
+                    await _grainCollection
+                        .DeleteOneAsync(x => x.GrainId == grainEvent.Metadata!.GrainId);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public Task OnCompletedAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task OnErrorAsync(Exception ex)
+        {
+            _log.LogError(ex, "Error at consume stream in GrainReadModel");
+            return Task.CompletedTask;
         }
     }
 }
