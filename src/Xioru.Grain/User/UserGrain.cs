@@ -1,12 +1,14 @@
-﻿using Orleans.Runtime;
+﻿using Microsoft.Extensions.Logging;
+using Orleans.Runtime;
 using Xioru.Grain.AbstractGrain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.Messages;
 using Xioru.Grain.Contracts.User;
+using Xioru.Grain.Contracts.User.Events;
 
 namespace Xioru.Grain.User
 {
     public class UserGrain : AbstractGrain<
-        UserGrain,
         UserState,
         CreateUserCommand,
         UpdateUserCommand,
@@ -28,7 +30,7 @@ namespace Xioru.Grain.User
 
         protected override async Task OnCreateEmitEvent(CreateUserCommand createCommand)
         {
-            await EmitEvent(GrainMessage.MessageKind.Create, new UserCreatedEvent(
+            await EmitEvent(new UserCreatedEvent(
                 DisplayName: State.DisplayName,
                 Description: State.Description,
                 Tags: State.Tags.ToArray(),
@@ -37,12 +39,10 @@ namespace Xioru.Grain.User
 
         protected override Task OnCreated() => Task.CompletedTask;
 
-        protected override async Task OnDeleteEmitEvent()
+        protected override async Task EmitDeleteEvent()
         {
-            await EmitEvent(GrainMessage.MessageKind.Delete);
+            await EmitEvent(new UserDeletedEvent());
         }
-
-        protected override Task OnDeleted() => Task.CompletedTask;
 
         protected override Task OnUpdateApplyState(UpdateUserCommand updateCommand)
         {
@@ -51,7 +51,7 @@ namespace Xioru.Grain.User
 
         protected override async Task OnUpdateEmitEvent(UpdateUserCommand updateCommand)
         {
-            await EmitEvent(GrainMessage.MessageKind.Create, new UserUpdatedEvent(
+            await EmitEvent(new UserUpdatedEvent(
                 DisplayName: updateCommand.DisplayName,
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray()));

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Orleans;
@@ -8,28 +9,32 @@ using Orleans.Streams.Core;
 using System.Text.RegularExpressions;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.GrainReadModel;
+using Xioru.Grain.Contracts.Messages;
+using Xioru.Grain.GrainReadModel.State;
 
 namespace Xioru.Grain.GrainReadModel
 {
     [ImplicitStreamSubscription(GrainConstants.ProjectRepositoryStreamNamespace)]
-    public partial class GrainReadModelGrain :
+    public class GrainReadModelGrain :
         Orleans.Grain,
+        IAsyncObserver<GrainEvent>,
         IGrainReadModelGrain,
-        IStreamSubscriptionObserver,
-        IAsyncObserver<GrainMessage>
+        IStreamSubscriptionObserver
     {
         public const string GrainReadModelCollectionName = "GrainReadModel";
 
         private readonly IMongoDatabase _database;
+        private readonly IMapper _mapper;
         private readonly ILogger<GrainReadModelGrain> _log;
-
-        private IMongoCollection<GrainDocument> _grainCollection = default!;
+        private IMongoCollection<GrainDetailsDocument> _grainCollection = default!;
 
         public GrainReadModelGrain(
             IMongoDatabase database,
+            IMapper mapper,
             ILogger<GrainReadModelGrain> log)
         {
             _database = database;
+            _mapper = mapper;
             _log = log;
         }
 
@@ -38,8 +43,8 @@ namespace Xioru.Grain.GrainReadModel
             // activated only prjId instances by implicit streaming
             var dbNamePrefix = this.GetPrimaryKey().ToString("N");
             
-            _grainCollection = _database.GetCollection<GrainDocument>(
-                $"{dbNamePrefix}-{GrainReadModelCollectionName}");
+            var collectionName = $"{dbNamePrefix}-{GrainReadModelCollectionName}";
+            _grainCollection = _database.GetCollection<GrainDetailsDocument>(collectionName);
 
             await base.OnActivateAsync();
         }
@@ -49,54 +54,39 @@ namespace Xioru.Grain.GrainReadModel
             return await _grainCollection.CountDocumentsAsync(x => true);
         }
 
-        public async Task<GrainDescription?> GetGrainByName(string name)
+        public async Task<GrainDetails?> GetGrainByName(string name)
         {
             var grainCursor = await _grainCollection.FindAsync(x => x.GrainName == name);
             var grain = await grainCursor.FirstOrDefaultAsync();
 
             return grain == null ? null :
-                new GrainDescription()
-                {
-                    GrainName = grain.GrainName,
-                    GrainType = grain.GrainType,
-                    GrainId = grain.GrainId
-                };
+                _mapper.Map<GrainDetails>(grain);
         }
 
-        public async Task<GrainDescription?> GetGrainById(Guid id)
+        public async Task<GrainDetails?> GetGrainById(Guid id)
         {
             var grainCursor = await _grainCollection.FindAsync(x => x.GrainId == id);
             var grain = await grainCursor.FirstOrDefaultAsync();
 
             return grain == null ? null :
-                new GrainDescription()
-                {
-                    GrainName = grain.GrainName,
-                    GrainType = grain.GrainType,
-                    GrainId = grain.GrainId
-                };
+                _mapper.Map<GrainDetails>(grain);
         }
 
-        public async Task<GrainDescription[]> GetGrains(string? filterText = null)
+        public async Task<IReadOnlyCollection<GrainDetails>> GetGrains(string? filterText = null)
         {
             var filter = filterText == null
-                ? Builders<GrainDocument>.Filter.Empty
-                : Builders<GrainDocument>.Filter.Or(
-                    Builders<GrainDocument>.Filter.Regex(x => x.GrainName, 
+                ? Builders<GrainDetailsDocument>.Filter.Empty
+                : Builders<GrainDetailsDocument>.Filter.Or(
+                    Builders<GrainDetailsDocument>.Filter.Regex(x => x.GrainName, 
                         new BsonRegularExpression(
                         new Regex(filterText, RegexOptions.IgnoreCase))),
-                    Builders<GrainDocument>.Filter.Regex(x => x.GrainType,
+                    Builders<GrainDetailsDocument>.Filter.Regex(x => x.GrainType,
                         new BsonRegularExpression(
                         new Regex(filterText, RegexOptions.IgnoreCase))));
             var list = await _grainCollection.Find(filter).ToListAsync();
 
-            var result = list.Count == 0 ? new GrainDescription[0] :
-                list.Select(x => new GrainDescription()
-                {
-                    GrainId = x.GrainId,
-                    GrainName = x.GrainName,
-                    GrainType = x.GrainType,
-                })
+            var result = list.Count == 0 ? Array.Empty<GrainDetails>() :
+                list.Select(_mapper.Map<GrainDetails>)
                 .ToArray();
 
             return result;
@@ -104,37 +94,30 @@ namespace Xioru.Grain.GrainReadModel
 
         public async Task OnSubscribed(IStreamSubscriptionHandleFactory handleFactory)
         {
-            var handle = handleFactory.Create<GrainMessage>();
+            var handle = handleFactory.Create<GrainEvent>();
             await handle.ResumeAsync(this);
         }
 
-        public async Task OnNextAsync(GrainMessage item, StreamSequenceToken token = default!)
+        public async Task OnNextAsync(GrainEvent grainEvent, StreamSequenceToken? _ = null)
         {
-            try
+            switch (grainEvent)
             {
-                switch (item.Kind)
-                {
-                    case GrainMessage.MessageKind.Create:
-                        await OnCreateEvent(item);
-                        break;
-
-                    case GrainMessage.MessageKind.Update:
-                        await OnUpdateEvent(item);
-                        break;
-
-                    case GrainMessage.MessageKind.Delete:
-                        await OnDeleteEvent(item);
-                        break;
-
-                    case GrainMessage.MessageKind.Other:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, "Error at consume stream in ProjectReadModel");
+                case GrainCreatedEvent:
+                    var createModel = _mapper.Map<GrainDetailsDocument>(grainEvent);
+                    await _grainCollection!.InsertOneAsync(createModel);
+                    break;
+                case GrainUpdatedEvent:
+                    var updateModel = _mapper.Map<GrainDetailsDocument>(grainEvent);
+                    await _grainCollection.ReplaceOneAsync(
+                        x => x.GrainId == grainEvent.Metadata!.GrainId,
+                        updateModel);
+                    break;
+                case GrainDeletedEvent:
+                    await _grainCollection
+                        .DeleteOneAsync(x => x.GrainId == grainEvent.Metadata!.GrainId);
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -145,7 +128,7 @@ namespace Xioru.Grain.GrainReadModel
 
         public Task OnErrorAsync(Exception ex)
         {
-            _log.LogError(ex, "Error at consume stream in ProjectReadModel");
+            _log.LogError(ex, "Error at consume stream in GrainReadModel");
             return Task.CompletedTask;
         }
     }

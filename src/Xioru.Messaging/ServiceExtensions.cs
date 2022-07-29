@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Xioru.Messaging.Channel;
+using Xioru.Messaging.ChannelCommand;
+using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Config;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
@@ -32,6 +34,10 @@ namespace Xioru.Messaging
             services.AddTransient<IMessengerCommand, SinviteCommand>();
             services.AddTransient<IMessengerCommand, SpwdCommand>();
             services.AddTransient<IMessengerCommand, ScdCommand>();
+
+            //common channel commands
+            services.AddTransient<IChannelCommand, ListCommand>();
+            services.AddTransient<IChannelCommand, DetailsCommand>();
 
             // validators
             services.AddValidatorsFromAssemblyContaining<ChannelGrain>();
