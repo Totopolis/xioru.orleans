@@ -26,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\src\Ofg.Core.Contracts\Ofg.Core.Contracts.csproj" />
     <ProjectReference Include="..\Xioru.Grain.Contracts\Xioru.Grain.Contracts.csproj" />
   </ItemGroup>
 

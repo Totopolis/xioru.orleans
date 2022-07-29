@@ -37,10 +37,10 @@ namespace Xioru.Grain.AbstractGrain
 
         public AbstractGrain(
             IPersistentState<T_STATE> state,
-            ILoggerFactory loggerFactory,
             IServiceProvider services)
         {
             _state = state;
+            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
             _log = loggerFactory.CreateLogger(this.GetType());
             _mapper = services.GetRequiredService<IMapper>();
             _grainFactory = services.GetRequiredService<IGrainFactory>();

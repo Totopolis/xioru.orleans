@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans;
 using Xioru.Messaging.Channel;
+using Xioru.Messaging.ChannelCommand;
+using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Config;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
@@ -12,6 +14,13 @@ namespace Xioru.Messaging
 {
     public static class ServiceExtensions
     {
+        public static IServiceCollection AddCommonChannelCommands(this IServiceCollection services)
+        {
+            services.AddTransient<IChannelCommand, ListCommand>();
+            services.AddTransient<IChannelCommand, DetailsCommand>();
+            return services;
+        }
+
         public static IServiceCollection AddMessagingServices(
             this IServiceCollection services,
             IConfiguration config)

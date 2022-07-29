@@ -2,7 +2,6 @@
 
 namespace Xioru.Grain.GrainReadModel.State
 {
-    [BsonKnownTypes(typeof(TechnoGrainDetailsDocument))]
     [BsonDiscriminator(nameof(GrainDetailsDocument))]
     public class GrainDetailsDocument
     {
