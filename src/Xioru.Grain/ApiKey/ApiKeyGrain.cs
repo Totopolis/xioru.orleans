@@ -16,8 +16,7 @@ namespace Xioru.Grain.ApiKey
     {
         public ApiKeyGrain(
             [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<ApiKeyState> state,
-            ILoggerFactory loggerFactory,
-            IServiceProvider services) : base(state, loggerFactory, services)
+            IServiceProvider services) : base(state, services)
         {
         }
 

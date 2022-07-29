@@ -17,8 +17,7 @@ namespace Xioru.Grain.User
     {
         public UserGrain(
             [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<UserState> state,
-            ILoggerFactory loggerFactory,
-            IServiceProvider services) : base(state, loggerFactory, services)
+            IServiceProvider services) : base(state, services)
         {
         }
 

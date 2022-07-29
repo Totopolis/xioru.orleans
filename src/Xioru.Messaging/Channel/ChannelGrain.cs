@@ -27,8 +27,7 @@ namespace Xioru.Messaging.Channel
 
         public ChannelGrain(
             [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<ChannelState> state,
-            ILoggerFactory loggerFactory,
-            IServiceProvider services) : base(state, loggerFactory, services)
+            IServiceProvider services) : base(state, services)
         {
             _outcomingStream = new Lazy<IAsyncStream<ChannelOutcomingMessage>>(
                 GetLazyOutcomingStream);
