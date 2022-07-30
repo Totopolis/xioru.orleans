@@ -22,7 +22,7 @@ namespace Xioru.Messaging.Messenger
             IGrainFactory grainFactory,
             IMessengerRepository repository,
             IEnumerable<IMessengerCommand> commands,
-            IOptions<BotsConfigSection> options) : base(logger, grainFactory, repository, commands, options)
+            IOptions<BotsSection> options) : base(logger, grainFactory, repository, commands, options)
         {
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Xioru.Orleans.Tests.Common;
 using Xioru.Orleans.Tests.Foo;
@@ -18,8 +19,13 @@ namespace Xioru.Orleans.Tests
         {
             await PrepareAsync();
 
-            var project = await _projectReadModel.GetProjectByName(_projectName);
+            var project = await _projectReadModel
+                .GetProjectByName(_projectName);
             Assert.NotNull(project);
+
+            var channel = await _grainReadModel
+                .GetGrainByName(_channelId.ToString());
+            Assert.NotNull(channel);
         }
 
         [Fact]
@@ -36,14 +42,37 @@ namespace Xioru.Orleans.Tests
         {
             await PrepareAsync();
 
+            await InternalCreateFoo("Foo");
+            var details = await _grainReadModel.GetGrainByName("Foo");
+            Assert.NotNull(details);
+            Assert.Equal("Foo", details!.GrainName);
+        }
+
+        [Fact]
+        public async Task FindFooByFilter()
+        {
+            await PrepareAsync();
+
+            await InternalCreateFoo("Foo");
+            await InternalCreateFoo("Bob");
+
+            var foo = (await _grainReadModel.GetGrains("oo")).FirstOrDefault();
+            Assert.NotNull(foo);
+            Assert.Equal("Foo", foo!.GrainName);
+        }
+
+        private async Task<IFooGrain> InternalCreateFoo(string name)
+        {
             var foo = _factory.GetGrain<IFooGrain>(Guid.NewGuid());
             await foo.Create(new CreateFooCommand(
                 ProjectId: _projectId,
-                Name: "Foo1",
-                DisplayName: string.Empty,
+                Name: name,
+                DisplayName: name,
                 Description: string.Empty,
                 Tags: new string[0],
-                FooData: "Hello Foo1"));
+                FooData: $"Hello {name}"));
+
+            return foo;
         }
     }
 }
