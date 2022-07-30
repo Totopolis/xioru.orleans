@@ -1,8 +1,6 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xioru.Orleans.Tests.Common;
-using Xioru.Orleans.Tests.Foo;
 using Xunit;
 
 namespace Xioru.Orleans.Tests
@@ -23,8 +21,7 @@ namespace Xioru.Orleans.Tests
                 .GetProjectByName(_projectName);
             Assert.NotNull(project);
 
-            var channel = await _grainReadModel
-                .GetGrainByName(_channelId.ToString());
+            var channel = await _grainReadModel.GetGrainByName(_channelName);
             Assert.NotNull(channel);
         }
 
@@ -59,20 +56,6 @@ namespace Xioru.Orleans.Tests
             var foo = (await _grainReadModel.GetGrains("oo")).FirstOrDefault();
             Assert.NotNull(foo);
             Assert.Equal("Foo", foo!.GrainName);
-        }
-
-        private async Task<IFooGrain> InternalCreateFoo(string name)
-        {
-            var foo = _factory.GetGrain<IFooGrain>(Guid.NewGuid());
-            await foo.Create(new CreateFooCommand(
-                ProjectId: _projectId,
-                Name: name,
-                DisplayName: name,
-                Description: string.Empty,
-                Tags: new string[0],
-                FooData: $"Hello {name}"));
-
-            return foo;
         }
     }
 }

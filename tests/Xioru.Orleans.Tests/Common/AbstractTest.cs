@@ -7,6 +7,7 @@ using Xioru.Grain.Contracts.Project;
 using Xioru.Grain.Contracts.ProjectReadModel;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Messenger;
+using Xioru.Orleans.Tests.Foo;
 
 namespace Xioru.Orleans.Tests.Common
 {
@@ -20,6 +21,7 @@ namespace Xioru.Orleans.Tests.Common
 
         protected readonly Guid _channelId;
         protected readonly IChannelGrain _channel;
+        protected readonly string _channelName;
         protected readonly IGrainReadModelGrain _grainReadModel;
         protected readonly IProjectReadModelGrain _projectReadModel;
 
@@ -35,6 +37,7 @@ namespace Xioru.Orleans.Tests.Common
                 GrainConstants.ClusterStreamId);
 
             _channelId = Guid.NewGuid();
+            _channelName = _channelId.ToString("N");
             _channel = _factory.GetGrain<IChannelGrain>(_channelId);
             _grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(_projectId);
         }
@@ -48,14 +51,28 @@ namespace Xioru.Orleans.Tests.Common
             
             await _channel.Create(new CreateChannelCommand(
                 ProjectId: _projectId,
-                Name: _channelId.ToString(),
-                DisplayName: _channelId.ToString(),
+                Name: _channelName,
+                DisplayName: _channelName,
                 Description: string.Empty,
                 Tags: new string[0],
                 //
                 MessengerType: MessengerType.Discord,
                 MessengerId: Guid.Empty,
                 ChatId: Guid.NewGuid().ToString("N")));
+        }
+
+        protected async Task<IFooGrain> InternalCreateFoo(string name)
+        {
+            var foo = _factory.GetGrain<IFooGrain>(Guid.NewGuid());
+            await foo.Create(new CreateFooCommand(
+                ProjectId: _projectId,
+                Name: name,
+                DisplayName: name,
+                Description: string.Empty,
+                Tags: new string[0],
+                FooData: $"Hello {name}"));
+
+            return foo;
         }
     }
 }
