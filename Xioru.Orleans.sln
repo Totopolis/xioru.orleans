@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xioru.Messaging.Contracts",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xioru.Messaging", "src\Xioru.Messaging\Xioru.Messaging.csproj", "{2A0E6EA5-2C1F-4524-8BB8-4A0C1CFEB182}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{20478CFF-C1CD-4468-829B-812CDD37ACEA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xioru.Orleans.Tests", "tests\Xioru.Orleans.Tests\Xioru.Orleans.Tests.csproj", "{17A4E1B6-A8D7-4329-A368-286E722E9F39}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,9 +37,16 @@ Global
 		{2A0E6EA5-2C1F-4524-8BB8-4A0C1CFEB182}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A0E6EA5-2C1F-4524-8BB8-4A0C1CFEB182}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A0E6EA5-2C1F-4524-8BB8-4A0C1CFEB182}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A4E1B6-A8D7-4329-A368-286E722E9F39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A4E1B6-A8D7-4329-A368-286E722E9F39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17A4E1B6-A8D7-4329-A368-286E722E9F39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17A4E1B6-A8D7-4329-A368-286E722E9F39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{17A4E1B6-A8D7-4329-A368-286E722E9F39} = {20478CFF-C1CD-4468-829B-812CDD37ACEA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {572DA277-8AE5-495D-B63E-75BC7E7431B3}

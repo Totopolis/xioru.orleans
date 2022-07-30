@@ -7,7 +7,6 @@ using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.Messages;
 using Xioru.Grain.Contracts.Project.Events;
 using Xioru.Grain.Contracts.ProjectReadModel;
-using Xioru.Grain.Project;
 
 namespace Xioru.Grain.ProjectReadModel
 {

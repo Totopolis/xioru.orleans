@@ -9,7 +9,6 @@ namespace Xioru.Grain.AbstractGrain
     {
         public UpdateAbstractGrainValidator(IGrainFactory factory)
         {
-
         }
     }
 }

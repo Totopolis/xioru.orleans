@@ -1,6 +1,6 @@
 ﻿using MailKit.Net.Smtp;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MimeKit;
 using Orleans;
 using Orleans.Runtime;
@@ -29,23 +29,17 @@ namespace Xioru.Grain.Account
             [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<AccountState> state,
             ILogger<AccountGrain> log,
             IGrainFactory grainFactory,
-            IConfiguration config)
+            IOptions<AuthSection> authOptions,
+            IOptions<MailerSection> mailerOptions,
+            IOptions<ApiSection> apiOptions)
         {
             _state = state;
             _log = log;
             _grainFactory = grainFactory;
 
-            _mailerConfig = config
-                .GetSection(MailerSection.SectionName)
-                .Get<MailerSection>();
-
-            _authConfig = config
-                .GetSection(AuthSection.SectionName)
-                .Get<AuthSection>();
-
-            _apiConfig = config
-                .GetSection(ApiSection.SectionName)
-                .Get<ApiSection>();
+            _mailerConfig = mailerOptions.Value;
+            _authConfig = authOptions.Value;
+            _apiConfig = apiOptions.Value;
         }
 
         public string AccountId => this.GetPrimaryKeyString();

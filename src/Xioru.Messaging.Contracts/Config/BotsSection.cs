@@ -2,7 +2,7 @@
 
 namespace Xioru.Messaging.Contracts.Config
 {
-    public class BotsConfigSection
+    public class BotsSection
     {
         public const string SectionName = "Bots";
 

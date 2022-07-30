@@ -42,7 +42,7 @@ namespace Xioru.Messaging.Messenger
             IGrainFactory grainFactory,
             IMessengerRepository repository,
             IEnumerable<IMessengerCommand> commands,
-            IOptions<BotsConfigSection> options)
+            IOptions<BotsSection> options)
         {
             _logger = logger;
             _grainFactory = grainFactory;
