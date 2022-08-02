@@ -39,8 +39,8 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release Xioru.Orleans
+        run: dotnet build --configuration Release
       - name: Create the package
-        run: dotnet pack --configuration Release Xioru.Orleans
+        run: dotnet pack --configuration Release
       - name: Publish the package to GPR
         run: dotnet nuget push xioru.orleans/bin/Release/*.nupkg
