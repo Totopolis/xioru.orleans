@@ -36,7 +36,7 @@ namespace Xioru.Messaging.Contracts.Formatting
 
         public string ToString(
             Func<string, string> boldFormatter,
-            Func<string, string>? boxedLineFormatter,
+            Func<string, string> boxedLineFormatter,
             Func<string, string>? italicFormatter = null,
             Func<string, string>? underlineFormatter = null,
             Func<string, string>? codeFormatter = null,
