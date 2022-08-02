@@ -77,9 +77,10 @@ namespace Xioru.Messaging.Messenger
             var internalId = long.TryParse(chatId, out var num) ? new ChatId(num) : new ChatId("@" + chatId);
             var formattedMessage = message.ToString(
                 replaces: _telegramSpecificReplaces,
+                boxedLineFormatter: blstr => $"*{blstr}*\n\n",
                 boldFormatter: bstr => $"*{bstr}*",
                 italicFormatter: istr => $"_{istr}_",
-                codeFormatter: cstr => $"```{cstr}```",
+                codeFormatter: cstr => $"```\n{cstr}```",
                 limit: 4000);
 
             try

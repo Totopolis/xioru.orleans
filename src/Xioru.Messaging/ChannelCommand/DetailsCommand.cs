@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿﻿using Newtonsoft.Json;
 using Orleans;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Formatting;
 
-namespace Xioru.Messaging.ChannelCommand
+namespace Ofg.Core.Commands
 {
     public partial class DetailsCommand : AbstractChannelCommand
     {

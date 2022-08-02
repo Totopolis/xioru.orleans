@@ -105,6 +105,7 @@ namespace Xioru.Messaging.Messenger
             var formattedMessage = message.ToString(
                 replaces: new Dictionary<string, string>(), //TODO: remake to a lambda
                 boldFormatter: bstr => $"**{bstr}**",
+                boxedLineFormatter: blstr => $"> {blstr}\n",
                 italicFormatter: istr => $"*{istr}*",
                 codeFormatter: cstr => $"```{cstr}```",
                 limit: 2000);

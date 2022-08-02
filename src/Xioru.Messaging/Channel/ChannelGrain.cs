@@ -36,7 +36,6 @@ namespace Xioru.Messaging.Channel
         protected override Task OnCreateApplyState(CreateChannelCommand createCommand)
         {
             State.MessengerType = createCommand.MessengerType;
-            State.MessengerId = createCommand.MessengerId;
             State.ChatId = createCommand.ChatId;
             
             return Task.CompletedTask;
@@ -49,7 +48,6 @@ namespace Xioru.Messaging.Channel
                 Description: State.Description,
                 Tags: State.Tags.ToArray(),
                 MessengerType: State.MessengerType,
-                MessengerId: State.MessengerId,
                 ChatId: State.ChatId));
         }
 
@@ -88,8 +86,8 @@ namespace Xioru.Messaging.Channel
         {
             var _streamProvider = GetStreamProvider("SMSProvider");
             var outcomingStream = _streamProvider.GetStream<ChannelOutcomingMessage>(
-                streamId: State.MessengerId,
-                streamNamespace: MessagingConstants.ChannelOutcomingStreamNamespace);
+                streamId: Guid.Empty,
+                streamNamespace: MessagingConstants.GetChannelOutcomingStreamNamespace(State.MessengerType));
 
             return outcomingStream;
         }

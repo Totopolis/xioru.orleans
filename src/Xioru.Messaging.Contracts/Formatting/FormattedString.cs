@@ -36,6 +36,7 @@ namespace Xioru.Messaging.Contracts.Formatting
 
         public string ToString(
             Func<string, string> boldFormatter,
+            Func<string, string>? boxedLineFormatter,
             Func<string, string>? italicFormatter = null,
             Func<string, string>? underlineFormatter = null,
             Func<string, string>? codeFormatter = null,
@@ -79,6 +80,8 @@ namespace Xioru.Messaging.Contracts.Formatting
                     text = underlineFormatter(text);
                 if (formatting.HasFlag(StringFormatting.Code) && codeFormatter != null)
                     text = codeFormatter(text);
+                if (formatting.HasFlag(StringFormatting.BoxedLine))
+                    text = boxedLineFormatter(text);
                 return text;
             }
         }
@@ -114,6 +117,7 @@ namespace Xioru.Messaging.Contracts.Formatting
         Bold = 1,
         Italic = 2,
         Underline = 4,
-        Code = 8
+        Code = 8,
+        BoxedLine = 16
     }
 }

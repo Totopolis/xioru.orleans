@@ -9,7 +9,5 @@ namespace Xioru.Messaging.Contracts.Messenger
         public string ChatId { get; set; } = default!;
 
         public MessengerType MessengerType { get; set; } = default!;
-
-        public Guid MessengerId { get; set; } = default!;
     }
 }

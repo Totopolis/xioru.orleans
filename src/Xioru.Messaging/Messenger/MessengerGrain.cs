@@ -86,7 +86,7 @@ namespace Xioru.Messaging.Messenger
                 _channelOutcomingStream = await streamProvider
                     .GetStreamAndSingleSubscribe<ChannelOutcomingMessage>(
                         streamId: Guid.Empty,
-                        streamNamespace: MessagingConstants.ChannelOutcomingStreamNamespace,
+                        streamNamespace: MessagingConstants.GetChannelOutcomingStreamNamespace(this.MessengerType),
                         observer: this);
 
                 // prevent from sleep

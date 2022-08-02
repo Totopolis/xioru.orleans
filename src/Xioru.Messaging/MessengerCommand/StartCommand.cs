@@ -77,7 +77,6 @@ namespace Xioru.Messaging.MessengerCommand
                 Tags: new List<string>().ToArray(),
                 //
                 MessengerType: context.MessengerType,
-                MessengerId: context.MessengerId,
                 ChatId: context.ChatId));
 
             // 6. Set channel current

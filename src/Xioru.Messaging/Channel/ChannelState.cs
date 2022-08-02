@@ -7,8 +7,6 @@ namespace Xioru.Messaging
     {
         public MessengerType MessengerType { get; set; }
 
-        public Guid MessengerId { get; set; }
-
         public string ChatId { get; set; } = default!;
 
         public DateTime LastMessage { get; set; } = DateTime.MinValue;

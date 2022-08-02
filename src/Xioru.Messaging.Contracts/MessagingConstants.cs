@@ -1,4 +1,6 @@
-﻿namespace Xioru.Messaging.Contracts
+﻿using Xioru.Messaging.Contracts.Messenger;
+
+namespace Xioru.Messaging.Contracts
 {
     public static class MessagingConstants
     {
@@ -8,8 +10,8 @@
         public const string ChannelIncomingStreamNamespace = "ChannelIncomingStream";
 
         /// <summary>
-        /// from channel to messenger (streamId=messengerId)
+        /// from channel to messenger (streamId=Guid.Empty)
         /// </summary>
-        public const string ChannelOutcomingStreamNamespace = "ChannelOutcomingStream";
+        public static string GetChannelOutcomingStreamNamespace(MessengerType type) => $"ChannelOutcomingStream_{Enum.GetName(type)}";
     }
 }
