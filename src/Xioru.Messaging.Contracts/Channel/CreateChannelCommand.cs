@@ -9,9 +9,7 @@ namespace Xioru.Messaging.Contracts.Channel
         string DisplayName,
         string Description,
         string[] Tags,
-        //
         MessengerType MessengerType,
-        Guid MessengerId,
         string ChatId) : CreateAbstractGrainCommand(
             ProjectId,
             Name,

@@ -36,8 +36,10 @@ namespace Xioru.Messaging.Contracts.Formatting
 
         public string ToString(
             Func<string, string> boldFormatter,
+            Func<string, string> boxedLineFormatter,
             Func<string, string>? italicFormatter = null,
             Func<string, string>? underlineFormatter = null,
+            Func<string, string>? codeFormatter = null,
             Dictionary<string, string>? replaces = null,
             int limit = int.MaxValue)
         {
@@ -76,6 +78,10 @@ namespace Xioru.Messaging.Contracts.Formatting
                     text = italicFormatter(text);
                 if (formatting.HasFlag(StringFormatting.Underline) && underlineFormatter != null)
                     text = underlineFormatter(text);
+                if (formatting.HasFlag(StringFormatting.Code) && codeFormatter != null)
+                    text = codeFormatter(text);
+                if (formatting.HasFlag(StringFormatting.BoxedLine))
+                    text = boxedLineFormatter(text);
                 return text;
             }
         }
@@ -104,12 +110,14 @@ namespace Xioru.Messaging.Contracts.Formatting
         }
     }
 
-    [Flags] //mb make hierarchy?
+    [Flags]
     public enum StringFormatting
     {
         None = 0,
         Bold = 1,
         Italic = 2,
-        Underline = 4
+        Underline = 4,
+        Code = 8,
+        BoxedLine = 16
     }
 }

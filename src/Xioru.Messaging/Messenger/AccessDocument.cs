@@ -5,7 +5,7 @@ namespace Xioru.Messaging.Messenger
 {
     internal class AccessDocument
     {
-        [BsonId] //TODO: consider making objectId
+        [BsonId]
         public Guid Id { get; set; }
 
         public string ChatId { get; set; } = default!;

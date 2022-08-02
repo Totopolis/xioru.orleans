@@ -105,8 +105,11 @@ namespace Xioru.Grain.GrainReadModel
                     var createModel = _mapper.Map<GrainDetailsDocument>(grainEvent);
                     await _grainCollection!.InsertOneAsync(createModel);
                     break;
-                case GrainUpdatedEvent:
-                    var updateModel = _mapper.Map<GrainDetailsDocument>(grainEvent);
+                case GrainUpdatedEvent upd:
+                    var grainCursor = await _grainCollection.FindAsync(x => x.GrainId == upd.Metadata!.GrainId);
+                    var oldGrainModel = await grainCursor.FirstOrDefaultAsync();
+
+                    var updateModel = _mapper.Map<GrainUpdatedEvent, GrainDetailsDocument>(upd, oldGrainModel);
                     await _grainCollection.ReplaceOneAsync(
                         x => x.GrainId == grainEvent.Metadata!.GrainId,
                         updateModel);

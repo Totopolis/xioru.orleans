@@ -9,7 +9,6 @@ namespace Xioru.Messaging.Contracts.Channel.Events
         string[] Tags,
         //
         MessengerType MessengerType,
-        Guid MessengerId,
         string ChatId) : AbstractGrainCreatedEvent(
             DisplayName,
             Description,

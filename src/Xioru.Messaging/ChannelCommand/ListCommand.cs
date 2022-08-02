@@ -35,9 +35,7 @@ namespace Xioru.Messaging.ChannelCommand
                 return CommandResult.Success("No objects found");
             }
 
-            var fString = new FormattedString(
-                "> List of the platform objects", StringFormatting.Bold);
-            fString.Append("\n```");
+            var fString = new FormattedString("List of the platform objects", StringFormatting.BoxedLine);
 
             var table = new ConsoleTable("Name", "Type");
 
@@ -49,7 +47,7 @@ namespace Xioru.Messaging.ChannelCommand
                 table.AddRow(grain.GrainName, grainTypeShortened);
             }
 
-            fString.Append($"{table.ToMinimalString()}```");
+            fString.Append($"{table.ToMinimalString()}", StringFormatting.Code);
 
             return CommandResult.Success(fString);
         }

@@ -20,14 +20,14 @@ namespace Xioru.Messaging.Messenger
         {
             _database = database;
             _log = log;
+            _inviteCollection = _database
+                .GetCollection<InviteDocument>("Invites");
         }
 
         public async Task StartAsync(MessengerType type)
         {
-            _inviteCollection = _database
-                .GetCollection<InviteDocument>(type.ToString() + "Access");
             _accessCollection = _database
-                .GetCollection<AccessDocument>(type.ToString() + "Invite");
+                .GetCollection<AccessDocument>(type.ToString() + "Access");
 
             // cannot it be filled from the outside?
             _access = await _accessCollection
@@ -178,6 +178,7 @@ namespace Xioru.Messaging.Messenger
             await _inviteCollection!.InsertOneAsync(invite);
         }
 
+        // TODO: check if it is stale ?
         public bool CheckInvite(string code, out Guid projectId)
         {
             var invite = _inviteCollection
