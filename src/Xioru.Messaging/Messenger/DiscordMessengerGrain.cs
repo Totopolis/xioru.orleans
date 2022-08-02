@@ -89,23 +89,27 @@ namespace Xioru.Messaging.Messenger
                 return;
             }
 
-            if (ulong.TryParse(chatId, out var channelId))
+            if (!ulong.TryParse(chatId, out var channelId))
             {
-                var channel = await _discordClient.GetChannelAsync(channelId) as IMessageChannel;
+                _logger.LogWarning($"Failed attempt to parse {chatId} for sending a message ({message})"); 
+            }
 
-                if (channel != null)
-                {
-                    await channel.SendMessageAsync(message);
-                }
-                else
-                {
-                    _logger.LogWarning($"Failed attempt to send internal message to {chatId} ({message})");
-                }
-            }
-            else
+            var channel = await _discordClient.GetChannelAsync(channelId) as IMessageChannel;
+
+            if (channel == null)
             {
-                _logger.LogWarning($"Failed attempt to parse {chatId} for sending a message ({message})");
+                _logger.LogWarning($"Failed attempt to send internal message to {chatId} ({message})");
+                return;
             }
+
+            var formattedMessage = message.ToString(
+                replaces: new Dictionary<string, string>(), //TODO: remake to a lambda
+                boldFormatter: bstr => $"**{bstr}**",
+                italicFormatter: istr => $"*{istr}*",
+                codeFormatter: cstr => $"```{cstr}```",
+                limit: 2000);
+
+            await channel.SendMessageAsync(formattedMessage);
         }
     }
 }

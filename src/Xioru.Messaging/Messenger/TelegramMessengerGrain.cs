@@ -68,7 +68,6 @@ namespace Xioru.Messaging.Messenger
 
         protected override async Task SendDirectMessage(string chatId, FormattedString message)
         {
-
             if (_telegramClient == null)
             {
                 _logger.LogError("Telegram client are not initialized. Failed attempt to send message\n{Message}\n", message);
@@ -80,6 +79,7 @@ namespace Xioru.Messaging.Messenger
                 replaces: _telegramSpecificReplaces,
                 boldFormatter: bstr => $"*{bstr}*",
                 italicFormatter: istr => $"_{istr}_",
+                codeFormatter: cstr => $"```{cstr}```",
                 limit: 4000);
 
             try
@@ -131,7 +131,7 @@ namespace Xioru.Messaging.Messenger
         private readonly Dictionary<string, string> _telegramSpecificReplaces = new Dictionary<string, string> {
             {"_", @"\_"}, {"*", @"\*"}, {"[", @"\["}, {"]", @"\]"}, {"{", @"\{"}, {"}", @"\}"}, 
             {"~", @"\~"}, {"`", @"\`"}, {">", @"\>"}, {"#", @"\#"}, {"+", @"\+"}, {"-", @"\-"},
-            {"=", @"\="}, {"|", @"\|"}, {".", @"\."}, {"!", @"\!"} 
+            {"=", @"\="}, {"|", @"\|"}, {".", @"\."}, {"!", @"\!"}, {"(", @"\("}, {")", @"\)"}
         };
     }
 }
