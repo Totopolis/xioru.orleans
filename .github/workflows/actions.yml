@@ -36,8 +36,11 @@ jobs:
           source-url: https://nuget.pkg.github.com/Totopolis/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - run: dotnet build --configuration Release xioru.orleans
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release Xioru.Orleans
       - name: Create the package
-        run: dotnet pack --configuration Release xioru.orleans
+        run: dotnet pack --configuration Release Xioru.Orleans
       - name: Publish the package to GPR
         run: dotnet nuget push xioru.orleans/bin/Release/*.nupkg
