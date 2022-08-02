@@ -1,6 +1,5 @@
 ﻿using ConsoleTables;
 using Orleans;
-using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Formatting;
@@ -19,7 +18,8 @@ namespace Xioru.Messaging.ChannelCommand
         {
         }
 
-        protected override async Task<CommandResult> ExecuteInternal(ChannelCommandContext context)
+        protected override async Task<CommandResult> ExecuteInternal(
+            ChannelCommandContext context)
         {
             if (context.ArgsCount > 0 && context.Arguments[0].Length < 3)
             {
@@ -27,15 +27,19 @@ namespace Xioru.Messaging.ChannelCommand
                     "Filter must be at least 3 characters long");
             }
 
-            var readModel = _factory.GetGrain<IGrainReadModelGrain>(context.ProjectId);
+            var grainDetails = await _grainReadModel
+                .GetGrains(context.Arguments.FirstOrDefault());
 
-            var grainDescriptions = await readModel.GetGrains(context.Arguments.FirstOrDefault());
+            if (grainDetails!.Count == 0)
+            {
+                return CommandResult.Success("No objects found");
+            }
 
             var fString = new FormattedString("List of the platform objects", StringFormatting.BoxedLine);
 
             var table = new ConsoleTable("Name", "Type");
 
-            foreach (var grain in grainDescriptions)
+            foreach (var grain in grainDetails)
             {
                 var grainTypeShortened = grain.GrainType.EndsWith("Grain")
                     ? grain.GrainType.Substring(0, grain.GrainType.Length - "Grain".Length)

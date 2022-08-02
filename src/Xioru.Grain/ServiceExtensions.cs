@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Xioru.Grain.Contracts.Config;
 using Xioru.Grain.Project;
 
 namespace Xioru.Grain
@@ -19,6 +20,16 @@ namespace Xioru.Grain
             services.AddAutoMapper(typeof(ProjectGrain));
 
             services.AddTransient<IMemoryCache, MemoryCache>();
+
+            // register options
+            services.AddOptions<AuthSection>()
+                .BindConfiguration(AuthSection.SectionName);
+
+            services.AddOptions<MailerSection>()
+                .BindConfiguration(MailerSection.SectionName);
+
+            services.AddOptions<ApiSection>()
+                .BindConfiguration(ApiSection.SectionName);
 
             return services;
         }

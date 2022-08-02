@@ -95,19 +95,19 @@ namespace Xioru.Messaging.Contracts.Command
                 throw new CommandSyntaxErrorException("Empty grain name");
             }
 
-            var grainDescription = await _grainReadModel.GetGrainByName(grainName);
+            var grainDetails = await _grainReadModel.GetGrainByName(grainName);
 
-            if (grainDescription == null)
+            if (grainDetails == null)
             {
-                throw new CommandLogicErrorException($"Object {grainName} not found or bad type");
+                throw new CommandLogicErrorException($"Object {grainName} not found");
             }
 
-            if (grainType != null && grainDescription.GrainType != grainType)
+            if (grainType != null && grainDetails.GrainType != grainType)
             {
                 throw new CommandLogicErrorException($"Object {grainName} have bad type");
             }
 
-            return grainDescription;
+            return grainDetails;
         }
     }
 }

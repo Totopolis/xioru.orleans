@@ -46,15 +46,15 @@ namespace Xioru.Messaging
             services.AddAutoMapper(typeof(ChannelGrain));
 
             // register messengers
-            var messengersSection = config.GetSection(BotsConfigSection.SectionName);
-            if (messengersSection.Exists())
+            var botsSection = config.GetSection(BotsSection.SectionName);
+            if (botsSection.Exists())
             {
-                var messengersConfigs = messengersSection.Get<BotsConfigSection>()?.Configs;
+                var messengersConfigs = botsSection.Get<BotsSection>()?.Configs;
 
                 if (messengersConfigs != null)
                 {
-                    services.AddOptions<BotsConfigSection>()
-                        .BindConfiguration(BotsConfigSection.SectionName);
+                    services.AddOptions<BotsSection>()
+                        .Bind(botsSection);
 
                     services.RegisterMessengerIfEnabled<IDiscordMessengerGrain>(
                         messengersConfigs, MessengerType.Discord);
