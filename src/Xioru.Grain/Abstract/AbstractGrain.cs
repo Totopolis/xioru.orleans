@@ -68,12 +68,7 @@ namespace Xioru.Grain.AbstractGrain
             }
  
             // 2. Save state
-            // TODO: use mapping
             _mapper.Map<T_CREATE_COMMAND, T_STATE>(createCommand, State);
-            Debug.Assert(State.Name == createCommand.Name);
-            Debug.Assert(State.ProjectId == createCommand.ProjectId);
-            Debug.Assert(State.DisplayName == createCommand.Name);
-            Debug.Assert(State.Description == createCommand.Description);
 
             await _state.WriteStateAsync();
 
@@ -124,12 +119,7 @@ namespace Xioru.Grain.AbstractGrain
             }
 
             // 2. Save state
-            // TODO: use mapping
             _mapper.Map<T_UPDATE_COMMAND, T_STATE>(updateCommand, State);
-            //TODO: check n remove
-            State.DisplayName = updateCommand.DisplayName ?? State.Name;
-            State.Description = updateCommand.Description;
-            State.Tags = updateCommand.Tags.ToList();
 
             await _state.WriteStateAsync();
 

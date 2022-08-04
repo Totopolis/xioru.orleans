@@ -5,8 +5,6 @@ namespace Xioru.Messaging.Contracts.Channel
 {
     public class ChannelOutcomingMessage
     {
-        public MessengerType MessengerType { get; set; } = default(MessengerType);
-
         public string ChatId { get; set; } = default!;
 
         public FormattedString Message { get; set; } = default!;

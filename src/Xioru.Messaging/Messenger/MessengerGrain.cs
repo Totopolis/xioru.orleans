@@ -118,9 +118,6 @@ namespace Xioru.Messaging.Messenger
             ChannelOutcomingMessage item,
             StreamSequenceToken token)
         {
-            // TODO: check n remove
-            Debug.Assert(item.MessengerType == this.MessengerType);
-
             await SendDirectMessage(item.ChatId, item.Message);
             
         }
