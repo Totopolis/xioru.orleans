@@ -4,11 +4,11 @@ namespace Xioru.Grain.Contracts.ApiKey
 {
     public interface IApiKeyGrain : IGrainWithGuidKey
     {
-        Task Create(CreateApiKeyCommand createCommand);
+        Task CreateAsync(CreateApiKeyCommandModel createCommand);
 
-        Task Update(UpdateApiKeyCommand updateCommand);
+        Task UpdateAsync(UpdateApiKeyCommandModel updateCommand);
 
-        Task Delete();
+        Task DeleteAsync();
 
         Task<ApiKeyProjection> GetProjection();
     }

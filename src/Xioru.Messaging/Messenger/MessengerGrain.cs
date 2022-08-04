@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Runtime;
 using Orleans.Streams;
+using System.Diagnostics;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.Messages;
@@ -117,12 +118,11 @@ namespace Xioru.Messaging.Messenger
             ChannelOutcomingMessage item,
             StreamSequenceToken token)
         {
-            // TODO: different streams mb?
-            // No, dc/tg will block us as spam
-            if (item.MessengerType == this.MessengerType)
-            {
-                await SendDirectMessage(item.ChatId, item.Message);
-            }
+            // TODO: check n remove
+            Debug.Assert(item.MessengerType == this.MessengerType);
+
+            await SendDirectMessage(item.ChatId, item.Message);
+            
         }
 
         public async Task OnNextAsync(

@@ -1,6 +1,6 @@
 ﻿namespace Xioru.Grain.Contracts.AbstractGrain
 {
-    public abstract record CreateAbstractGrainCommand(
+    public abstract record CreateAbstractGrainCommandModel(
         Guid ProjectId,
         string Name,
         string DisplayName,

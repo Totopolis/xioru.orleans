@@ -5,7 +5,7 @@ using Xioru.Grain.Contracts.ApiKey;
 namespace Xioru.Grain.ApiKey
 {
     public class CreateApiKeyValidator :
-        CreateAbstractGrainValidator<CreateApiKeyCommand>
+        CreateAbstractGrainValidator<CreateApiKeyCommandModel>
     {
         public CreateApiKeyValidator(IGrainFactory factory)
             : base(factory)

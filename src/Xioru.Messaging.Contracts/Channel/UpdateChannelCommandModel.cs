@@ -1,11 +1,11 @@
 ﻿using Xioru.Grain.Contracts.AbstractGrain;
 
-namespace Xioru.Grain.Contracts.User
+namespace Xioru.Messaging.Contracts.Channel
 {
-    public record UpdateUserCommand(
+    public record UpdateChannelCommandModel(
         string DisplayName,
         string Description,
-        string[] Tags) : UpdateAbstractGrainCommand(
+        string[] Tags) : UpdateAbstractGrainCommandModel(
             DisplayName,
             Description,
             Tags);

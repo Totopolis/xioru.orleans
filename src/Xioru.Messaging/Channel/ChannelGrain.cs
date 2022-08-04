@@ -16,8 +16,8 @@ namespace Xioru.Messaging.Channel
     [ImplicitStreamSubscription(MessagingConstants.ChannelIncomingStreamNamespace)]
     public partial class ChannelGrain : AbstractGrain<
         ChannelState,
-        CreateChannelCommand,
-        UpdateChannelCommand,
+        CreateChannelCommandModel,
+        UpdateChannelCommandModel,
         ChannelProjection>,
         IChannelGrain,
         IStreamSubscriptionObserver,
@@ -33,15 +33,7 @@ namespace Xioru.Messaging.Channel
                 GetLazyOutcomingStream);
         }
 
-        protected override Task OnCreateApplyState(CreateChannelCommand createCommand)
-        {
-            State.MessengerType = createCommand.MessengerType;
-            State.ChatId = createCommand.ChatId;
-            
-            return Task.CompletedTask;
-        }
-
-        protected override async Task OnCreateEmitEvent(CreateChannelCommand createCommand)
+        protected override async Task OnCreateEmitEvent(CreateChannelCommandModel createCommand)
         {
             await EmitEvent(new ChannelCreatedEvent(
                 DisplayName: State.DisplayName,
@@ -51,17 +43,12 @@ namespace Xioru.Messaging.Channel
                 ChatId: State.ChatId));
         }
 
-        protected override Task OnCreated() => Task.CompletedTask;
-
         protected override async Task EmitDeleteEvent()
         {
             await EmitEvent(new ChannelDeletedEvent());
         }
 
-        protected override Task OnUpdateApplyState(
-            UpdateChannelCommand updateCommand) => Task.CompletedTask;
-
-        protected override async Task OnUpdateEmitEvent(UpdateChannelCommand updateCommand)
+        protected override async Task OnUpdateEmitEvent(UpdateChannelCommandModel updateCommand)
         {
             await EmitEvent(new ChannelUpdatedEvent(
                 DisplayName: updateCommand.DisplayName,
@@ -69,14 +56,12 @@ namespace Xioru.Messaging.Channel
                 Tags: updateCommand.Tags.ToArray()));
         }
 
-        protected override Task OnUpdated() => Task.CompletedTask;
-
         public async Task SendMessage(FormattedString textMessage)
         {
             await _outcomingStream.Value
                 .OnNextAsync(new ChannelOutcomingMessage
                 {
-                    MessengerType = State.MessengerType, //TODO: different streams mb?
+                    MessengerType = State.MessengerType,
                     ChatId = State.ChatId,
                     Message = textMessage
                 });

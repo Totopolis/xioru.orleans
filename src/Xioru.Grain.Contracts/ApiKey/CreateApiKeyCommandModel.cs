@@ -2,10 +2,14 @@
 
 namespace Xioru.Grain.Contracts.ApiKey
 {
-    public record UpdateApiKeyCommand(
+    public record CreateApiKeyCommandModel(
+        Guid ProjectId,
+        string Name,
         string DisplayName,
         string Description,
-        string[] Tags) : UpdateAbstractGrainCommand(
+        string[] Tags) : CreateAbstractGrainCommandModel(
+            ProjectId,
+            Name,
             DisplayName,
             Description,
             Tags);

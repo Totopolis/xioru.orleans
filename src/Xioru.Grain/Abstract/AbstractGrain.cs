@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Runtime;
 using Orleans.Streams;
+using System.Diagnostics;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.AbstractGrain;
 using Xioru.Grain.Contracts.Messages;
@@ -18,8 +19,8 @@ namespace Xioru.Grain.AbstractGrain
         T_PROJECTION> :
         Orleans.Grain, IGrainWithGuidKey
         where T_STATE : AbstractGrainState
-        where T_CREATE_COMMAND : notnull, CreateAbstractGrainCommand
-        where T_UPDATE_COMMAND : notnull, UpdateAbstractGrainCommand
+        where T_CREATE_COMMAND : notnull, CreateAbstractGrainCommandModel
+        where T_UPDATE_COMMAND : notnull, UpdateAbstractGrainCommandModel
         where T_PROJECTION : AbstractGrainProjection
     {
         private IAsyncStream<GrainEvent> _projectRepositoryStream = default!;
@@ -48,7 +49,7 @@ namespace Xioru.Grain.AbstractGrain
             _updateValidator = services.GetRequiredService<IValidator<T_UPDATE_COMMAND>>();
         }
 
-        public async Task Create(T_CREATE_COMMAND createCommand)
+        public virtual async Task CreateAsync(T_CREATE_COMMAND createCommand)
         {
             // 0. Check state
             if (_state.RecordExists)
@@ -68,15 +69,11 @@ namespace Xioru.Grain.AbstractGrain
  
             // 2. Save state
             // TODO: use mapping
-            State.Name = createCommand.Name;
-            State.ProjectId = createCommand.ProjectId;
-            State.DisplayName = createCommand.DisplayName ?? createCommand.Name;
-            State.Description = createCommand.Description;
-            State.Tags = createCommand.Tags == null ?
-                new string[0].ToList() :
-                createCommand.Tags.ToList();
-
-            await OnCreateApplyState(createCommand);
+            _mapper.Map<T_CREATE_COMMAND, T_STATE>(createCommand, State);
+            Debug.Assert(State.Name == createCommand.Name);
+            Debug.Assert(State.ProjectId == createCommand.ProjectId);
+            Debug.Assert(State.DisplayName == createCommand.Name);
+            Debug.Assert(State.Description == createCommand.Description);
 
             await _state.WriteStateAsync();
 
@@ -84,16 +81,11 @@ namespace Xioru.Grain.AbstractGrain
             await OnCreateEmitEvent(createCommand);
 
             _log.LogInformation($"Grain {createCommand.Name} created in project {createCommand.ProjectId}");
-
-            // 4. User logic
-            await OnCreated();
         }
 
-        protected abstract Task OnCreateApplyState(T_CREATE_COMMAND createCommand);
         protected abstract Task OnCreateEmitEvent(T_CREATE_COMMAND createCommand);
-        protected abstract Task OnCreated();
 
-        public async Task Delete()
+        public virtual async Task DeleteAsync()
         {
             // 0. Check state
             CheckState();
@@ -103,21 +95,17 @@ namespace Xioru.Grain.AbstractGrain
 
             // 1. Event sourcing
             await EmitDeleteEvent();
+            //TODO: map state to DelEvt?
 
             // 2. Delete state after emit event!!!
             await _state.ClearStateAsync();
 
             _log.LogInformation($"Grain {objName} deleted in project {projectId}");
-
-            // 3. User logic
-            await OnDeleted();
         }
 
         protected abstract Task EmitDeleteEvent();
 
-        protected virtual Task OnDeleted() => Task.CompletedTask;
-
-        public async Task Update(T_UPDATE_COMMAND updateCommand)
+        public virtual async Task UpdateAsync(T_UPDATE_COMMAND updateCommand)
         {
             // 0. Check state
             if (!_state.RecordExists)
@@ -137,11 +125,11 @@ namespace Xioru.Grain.AbstractGrain
 
             // 2. Save state
             // TODO: use mapping
+            _mapper.Map<T_UPDATE_COMMAND, T_STATE>(updateCommand, State);
+            //TODO: check n remove
             State.DisplayName = updateCommand.DisplayName ?? State.Name;
             State.Description = updateCommand.Description;
             State.Tags = updateCommand.Tags.ToList();
-
-            await OnUpdateApplyState(updateCommand);
 
             await _state.WriteStateAsync();
 
@@ -149,14 +137,9 @@ namespace Xioru.Grain.AbstractGrain
             await OnUpdateEmitEvent(updateCommand);
 
             _log.LogInformation($"Grain {State.Name} updated");
-
-            // 4. User logic
-            await OnUpdated();
         }
 
-        protected abstract Task OnUpdateApplyState(T_UPDATE_COMMAND updateCommand);
         protected abstract Task OnUpdateEmitEvent(T_UPDATE_COMMAND updateCommand);
-        protected abstract Task OnUpdated();
 
         protected void CheckState()
         {
