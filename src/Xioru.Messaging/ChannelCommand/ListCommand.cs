@@ -41,10 +41,15 @@ namespace Xioru.Messaging.ChannelCommand
 
             foreach (var grain in grainDetails)
             {
-                var grainTypeShortened = grain.GrainType.EndsWith("Grain")
-                    ? grain.GrainType.Substring(0, grain.GrainType.Length - "Grain".Length)
+
+                var shortenedGrainType = grain.GrainType.LastIndexOf('.') > 0
+                    ? grain.GrainType.Substring(grain.GrainType.LastIndexOf('.'))
                     : grain.GrainType;
-                table.AddRow(grain.GrainName, grainTypeShortened);
+                
+                var trimmedTypeName = shortenedGrainType.EndsWith("Grain")
+                    ? shortenedGrainType.Substring(0, shortenedGrainType.Length - "Grain".Length)
+                    : shortenedGrainType;
+                table.AddRow(grain.GrainName, trimmedTypeName);
             }
 
             fString.Append($"{table.ToMinimalString()}", StringFormatting.Code);

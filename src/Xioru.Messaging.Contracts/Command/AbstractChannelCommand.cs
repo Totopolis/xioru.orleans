@@ -95,7 +95,7 @@ namespace Xioru.Messaging.Contracts.Command
                 throw new CommandSyntaxErrorException("Empty grain name");
             }
 
-            var grainDetails = await _grainReadModel.GetGrainByName(grainName);
+            var grainDetails = await _grainReadModel.GetGrainDetailsByName(grainName);
 
             if (grainDetails == null)
             {

@@ -51,14 +51,15 @@ namespace Xioru.Grain.AbstractGrain
 
         public virtual async Task CreateAsync(T_CREATE_COMMAND createCommand)
         {
-            // 0. Check state
+            _mapper.Map<T_CREATE_COMMAND, T_STATE>(createCommand, State);
+
             if (_state.RecordExists)
             {
                 throw new Exception("Grain already exists");
             }
 
             var vcontext = new ValidationContext<T_CREATE_COMMAND>(createCommand);
-            vcontext.RootContextData["grain"] = this;
+            vcontext.RootContextData["state"] = State;
             var vr = await _createValidator.ValidateAsync(vcontext);
 
             if (!vr.IsValid)
@@ -68,8 +69,6 @@ namespace Xioru.Grain.AbstractGrain
             }
  
             // 2. Save state
-            _mapper.Map<T_CREATE_COMMAND, T_STATE>(createCommand, State);
-
             await _state.WriteStateAsync();
 
             // 3. Event sourcing
@@ -109,7 +108,7 @@ namespace Xioru.Grain.AbstractGrain
             }
 
             var vcontext = new ValidationContext<T_UPDATE_COMMAND>(updateCommand);
-            vcontext.RootContextData["grain"] = this;
+            vcontext.RootContextData["state"] = State;
             var vr = await _updateValidator.ValidateAsync(vcontext);
 
             if (!vr.IsValid)
@@ -148,15 +147,7 @@ namespace Xioru.Grain.AbstractGrain
         {
             grainEvent = grainEvent ?? throw new ArgumentNullException(nameof(grainEvent));
             // 1. Prepare event
-            grainEvent.Metadata = new GrainEventMetadata
-            {
-                ProjectId = State.ProjectId,
-                BaseGrainType = this.GetType().BaseType!.Name,
-                GrainType = this.GetType().Name,
-                GrainId = this.GetPrimaryKey(),
-                GrainName = State.Name,
-                CreatedUtc = DateTime.UtcNow
-            };
+            grainEvent.Metadata = Metadata;
 
             // 2. Emit to project stream
             if (_projectRepositoryStream == null)
@@ -187,9 +178,18 @@ namespace Xioru.Grain.AbstractGrain
         {
             var projection = _mapper.Map<T_PROJECTION>(
                 State,
-                opt => opt.Items["Grain"] = this);
+                opt => opt.Items["state"] = State);
 
             return Task.FromResult(projection);
         }
+
+        protected GrainEventMetadata? Metadata => new GrainEventMetadata
+        {
+            ProjectId = State.ProjectId,
+            GrainType = this.GetType().FullName!,
+            GrainId = this.GetPrimaryKey(),
+            GrainName = State.Name,
+            CreatedUtc = DateTime.UtcNow
+        };
     }
 }
