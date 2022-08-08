@@ -55,7 +55,7 @@ namespace Xioru.Messaging.MessengerCommand
             {
                 var channelId = Guid.NewGuid();
                 var channel = _factory.GetGrain<IChannelGrain>(channelId);
-                await channel.Create(new CreateChannelCommand(
+                await channel.CreateAsync(new CreateChannelCommandModel(
                     ProjectId: project.Id,
                     Name: $"{context.MessengerType}-{context.ChatId}",
                     DisplayName: $"{context.MessengerType}-{context.ChatId}",

@@ -2,16 +2,10 @@
 
 namespace Xioru.Grain.Contracts.User
 {
-    public record CreateUserCommand(
-        Guid ProjectId,
-        string Name,
+    public record UpdateUserCommandModel(
         string DisplayName,
         string Description,
-        string[] Tags,
-        //
-        string Login) : CreateAbstractGrainCommand(
-            ProjectId,
-            Name,
+        string[] Tags) : UpdateAbstractGrainCommandModel(
             DisplayName,
             Description,
             Tags);

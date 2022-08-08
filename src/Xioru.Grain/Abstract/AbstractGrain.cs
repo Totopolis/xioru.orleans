@@ -18,8 +18,8 @@ namespace Xioru.Grain.AbstractGrain
         T_PROJECTION> :
         Orleans.Grain, IGrainWithGuidKey
         where T_STATE : AbstractGrainState
-        where T_CREATE_COMMAND : notnull, CreateAbstractGrainCommand
-        where T_UPDATE_COMMAND : notnull, UpdateAbstractGrainCommand
+        where T_CREATE_COMMAND : notnull, CreateAbstractGrainCommandModel
+        where T_UPDATE_COMMAND : notnull, UpdateAbstractGrainCommandModel
         where T_PROJECTION : AbstractGrainProjection
     {
         private IAsyncStream<GrainEvent> _projectRepositoryStream = default!;
@@ -48,7 +48,7 @@ namespace Xioru.Grain.AbstractGrain
             _updateValidator = services.GetRequiredService<IValidator<T_UPDATE_COMMAND>>();
         }
 
-        public async Task Create(T_CREATE_COMMAND createCommand)
+        public virtual async Task CreateAsync(T_CREATE_COMMAND createCommand)
         {
             // 0. Check state
             if (_state.RecordExists)
@@ -56,8 +56,9 @@ namespace Xioru.Grain.AbstractGrain
                 throw new Exception("Grain already exists");
             }
 
+            // 1. Validate command
             var vcontext = new ValidationContext<T_CREATE_COMMAND>(createCommand);
-            vcontext.RootContextData["grain"] = this;
+            vcontext.RootContextData["state"] = State;
             var vr = await _createValidator.ValidateAsync(vcontext);
 
             if (!vr.IsValid)
@@ -65,68 +66,44 @@ namespace Xioru.Grain.AbstractGrain
                 var msg = string.Join(';', vr.Errors.Select(x => x.ErrorMessage));
                 throw new Exception(msg);
             }
- 
-            // 2. Save state
-            // TODO: use mapping
-            State.Name = createCommand.Name;
-            State.ProjectId = createCommand.ProjectId;
-            State.DisplayName = createCommand.DisplayName ?? createCommand.Name;
-            State.Description = createCommand.Description;
-            State.Tags = createCommand.Tags == null ?
-                new string[0].ToList() :
-                createCommand.Tags.ToList();
 
-            await OnCreateApplyState(createCommand);
-
+            // 2. Update local state and force save
+            _mapper.Map(createCommand, State);
             await _state.WriteStateAsync();
 
             // 3. Event sourcing
             await OnCreateEmitEvent(createCommand);
 
             _log.LogInformation($"Grain {createCommand.Name} created in project {createCommand.ProjectId}");
-
-            // 4. User logic
-            await OnCreated();
         }
 
-        protected abstract Task OnCreateApplyState(T_CREATE_COMMAND createCommand);
         protected abstract Task OnCreateEmitEvent(T_CREATE_COMMAND createCommand);
-        protected abstract Task OnCreated();
 
-        public async Task Delete()
+        public virtual async Task DeleteAsync()
         {
             // 0. Check state
             CheckState();
 
-            var projectId = State.ProjectId;
-            var objName = State.Name;
-
             // 1. Event sourcing
             await EmitDeleteEvent();
+            //TODO: map state to DelEvt?
 
             // 2. Delete state after emit event!!!
             await _state.ClearStateAsync();
 
-            _log.LogInformation($"Grain {objName} deleted in project {projectId}");
-
-            // 3. User logic
-            await OnDeleted();
+            _log.LogInformation($"Grain {State.Name} deleted in project {State.ProjectId}");
         }
 
         protected abstract Task EmitDeleteEvent();
 
-        protected virtual Task OnDeleted() => Task.CompletedTask;
-
-        public async Task Update(T_UPDATE_COMMAND updateCommand)
+        public virtual async Task UpdateAsync(T_UPDATE_COMMAND updateCommand)
         {
             // 0. Check state
-            if (!_state.RecordExists)
-            {
-                throw new Exception("Grain does not exists");
-            }
+            CheckState();
 
+            // 1. Validate command and update State
             var vcontext = new ValidationContext<T_UPDATE_COMMAND>(updateCommand);
-            vcontext.RootContextData["grain"] = this;
+            vcontext.RootContextData["state"] = State;
             var vr = await _updateValidator.ValidateAsync(vcontext);
 
             if (!vr.IsValid)
@@ -135,28 +112,17 @@ namespace Xioru.Grain.AbstractGrain
                 throw new Exception(msg);
             }
 
-            // 2. Save state
-            // TODO: use mapping
-            State.DisplayName = updateCommand.DisplayName ?? State.Name;
-            State.Description = updateCommand.Description;
-            State.Tags = updateCommand.Tags.ToList();
-
-            await OnUpdateApplyState(updateCommand);
-
+            // 2. Update local state and force save
+            _mapper.Map(updateCommand, State);
             await _state.WriteStateAsync();
 
             // 3. Event sourcing
             await OnUpdateEmitEvent(updateCommand);
 
             _log.LogInformation($"Grain {State.Name} updated");
-
-            // 4. User logic
-            await OnUpdated();
         }
 
-        protected abstract Task OnUpdateApplyState(T_UPDATE_COMMAND updateCommand);
         protected abstract Task OnUpdateEmitEvent(T_UPDATE_COMMAND updateCommand);
-        protected abstract Task OnUpdated();
 
         protected void CheckState()
         {
@@ -175,20 +141,12 @@ namespace Xioru.Grain.AbstractGrain
         {
             grainEvent = grainEvent ?? throw new ArgumentNullException(nameof(grainEvent));
             // 1. Prepare event
-            grainEvent.Metadata = new GrainEventMetadata
-            {
-                ProjectId = State.ProjectId,
-                BaseGrainType = this.GetType().BaseType!.Name,
-                GrainType = this.GetType().Name,
-                GrainId = this.GetPrimaryKey(),
-                GrainName = State.Name,
-                CreatedUtc = DateTime.UtcNow
-            };
+            grainEvent.Metadata = Metadata;
 
             // 2. Emit to project stream
             if (_projectRepositoryStream == null)
             {
-                var streamProvider = GetStreamProvider("SMSProvider");
+                var streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
 
                 _projectRepositoryStream = streamProvider.GetStream<GrainEvent>(
                     streamId: State.ProjectId,
@@ -200,7 +158,7 @@ namespace Xioru.Grain.AbstractGrain
             // 3. Emit to global cluster stream
             if (_clusterRepositoryStream == null)
             {
-                var streamProvider = GetStreamProvider("SMSProvider");
+                var streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
 
                 _clusterRepositoryStream = streamProvider.GetStream<GrainEvent>(
                     streamId: GrainConstants.ClusterStreamId,
@@ -214,9 +172,18 @@ namespace Xioru.Grain.AbstractGrain
         {
             var projection = _mapper.Map<T_PROJECTION>(
                 State,
-                opt => opt.Items["Grain"] = this);
+                opt => opt.Items["state"] = State);
 
             return Task.FromResult(projection);
         }
+
+        protected GrainEventMetadata? Metadata => new GrainEventMetadata
+        {
+            ProjectId = State.ProjectId,
+            GrainType = this.GetType().FullName!,
+            GrainId = this.GetPrimaryKey(),
+            GrainName = State.Name,
+            CreatedUtc = DateTime.UtcNow
+        };
     }
 }

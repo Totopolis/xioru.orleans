@@ -53,13 +53,19 @@ namespace Xioru.Grain.GrainReadModel
             return await _grainCollection.CountDocumentsAsync(x => true);
         }
 
-        public async Task<GrainDetails?> GetGrainByName(string name)
+        public async Task<GrainDetails?> GetGrainDetailsByName(string name)
         {
             var grainCursor = await _grainCollection.FindAsync(x => x.GrainName == name);
             var grain = await grainCursor.FirstOrDefaultAsync();
 
             return grain == null ? null :
                 _mapper.Map<GrainDetails>(grain);
+        }
+
+        public async Task<T> GetGrainByName<T>(string name) where T : class, IGrainWithGuidKey
+        {
+            var details = await GetGrainDetailsByName(name);
+            return GrainFactory.GetGrain<T>(details!.GrainId, details.GrainType);
         }
 
         public async Task<GrainDetails?> GetGrainById(Guid id)

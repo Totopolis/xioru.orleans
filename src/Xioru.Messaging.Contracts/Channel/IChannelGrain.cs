@@ -6,11 +6,11 @@ namespace Xioru.Messaging.Contracts.Channel
 {
     public interface IChannelGrain : IGrainWithGuidKey
     {
-        Task Create(CreateChannelCommand createCommand);
+        Task CreateAsync(CreateChannelCommandModel createCommand);
 
-        Task Update(UpdateChannelCommand updateCommand);
+        Task UpdateAsync(UpdateChannelCommandModel updateCommand);
 
-        Task Delete();
+        Task DeleteAsync();
 
         Task<ChannelProjection> GetProjection();
 

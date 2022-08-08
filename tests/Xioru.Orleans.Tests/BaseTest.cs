@@ -21,7 +21,7 @@ namespace Xioru.Orleans.Tests
                 .GetProjectByName(_projectName);
             Assert.NotNull(project);
 
-            var channel = await _grainReadModel.GetGrainByName(_channelName);
+            var channel = await _grainReadModel.GetGrainDetailsByName(_channelName);
             Assert.NotNull(channel);
         }
 
@@ -40,7 +40,7 @@ namespace Xioru.Orleans.Tests
             await PrepareAsync();
 
             await InternalCreateFoo("Foo");
-            var details = await _grainReadModel.GetGrainByName("Foo");
+            var details = await _grainReadModel.GetGrainDetailsByName("Foo");
             Assert.NotNull(details);
             Assert.Equal("Foo", details!.GrainName);
         }

@@ -5,7 +5,7 @@ using Xioru.Messaging.Contracts.Channel;
 
 namespace Xioru.Messaging.Channel
 {
-    public class CreateChannelValidator : CreateAbstractGrainValidator<CreateChannelCommand>
+    public class CreateChannelValidator : CreateAbstractGrainValidator<CreateChannelCommandModel>
     {
         public CreateChannelValidator(IGrainFactory factory)
             : base(factory)

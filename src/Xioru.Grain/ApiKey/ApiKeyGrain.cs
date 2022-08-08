@@ -8,8 +8,8 @@ namespace Xioru.Grain.ApiKey
 {
     public class ApiKeyGrain : AbstractGrain<
         ApiKeyState,
-        CreateApiKeyCommand,
-        UpdateApiKeyCommand,
+        CreateApiKeyCommandModel,
+        UpdateApiKeyCommandModel,
         ApiKeyProjection>,
         IApiKeyGrain 
     {
@@ -19,15 +19,7 @@ namespace Xioru.Grain.ApiKey
         {
         }
 
-        protected override Task OnCreateApplyState(CreateApiKeyCommand createCommand)
-        {
-            State.Created = DateTime.UtcNow;
-            State.ApiKey = Guid.NewGuid();
-
-            return Task.CompletedTask;
-        }
-
-        protected override async Task OnCreateEmitEvent(CreateApiKeyCommand createCommand)
+        protected override async Task OnCreateEmitEvent(CreateApiKeyCommandModel createCommand)
         {
             await EmitEvent(new ApiKeyCreatedEvent(
                 DisplayName: State.DisplayName,
@@ -37,26 +29,17 @@ namespace Xioru.Grain.ApiKey
                 ApiKey: State.ApiKey));
         }
 
-        protected override Task OnCreated() => Task.CompletedTask;
-
         protected override async Task EmitDeleteEvent()
         {
             await EmitEvent(new ApiKeyDeletedEvent());
         }
 
-        protected override Task OnUpdateApplyState(UpdateApiKeyCommand updateCommand)
-        {
-            return Task.CompletedTask;
-        }
-
-        protected override async Task OnUpdateEmitEvent(UpdateApiKeyCommand updateCommand)
+        protected override async Task OnUpdateEmitEvent(UpdateApiKeyCommandModel updateCommand)
         {
             await EmitEvent(new ApiKeyUpdatedEvent(
                 DisplayName: updateCommand.DisplayName,
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray()));
         }
-
-        protected override Task OnUpdated() => Task.CompletedTask;
     }
 }

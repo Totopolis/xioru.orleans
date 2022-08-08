@@ -1,16 +1,15 @@
-﻿using System;
-using Xioru.Grain.Contracts.AbstractGrain;
+﻿using Xioru.Grain.Contracts.AbstractGrain;
 
-namespace Xioru.Orleans.Tests.Foo
+namespace Xioru.Grain.Contracts.User
 {
-    public record CreateFooCommandModel(
+    public record CreateUserCommandModel(
         Guid ProjectId,
         string Name,
         string DisplayName,
         string Description,
         string[] Tags,
         //
-        string FooData) : CreateAbstractGrainCommandModel(
+        string Login) : CreateAbstractGrainCommandModel(
             ProjectId,
             Name,
             DisplayName,

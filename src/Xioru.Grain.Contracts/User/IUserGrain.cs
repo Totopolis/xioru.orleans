@@ -4,11 +4,11 @@ namespace Xioru.Grain.Contracts.User
 {
     public interface IUserGrain : IGrainWithGuidKey
     {
-        Task Create(CreateUserCommand createCommand);
+        Task CreateAsync(CreateUserCommandModel createCommand);
 
-        Task Update(UpdateUserCommand updateCommand);
+        Task UpdateAsync(UpdateUserCommandModel updateCommand);
 
-        Task Delete();
+        Task DeleteAsync();
 
         Task<UserProjection> GetProjection();
     }

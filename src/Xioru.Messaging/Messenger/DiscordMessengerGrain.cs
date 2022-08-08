@@ -38,7 +38,6 @@ namespace Xioru.Messaging.Messenger
             if (_config == null ||
                 _discordClient.LoginState == LoginState.LoggedIn)
             {
-                // TODO: need exception, logging?
                 return;
             }
 

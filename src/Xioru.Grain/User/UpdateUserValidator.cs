@@ -5,7 +5,7 @@ using Xioru.Grain.Contracts.User;
 namespace Xioru.Grain.User
 {
     public class UpdateUserValidator :
-        UpdateAbstractGrainValidator<UpdateUserCommand>
+        UpdateAbstractGrainValidator<UpdateUserCommandModel>
     {
         public UpdateUserValidator(IGrainFactory factory)
             : base(factory)

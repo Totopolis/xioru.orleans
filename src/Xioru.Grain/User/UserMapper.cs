@@ -9,6 +9,8 @@ namespace Xioru.Grain.ApiKey
         public UserMapper()
         {
             CreateMap<UserState, UserProjection>();
+            CreateMap<CreateUserCommandModel, UserState>();
+            CreateMap<UpdateUserCommandModel, UserState>();
         }
     }
 }

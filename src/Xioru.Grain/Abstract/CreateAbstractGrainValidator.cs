@@ -6,7 +6,7 @@ using Xioru.Grain.Contracts.GrainReadModel;
 namespace Xioru.Grain.AbstractGrain
 {
     public abstract class CreateAbstractGrainValidator<T> : AbstractValidator<T>
-        where T : CreateAbstractGrainCommand
+        where T : CreateAbstractGrainCommandModel
     {
         public CreateAbstractGrainValidator(IGrainFactory factory)
         {

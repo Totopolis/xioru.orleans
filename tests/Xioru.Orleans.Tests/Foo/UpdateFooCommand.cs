@@ -2,12 +2,12 @@
 
 namespace Xioru.Orleans.Tests.Foo
 {
-    public record UpdateFooCommand(
+    public record UpdateFooCommandModel(
         string DisplayName,
         string Description,
         string[] Tags,
         //
-        string FooData) : UpdateAbstractGrainCommand(
+        string FooData) : UpdateAbstractGrainCommandModel(
             DisplayName,
             Description,
             Tags);

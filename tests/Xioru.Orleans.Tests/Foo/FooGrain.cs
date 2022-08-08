@@ -9,8 +9,8 @@ namespace Xioru.Orleans.Tests.Foo
 {
     public class FooGrain : AbstractGrain<
         FooState,
-        CreateFooCommand,
-        UpdateFooCommand,
+        CreateFooCommandModel,
+        UpdateFooCommandModel,
         FooProjection>,
         IFooGrain 
     {
@@ -20,43 +20,27 @@ namespace Xioru.Orleans.Tests.Foo
         {
         }
 
-        protected override Task OnCreateApplyState(CreateFooCommand createCommand)
-        {
-            State.FooData = createCommand.FooData;
-
-            return Task.CompletedTask;
-        }
-
-        protected override async Task OnCreateEmitEvent(CreateFooCommand createCommand)
+        protected override async Task OnCreateEmitEvent(CreateFooCommandModel createCommand)
         {
             await EmitEvent(new FooCreatedEvent(
                 DisplayName: State.DisplayName,
                 Description: State.Description,
                 Tags: State.Tags.ToArray(),
-                FooData: "Hello World!"));
+                FooData: State.FooData));
         }
-
-        protected override Task OnCreated() => Task.CompletedTask;
 
         protected override async Task EmitDeleteEvent()
         {
             await EmitEvent(new FooDeletedEvent());
         }
 
-        protected override Task OnUpdateApplyState(UpdateFooCommand updateCommand)
-        {
-            return Task.CompletedTask;
-        }
-
-        protected override async Task OnUpdateEmitEvent(UpdateFooCommand updateCommand)
+        protected override async Task OnUpdateEmitEvent(UpdateFooCommandModel updateCommand)
         {
             await EmitEvent(new FooUpdatedEvent(
                 DisplayName: updateCommand.DisplayName,
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray(),
-                FooData: "Bye World!"));
+                FooData: State.FooData));
         }
-
-        protected override Task OnUpdated() => Task.CompletedTask;
     }
 }
