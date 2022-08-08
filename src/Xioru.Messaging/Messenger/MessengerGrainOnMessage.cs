@@ -1,4 +1,6 @@
-﻿using Xioru.Messaging.Contracts.Channel;
+﻿using System.CommandLine;
+using System.Text.RegularExpressions;
+using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 
@@ -21,14 +23,12 @@ namespace Xioru.Messaging.Messenger
             var line = await reader.ReadLineAsync();
             while (line != null)
             {
-                var segments = line.Split(" ");
-
-                if (segments == null ||
-                    segments.Length <= 0 ||
-                    !segments![0].StartsWith('/'))
+                if (!line.StartsWith('/'))
                 {
                     return;
                 }
+
+                var commandText = line.TrimStart('/');
 
                 var context = new MessengerCommandContext()
                 {
@@ -38,17 +38,18 @@ namespace Xioru.Messaging.Messenger
                     MessengerType = MessengerType
                 };
 
-                var commandText = segments[0].TrimStart('/');
-
                 // find messenger command or send to channel
-                if (segments.Length >= 2 &&
-                    _commands.TryGetValue($"{commandText}.{segments[1].ToLower()}", out var command))
+                if (_commands.TryGetValue(commandText, out var command))
                 {
-                    context.Arguments = segments.Skip(2).ToArray();
-                }
-                else if (_commands.TryGetValue($"{commandText}", out command))
-                {
-                    context.Arguments = segments.Skip(1).ToArray();
+                    var commandName = Regex.Match(commandText, @"^\w+").Value;
+
+                    var parseResult = command.Command.Parse(commandText);
+                    if (parseResult.Errors.Any())
+                    {
+                        var msg = string.Join(';', parseResult.Errors.Select(x => x.Message));
+                        await SendDirectMessage(chatId, $"Bad syntax: {msg}");
+                        return;
+                    }
                 }
                 else
                 {

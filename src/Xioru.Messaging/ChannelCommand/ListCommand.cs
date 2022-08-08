@@ -1,5 +1,6 @@
 ﻿using ConsoleTables;
 using Orleans;
+using System.CommandLine;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Formatting;
@@ -8,28 +9,33 @@ namespace Xioru.Messaging.ChannelCommand
 {
     public class ListCommand : AbstractChannelCommand
     {
-        public ListCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "list",
-            subCommandName: string.Empty,
-            minArgumentsCount: 0,
-            maxArgumentsCount: 1,
-            usage: "/list filter")
+        private readonly Argument<string> _filterArgument = new Argument<string>(
+                name: "filter",
+                description: "substring to search in",
+                getDefaultValue: () => string.Empty);
+
+        public ListCommand(IGrainFactory factory) : base(factory)
         {
         }
+
+        public override Command Command => new Command(
+            "list", "display all objects")
+        {
+            _filterArgument
+        };
 
         protected override async Task<CommandResult> ExecuteInternal(
             ChannelCommandContext context)
         {
-            if (context.ArgsCount > 0 && context.Arguments[0].Length < 3)
+            var filterValue = context.Result.GetValueForArgument(_filterArgument);
+
+            if (!string.IsNullOrWhiteSpace(filterValue) && filterValue.Length < 3)
             {
                 throw new CommandLogicErrorException(
                     "Filter must be at least 3 characters long");
             }
 
-            var grainDetails = await _grainReadModel
-                .GetGrains(context.Arguments.FirstOrDefault());
-
+            var grainDetails = await _grainReadModel.GetGrains(filterValue);
             if (grainDetails!.Count == 0)
             {
                 return CommandResult.Success("No objects found");

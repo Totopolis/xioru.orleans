@@ -3,13 +3,10 @@ using Microsoft.Extensions.Options;
 using Orleans;
 using Orleans.Runtime;
 using Orleans.Streams;
-using System.Diagnostics;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.Messages;
 using Xioru.Grain.Contracts.Project.Events;
-using Xioru.Grain.Project;
-using Xioru.Messaging.Channel;
 using Xioru.Messaging.Contracts;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Channel.Events;
@@ -54,18 +51,7 @@ namespace Xioru.Messaging.Messenger
                 _logger.LogError($"Configuration for {MessengerType.ToString()} messenger type not found");
             }
 
-            _commands = new Dictionary<string, IMessengerCommand>();
-
-            var array = commands.ToArray();
-            array
-                .Where(x => x.IsSubCommandExists)
-                .ToList()
-                .ForEach(x => _commands.Add($"{x.CommandName}.{x.SubCommandName}", x));
-
-            array
-                .Where(x => !x.IsSubCommandExists)
-                .ToList()
-                .ForEach(x => _commands.Add($"{x.CommandName}", x));
+            _commands = commands.ToDictionary(x => x.Command.Name);
         }
 
         public virtual async Task StartAsync()

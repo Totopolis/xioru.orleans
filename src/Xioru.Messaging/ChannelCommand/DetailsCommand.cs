@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Orleans;
+using System.CommandLine;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Formatting;
@@ -8,23 +9,23 @@ namespace Xioru.Messaging.ChannelCommand
 {
     public partial class DetailsCommand : AbstractChannelCommand
     {
-        public const string UsageConst =
-            "/details name";
+        private readonly Argument<string> _nameArgument =
+            new Argument<string>("name", "unique object name");
 
-        public DetailsCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "details",
-            subCommandName: string.Empty,
-            minArgumentsCount: 1,
-            maxArgumentsCount: 1,
-            usage: UsageConst)
+        public DetailsCommand(IGrainFactory factory) : base(factory)
         {
         }
+
+        public override Command Command => new Command(
+            "details", "display object internals")
+        {
+            _nameArgument
+        };
 
         protected override async Task<CommandResult> ExecuteInternal(
             ChannelCommandContext context)
         {
-            var objName = context.Arguments[0];
+            var objName = context.Result.GetValueForArgument(_nameArgument);
 
             var grainDetails = await CheckGrain(objName);
             var serializedDetails = JsonConvert.SerializeObject(grainDetails, Formatting.Indented);
