@@ -49,7 +49,7 @@ namespace Xioru.Orleans.Tests.Common
                 DisplayName: _projectName,
                 Description: String.Empty));
             
-            await _channel.Create(new CreateChannelCommand(
+            await _channel.CreateAsync(new CreateChannelCommandModel(
                 ProjectId: _projectId,
                 Name: _channelName,
                 DisplayName: _channelName,
@@ -63,7 +63,7 @@ namespace Xioru.Orleans.Tests.Common
         protected async Task<IFooGrain> InternalCreateFoo(string name)
         {
             var foo = _factory.GetGrain<IFooGrain>(Guid.NewGuid());
-            await foo.Create(new CreateFooCommand(
+            await foo.CreateAsync(new CreateFooCommandModel(
                 ProjectId: _projectId,
                 Name: name,
                 DisplayName: name,

@@ -3,14 +3,14 @@ using Xioru.Grain.Contracts.AbstractGrain;
 
 namespace Xioru.Orleans.Tests.Foo
 {
-    public record CreateFooCommand(
+    public record CreateFooCommandModel(
         Guid ProjectId,
         string Name,
         string DisplayName,
         string Description,
         string[] Tags,
         //
-        string FooData) : CreateAbstractGrainCommand(
+        string FooData) : CreateAbstractGrainCommandModel(
             ProjectId,
             Name,
             DisplayName,

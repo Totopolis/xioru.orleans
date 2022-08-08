@@ -4,7 +4,7 @@ using Xioru.Grain.AbstractGrain;
 namespace Xioru.Orleans.Tests.Foo
 {
     public class CreateFooValidator :
-        CreateAbstractGrainValidator<CreateFooCommand>
+        CreateAbstractGrainValidator<CreateFooCommandModel>
     {
         public CreateFooValidator(IGrainFactory factory)
             : base(factory)

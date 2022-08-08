@@ -5,11 +5,11 @@ namespace Xioru.Orleans.Tests.Foo
 {
     public interface IFooGrain : IGrainWithGuidKey
     {
-        Task Create(CreateFooCommand createCommand);
+        Task CreateAsync(CreateFooCommandModel createCommand);
 
-        Task Update(UpdateFooCommand updateCommand);
+        Task UpdateAsync(UpdateFooCommandModel updateCommand);
 
-        Task Delete();
+        Task DeleteAsync();
 
         Task<FooProjection> GetProjection();
     }
