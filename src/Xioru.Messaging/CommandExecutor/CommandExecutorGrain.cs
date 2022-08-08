@@ -1,4 +1,6 @@
 ﻿using Orleans.Concurrency;
+using System.CommandLine;
+using System.Text.RegularExpressions;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.CommandExecutor;
@@ -15,17 +17,7 @@ namespace Xioru.Messaging.CommandExecutor
 
         public CommandExecutorGrain(IEnumerable<IChannelCommand> commands)
         {
-            _commands = new Dictionary<string, IChannelCommand>();
-            var array = commands.ToArray();
-            array
-                .Where(x => x.IsSubCommandExists)
-                .ToList()
-                .ForEach(x => _commands.Add($"{x.CommandName}.{x.SubCommandName}", x));
-
-            array
-                .Where(x => !x.IsSubCommandExists)
-                .ToList()
-                .ForEach(x => _commands.Add($"{x.CommandName}", x));
+            _commands = commands.ToDictionary(x => x.Command.Name);
         }
 
         public async Task<CommandResult> Execute(
@@ -43,40 +35,35 @@ namespace Xioru.Messaging.CommandExecutor
             {
                 return CommandResult.LogicError("Multiline command not supported");
             }
-            var segments = SplitArguments(commandText);
 
-            if (segments == null || segments.Count <= 0 || !segments![0].StartsWith('/'))
+            if (!commandText.StartsWith('/'))
             {
+                // probably got a user message
                 return CommandResult.Success(string.Empty);
+            }
+
+            var cleanCommand = commandText.TrimStart('/');
+            var commandName = Regex.Match(cleanCommand, @"^\w+").Value;
+
+            if (!_commands.TryGetValue(commandName, out var command))
+            {
+                return CommandResult.SyntaxError("Unknown command\nSee /help");
+            }
+
+            var parseResult = command.Command.Parse(cleanCommand);
+            if (parseResult.Errors.Any())
+            {
+                var msg = string.Join(';', parseResult.Errors.Select(x => x.Message));
+                return CommandResult.SyntaxError(msg);
             }
 
             var context = new ChannelCommandContext()
             {
                 IsSupervisor = isSupervisor,
                 ProjectId = projectId,
-                ChannelId = channelId
+                ChannelId = channelId,
+                Result = parseResult
             };
-
-            var segment0 = segments[0].TrimStart('/');
-
-            if (segments.Count >= 2 &&
-                _commands.TryGetValue($"{segment0}.{segments[1].ToLower()}", out var command))
-            {
-                context.Arguments = segments.Skip(2).ToArray();
-            }
-            else if (_commands.TryGetValue($"{segment0}", out command))
-            {
-                context.Arguments = segments.Skip(1).ToArray();
-            }
-            else
-            {
-                return CommandResult.SyntaxError("Unknown command\nSee /help");
-            }
-
-            if (command == null)
-            {
-                return CommandResult.SyntaxError("Unknown command\nSee /help");
-            }
 
             var result = await command.Execute(context);
             return result;

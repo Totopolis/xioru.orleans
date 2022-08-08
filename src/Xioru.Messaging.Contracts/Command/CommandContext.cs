@@ -1,11 +1,11 @@
-﻿namespace Xioru.Messaging.Contracts.Command
+﻿using System.CommandLine.Parsing;
+
+namespace Xioru.Messaging.Contracts.Command
 {
     public class CommandContext
     {
         public bool IsSupervisor { get; set; } = false;
 
-        public string[] Arguments { get; set; } = default!;
-
-        public int ArgsCount => Arguments.Length;
+        public ParseResult Result { get; set; } = default!;
     }
 }

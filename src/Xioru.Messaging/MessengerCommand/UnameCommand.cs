@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using System.CommandLine;
 using System.Reflection;
 using System.Text;
 using Xioru.Messaging.Contracts.Command;
@@ -9,17 +10,12 @@ namespace Xioru.Messaging.MessengerCommand
 {
     public class UnameCommand : BaseMessengerCommand
     {
-        public const string UsageConst = "/uname";
-
-        public UnameCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "uname",
-            subCommandName: String.Empty,
-            minArgumentsCount: 0,
-            maxArgumentsCount: 0,
-            usage: UsageConst)
+        public UnameCommand(IGrainFactory factory) : base(factory)
         {
         }
+
+        public override Command Command => new Command(
+            "uname", "display system info");
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {

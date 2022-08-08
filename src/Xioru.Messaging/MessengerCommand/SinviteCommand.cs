@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using System.CommandLine;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
@@ -7,17 +8,12 @@ namespace Xioru.Messaging.MessengerCommand
 {
     public class SinviteCommand : BaseMessengerCommand
     {
-        public const string UsageConst = "/s-invite";
-
-        public SinviteCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "s-invite",
-            subCommandName: string.Empty,
-            minArgumentsCount: 0,
-            maxArgumentsCount: 0,
-            usage: UsageConst)
+        public SinviteCommand(IGrainFactory factory) : base(factory)
         {
         }
+
+        public override Command Command => new Command(
+           "s-invite", "create invite code to create new project (supervisor)");
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {

@@ -1,5 +1,5 @@
 ﻿using Orleans;
-using System.Text;
+using System.CommandLine;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
@@ -8,17 +8,12 @@ namespace Xioru.Messaging.MessengerCommand
 {
     public class LeaveCommand : BaseMessengerCommand
     {
-        public const string UsageConst = "/leave";
-
-        public LeaveCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "leave",
-            subCommandName: string.Empty,
-            minArgumentsCount: 0,
-            maxArgumentsCount: 0,
-            usage: UsageConst)
+        public LeaveCommand(IGrainFactory factory) : base(factory)
         {
         }
+
+        public override Command Command => new Command(
+            "leave", "leave project");
 
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {

@@ -8,54 +8,24 @@ namespace Xioru.Messaging.Messenger
     {
         protected readonly IGrainFactory _factory;
 
-        public BaseMessengerCommand(
-            IGrainFactory factory,
-            string commandName,
-            string subCommandName,
-            int minArgumentsCount,
-            int maxArgumentsCount,
-            string usage)
+        public BaseMessengerCommand(IGrainFactory factory)
         {
             _factory = factory;
-
-            CommandName = commandName;
-            SubCommandName = subCommandName;
-            MinArgumentsCount = minArgumentsCount;
-            MaxArgumentsCount = maxArgumentsCount;
-            Usage = usage;
         }
 
-        public string CommandName { get; init; }
-
-        public string SubCommandName { get; init; }
-
-        public bool IsSubCommandExists
-            => !string.IsNullOrWhiteSpace(SubCommandName);
-
-        public int MinArgumentsCount { get; init; }
-
-        public int MaxArgumentsCount { get; init; }
-
-        public string Usage { get; init; }
+        public abstract System.CommandLine.Command Command { get; }
 
         // No exceptions
         public async Task<CommandResult> Execute(CommandContext context)
         {
             var ctx = context as MessengerCommandContext;
+            if (ctx == null)
+            {
+                throw new CommandInternalErrorException("Bad context");
+            }
 
             try
             {
-                if (ctx == null)
-                {
-                    throw new CommandInternalErrorException("Bad context");
-                }
-
-                if (context.Arguments.Length < MinArgumentsCount ||
-                    context.Arguments.Length > MaxArgumentsCount)
-                {
-                    throw new CommandSyntaxErrorException($"Bad usage\nMust be: {Usage}");
-                }
-
                 return await ExecuteInternal(ctx);
             }
             catch (CommandInternalErrorException ex)

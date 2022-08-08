@@ -1,5 +1,6 @@
 ﻿using ConsoleTables;
 using Orleans;
+using System.CommandLine;
 using System.Text;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
@@ -9,17 +10,12 @@ namespace Xioru.Messaging.MessengerCommand
 {
     public class PwdCommand : BaseMessengerCommand
     {
-        public const string UsageConst = "/pwd";
-
-        public PwdCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "pwd",
-            subCommandName: String.Empty,
-            minArgumentsCount: 0,
-            maxArgumentsCount: 0,
-            usage: UsageConst)
+        public PwdCommand(IGrainFactory factory) : base(factory)
         {
         }
+
+        public override Command Command => new Command(
+            "pwd", "display current project");
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
