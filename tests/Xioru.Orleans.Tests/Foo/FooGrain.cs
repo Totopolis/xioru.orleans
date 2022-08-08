@@ -20,19 +20,13 @@ namespace Xioru.Orleans.Tests.Foo
         {
         }
 
-        public override async Task CreateAsync(CreateFooCommandModel createCommand)
-        {
-            State.FooData = createCommand.FooData;
-            await base.CreateAsync(createCommand);
-        }
-
         protected override async Task OnCreateEmitEvent(CreateFooCommandModel createCommand)
         {
             await EmitEvent(new FooCreatedEvent(
                 DisplayName: State.DisplayName,
                 Description: State.Description,
                 Tags: State.Tags.ToArray(),
-                FooData: "Hello World!"));
+                FooData: State.FooData));
         }
 
         protected override async Task EmitDeleteEvent()
@@ -46,7 +40,7 @@ namespace Xioru.Orleans.Tests.Foo
                 DisplayName: updateCommand.DisplayName,
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray(),
-                FooData: "Bye World!"));
+                FooData: State.FooData));
         }
     }
 }

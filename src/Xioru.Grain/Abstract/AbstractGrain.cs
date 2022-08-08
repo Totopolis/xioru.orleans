@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Runtime;
 using Orleans.Streams;
-using System.Diagnostics;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.AbstractGrain;
 using Xioru.Grain.Contracts.Messages;
@@ -51,13 +50,13 @@ namespace Xioru.Grain.AbstractGrain
 
         public virtual async Task CreateAsync(T_CREATE_COMMAND createCommand)
         {
-            _mapper.Map<T_CREATE_COMMAND, T_STATE>(createCommand, State);
-
+            // 0. Check state
             if (_state.RecordExists)
             {
                 throw new Exception("Grain already exists");
             }
 
+            // 1. Validate command
             var vcontext = new ValidationContext<T_CREATE_COMMAND>(createCommand);
             vcontext.RootContextData["state"] = State;
             var vr = await _createValidator.ValidateAsync(vcontext);
@@ -67,8 +66,9 @@ namespace Xioru.Grain.AbstractGrain
                 var msg = string.Join(';', vr.Errors.Select(x => x.ErrorMessage));
                 throw new Exception(msg);
             }
- 
-            // 2. Save state
+
+            // 2. Update local state and force save
+            _mapper.Map(createCommand, State);
             await _state.WriteStateAsync();
 
             // 3. Event sourcing
@@ -84,9 +84,6 @@ namespace Xioru.Grain.AbstractGrain
             // 0. Check state
             CheckState();
 
-            var projectId = State.ProjectId;
-            var objName = State.Name;
-
             // 1. Event sourcing
             await EmitDeleteEvent();
             //TODO: map state to DelEvt?
@@ -94,7 +91,7 @@ namespace Xioru.Grain.AbstractGrain
             // 2. Delete state after emit event!!!
             await _state.ClearStateAsync();
 
-            _log.LogInformation($"Grain {objName} deleted in project {projectId}");
+            _log.LogInformation($"Grain {State.Name} deleted in project {State.ProjectId}");
         }
 
         protected abstract Task EmitDeleteEvent();
@@ -102,11 +99,9 @@ namespace Xioru.Grain.AbstractGrain
         public virtual async Task UpdateAsync(T_UPDATE_COMMAND updateCommand)
         {
             // 0. Check state
-            if (!_state.RecordExists)
-            {
-                throw new Exception("Grain does not exists");
-            }
+            CheckState();
 
+            // 1. Validate command and update State
             var vcontext = new ValidationContext<T_UPDATE_COMMAND>(updateCommand);
             vcontext.RootContextData["state"] = State;
             var vr = await _updateValidator.ValidateAsync(vcontext);
@@ -117,9 +112,8 @@ namespace Xioru.Grain.AbstractGrain
                 throw new Exception(msg);
             }
 
-            // 2. Save state
-            _mapper.Map<T_UPDATE_COMMAND, T_STATE>(updateCommand, State);
-
+            // 2. Update local state and force save
+            _mapper.Map(updateCommand, State);
             await _state.WriteStateAsync();
 
             // 3. Event sourcing
@@ -152,7 +146,7 @@ namespace Xioru.Grain.AbstractGrain
             // 2. Emit to project stream
             if (_projectRepositoryStream == null)
             {
-                var streamProvider = GetStreamProvider("SMSProvider");
+                var streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
 
                 _projectRepositoryStream = streamProvider.GetStream<GrainEvent>(
                     streamId: State.ProjectId,
@@ -164,7 +158,7 @@ namespace Xioru.Grain.AbstractGrain
             // 3. Emit to global cluster stream
             if (_clusterRepositoryStream == null)
             {
-                var streamProvider = GetStreamProvider("SMSProvider");
+                var streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
 
                 _clusterRepositoryStream = streamProvider.GetStream<GrainEvent>(
                     streamId: GrainConstants.ClusterStreamId,

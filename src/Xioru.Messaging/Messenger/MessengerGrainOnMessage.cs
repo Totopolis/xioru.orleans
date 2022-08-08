@@ -32,7 +32,7 @@ namespace Xioru.Messaging.Messenger
 
                 var context = new MessengerCommandContext()
                 {
-                    IsSupervisor = _config.Supervisors.Any(x => x == chatId),
+                    IsSupervisor = _config.Supervisors?.Any(x => x == chatId) == true,
                     ChatId = chatId,
                     Manager = _repository,
                     MessengerType = MessengerType
@@ -57,7 +57,7 @@ namespace Xioru.Messaging.Messenger
                         var stream = GetChannelStream(channel.ChannelId);
                         await stream.OnNextAsync(new ChannelIncomingMessage
                         {
-                            IsSupervisor = _config.Supervisors.Any(x => x == chatId),
+                            IsSupervisor = _config.Supervisors?.Any(x => x == chatId) == true,
                             Created = DateTime.UtcNow,
                             Text = line
                         });
