@@ -34,7 +34,7 @@ namespace Xioru.Messaging.MessengerCommand
             var readModel = _factory.GetGrain<IProjectReadModelGrain>(
                 GrainConstants.ClusterStreamId);
 
-            var projectName = context.Result.GetValueForArgument(_nameArgument);
+            var projectName = context.GetArgumentValue(_nameArgument);
             var project = await readModel.GetProjectByName(projectName);
 
             if (project == null)

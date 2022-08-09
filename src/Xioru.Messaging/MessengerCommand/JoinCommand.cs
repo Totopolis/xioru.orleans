@@ -25,7 +25,7 @@ namespace Xioru.Messaging.MessengerCommand
 
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
-            var code = context.Result.GetValueForArgument(_codeArgument);
+            var code = context.GetArgumentValue(_codeArgument);
             if (string.IsNullOrWhiteSpace(code))
             {
                 return CommandResult.LogicError("Bad code argument");
