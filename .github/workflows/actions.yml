@@ -41,9 +41,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
       - name: Create the package
-        run: dotnet pack --configuration Release
+        run: dotnet pack --configuration Release -o src/
       - name: Publish the package to GPR
-        run: |
-         dotnet nuget push src/Xioru.Grain/bin/Release/*.nupkg -k ${{secrets.GITHUB_TOKEN}}
-         dotnet nuget push src/Xioru.Grain.Contracts/bin/Release/*.nupkg -k ${{secrets.GITHUB_TOKEN}}
+        run: dotnet nuget push src/*.nupkg --skip-duplicate -k ${{secrets.GITHUB_TOKEN}}
 
