@@ -34,7 +34,7 @@ namespace Xioru.Messaging.MessengerCommand
 
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
-            var code = context.Result.GetValueForArgument(_codeArgument);
+            var code = context.GetArgumentValue(_codeArgument);
 
             // 1. check invite code if not supervisor
             if (!context.IsSupervisor)
@@ -51,7 +51,7 @@ namespace Xioru.Messaging.MessengerCommand
             }
 
             // 2. check new project name
-            var projectName = context.Result.GetValueForArgument(_nameArgument);
+            var projectName = context.GetArgumentValue(_nameArgument);
             if (projectName == "you_project_name" || projectName.Contains(' '))
             {
                 return CommandResult.LogicError("Project name cannot contain spaces and be named 'you_project_name'");

@@ -62,7 +62,7 @@ namespace Xioru.Messaging.CommandExecutor
                 IsSupervisor = isSupervisor,
                 ProjectId = projectId,
                 ChannelId = channelId,
-                Result = parseResult
+                ParsedCommand = parseResult
             };
 
             var result = await command.Execute(context);

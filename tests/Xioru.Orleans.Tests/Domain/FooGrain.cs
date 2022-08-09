@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xioru.Grain.AbstractGrain;
 using Xioru.Grain.Contracts;
+using Xioru.Orleans.Tests.Contracts;
 
-namespace Xioru.Orleans.Tests.Foo
+namespace Xioru.Orleans.Tests.Domain
 {
     public class FooGrain : AbstractGrain<
         FooState,

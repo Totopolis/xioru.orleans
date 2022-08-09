@@ -37,7 +37,7 @@ namespace Xioru.Messaging.MessengerCommand
             // TODO: ???
             context.Manager.TryGetChannels(context.ChatId, out var channels);
 
-            var filter = context.Result.GetValueForArgument(_filterArgument);
+            var filter = context.GetArgumentValue(_filterArgument);
             
             var readModel = _factory.GetGrain<IProjectReadModelGrain>(
                 GrainConstants.ClusterStreamId);

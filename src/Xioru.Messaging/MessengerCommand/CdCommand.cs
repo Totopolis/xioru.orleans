@@ -28,7 +28,7 @@ namespace Xioru.Messaging.MessengerCommand
                 return Task.FromResult(CommandResult.Success("No accessed projects"));
             }
 
-            var projectName = context.Result.GetValueForArgument(_nameArgument);
+            var projectName = context.GetArgumentValue(_nameArgument);
 
             if (!channels.Any(x => x.ProjectName == projectName))
             {

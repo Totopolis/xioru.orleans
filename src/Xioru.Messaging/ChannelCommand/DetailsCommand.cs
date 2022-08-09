@@ -25,7 +25,7 @@ namespace Xioru.Messaging.ChannelCommand
         protected override async Task<CommandResult> ExecuteInternal(
             ChannelCommandContext context)
         {
-            var objName = context.Result.GetValueForArgument(_nameArgument);
+            var objName = context.GetArgumentValue(_nameArgument);
 
             var grainDetails = await CheckGrain(objName);
             var serializedDetails = JsonConvert.SerializeObject(grainDetails, Formatting.Indented);

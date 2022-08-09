@@ -27,7 +27,7 @@ namespace Xioru.Messaging.ChannelCommand
         protected override async Task<CommandResult> ExecuteInternal(
             ChannelCommandContext context)
         {
-            var filterValue = context.Result.GetValueForArgument(_filterArgument);
+            var filterValue = context.GetArgumentValue(_filterArgument);
 
             if (!string.IsNullOrWhiteSpace(filterValue) && filterValue.Length < 3)
             {
@@ -47,7 +47,6 @@ namespace Xioru.Messaging.ChannelCommand
 
             foreach (var grain in grainDetails)
             {
-
                 var shortenedGrainType = grain.GrainType.LastIndexOf('.') > 0
                     ? grain.GrainType.Substring(grain.GrainType.LastIndexOf('.'))
                     : grain.GrainType;

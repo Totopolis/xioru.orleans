@@ -1,13 +1,13 @@
 ﻿using Xioru.Grain.Contracts.AbstractGrain;
 
-namespace Xioru.Orleans.Tests.Foo
+namespace Xioru.Orleans.Tests.Contracts
 {
-    public record FooCreatedEvent(
+    public record UpdateFooCommandModel(
         string DisplayName,
         string Description,
         string[] Tags,
         //
-        string FooData) : AbstractGrainCreatedEvent(
+        string FooData) : UpdateAbstractGrainCommandModel(
             DisplayName,
             Description,
             Tags);
