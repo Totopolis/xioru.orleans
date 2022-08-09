@@ -109,5 +109,23 @@ namespace Xioru.Messaging.Contracts.Command
 
             return grainDetails;
         }
+
+        protected async Task<GrainDetails> CheckGrain<T>(string grainName) 
+            where T: class, IGrainWithGuidKey 
+        {
+            if (string.IsNullOrWhiteSpace(grainName))
+            {
+                throw new CommandSyntaxErrorException("Empty grain name");
+            }
+
+            var grainDetails = await _grainReadModel.GetGrainDetailsByNameAndInterface<T>(grainName);
+
+            if (grainDetails == null)
+            {
+                throw new CommandLogicErrorException($"Object {grainName} of required type not found");
+            }
+
+            return grainDetails;
+        }
     }
 }

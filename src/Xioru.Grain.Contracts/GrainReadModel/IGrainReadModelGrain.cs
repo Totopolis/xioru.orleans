@@ -34,6 +34,14 @@ namespace Xioru.Grain.Contracts.GrainReadModel
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <returns></returns>
-        Task<T> GetGrainByName<T>(string name) where T : class, IGrainWithGuidKey;
+        Task<T?> GetGrainByNameOrDefault<T>(string name) where T : class, IGrainWithGuidKey;
+
+        /// <summary>
+        /// Get grain description by name if it exists and implements T.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        Task<GrainDetails?> GetGrainDetailsByNameAndInterface<T>(string name) where T : class, IGrainWithGuidKey;
     }
 }

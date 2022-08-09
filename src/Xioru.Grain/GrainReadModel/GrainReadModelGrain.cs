@@ -55,17 +55,39 @@ namespace Xioru.Grain.GrainReadModel
 
         public async Task<GrainDetails?> GetGrainDetailsByName(string name)
         {
-            var grainCursor = await _grainCollection.FindAsync(x => x.GrainName == name);
-            var grain = await grainCursor.FirstOrDefaultAsync();
+            var grainDetailsDocument = await GetDocumentOrDefaultAsync(name);
 
-            return grain == null ? null :
-                _mapper.Map<GrainDetails>(grain);
+            return grainDetailsDocument == null ? null :
+                _mapper.Map<GrainDetails>(grainDetailsDocument);
         }
 
-        public async Task<T> GetGrainByName<T>(string name) where T : class, IGrainWithGuidKey
+        public async Task<T?> GetGrainByNameOrDefault<T>(string name) where T : class, IGrainWithGuidKey
         {
-            var details = await GetGrainDetailsByName(name);
+            var details = await GetDocumentOrDefaultAsync(name);
+            if(details == null)
+            {
+                return null;
+            }
+
             return GrainFactory.GetGrain<T>(details!.GrainId, details.GrainType);
+        }
+
+
+        public async Task<GrainDetails?> GetGrainDetailsByNameAndInterface<T>(string name) where T : class, IGrainWithGuidKey
+        {
+            var details = await GetDocumentOrDefaultAsync(name);
+            if (details == null)
+            {
+                return null;
+            }
+
+            var grain = GrainFactory.GetGrain<T>(details!.GrainId, details.GrainType);
+            if (grain == null)
+            {
+                return null;
+            }
+
+            return _mapper.Map<GrainDetails>(details);
         }
 
         public async Task<GrainDetails?> GetGrainById(Guid id)
@@ -138,6 +160,12 @@ namespace Xioru.Grain.GrainReadModel
         {
             _log.LogError(ex, "Error at consume stream in GrainReadModel");
             return Task.CompletedTask;
+        }
+
+        private async Task<GrainDetailsDocument> GetDocumentOrDefaultAsync(string grainName)
+        {
+            var grainCursor = await _grainCollection.FindAsync(x => x.GrainName == grainName);
+            return await grainCursor.FirstOrDefaultAsync();
         }
     }
 }
