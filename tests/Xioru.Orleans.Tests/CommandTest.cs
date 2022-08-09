@@ -59,10 +59,10 @@ namespace Xioru.Orleans.Tests
             var result = await _channel.ExecuteCommand("/upsert foo1 data=123");
             Assert.True(result.IsSuccess, result.Message);
 
-            var grain = await _grainReadModel.GetGrainByName<IFooGrain>("foo1");
+            var grain = await _grainReadModel.GetGrainByNameOrDefault<IFooGrain>("foo1");
             Assert.NotNull(grain);
 
-            var projection = await grain.GetProjection();
+            var projection = await grain!.GetProjection();
             Assert.Equal("123", projection.FooData);
         }
 
@@ -75,8 +75,8 @@ namespace Xioru.Orleans.Tests
             var result = await _channel.ExecuteCommand("/upsert foo1 data=666");
             Assert.True(result.IsSuccess, result.Message);
 
-            var grain = await _grainReadModel.GetGrainByName<IFooGrain>("foo1");
-            var projection = await grain.GetProjection();
+            var grain = await _grainReadModel.GetGrainByNameOrDefault<IFooGrain>("foo1");
+            var projection = await grain!.GetProjection();
             Assert.Equal("666", projection.FooData);
         }
 
