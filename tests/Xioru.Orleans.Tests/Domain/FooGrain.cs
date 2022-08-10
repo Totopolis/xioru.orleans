@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xioru.Grain.AbstractGrain;
 using Xioru.Grain.Contracts;
+using Xioru.Orleans.Tests.Contracts;
 
-namespace Xioru.Orleans.Tests.Foo
+namespace Xioru.Orleans.Tests.Domain
 {
     public class FooGrain : AbstractGrain<
         FooState,
@@ -26,7 +27,8 @@ namespace Xioru.Orleans.Tests.Foo
                 DisplayName: State.DisplayName,
                 Description: State.Description,
                 Tags: State.Tags.ToArray(),
-                FooData: State.FooData));
+                FooData: State.FooData,
+                FooMeta: State.FooMeta));
         }
 
         protected override async Task EmitDeleteEvent()
@@ -40,7 +42,8 @@ namespace Xioru.Orleans.Tests.Foo
                 DisplayName: updateCommand.DisplayName,
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray(),
-                FooData: State.FooData));
+                FooData: State.FooData,
+                FooMeta: State.FooMeta));
         }
     }
 }

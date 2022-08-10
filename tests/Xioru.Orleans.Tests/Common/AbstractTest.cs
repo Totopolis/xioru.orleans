@@ -7,7 +7,7 @@ using Xioru.Grain.Contracts.Project;
 using Xioru.Grain.Contracts.ProjectReadModel;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Messenger;
-using Xioru.Orleans.Tests.Foo;
+using Xioru.Orleans.Tests.Contracts;
 
 namespace Xioru.Orleans.Tests.Common
 {
@@ -69,7 +69,8 @@ namespace Xioru.Orleans.Tests.Common
                 DisplayName: name,
                 Description: string.Empty,
                 Tags: new string[0],
-                FooData: $"Hello {name}"));
+                FooData: $"Hello {name}",
+                FooMeta: $"By {name}"));
 
             return foo;
         }

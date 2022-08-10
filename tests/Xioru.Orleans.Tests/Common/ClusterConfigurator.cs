@@ -9,8 +9,9 @@ using System;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
 using Xioru.Messaging;
+using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Messenger;
-using Xioru.Orleans.Tests.Foo;
+using Xioru.Orleans.Tests.Domain;
 
 namespace Xioru.Orleans.Tests.Common
 {
@@ -32,6 +33,8 @@ namespace Xioru.Orleans.Tests.Common
                 services
                    .AddGrainServices(hbc.Configuration)
                    .AddMessagingServices(hbc.Configuration);
+
+                services.AddTransient<IChannelCommand, UpsertFooCommand>();
 
                 var db = _mongoClient.GetDatabase(
                     $"IntegrationTest_{Guid.NewGuid().ToString("N")}");

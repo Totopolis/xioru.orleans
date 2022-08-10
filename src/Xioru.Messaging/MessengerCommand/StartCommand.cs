@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using System.CommandLine;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.Project;
 using Xioru.Grain.Contracts.ProjectReadModel;
@@ -9,26 +10,35 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class StartCommand : BaseMessengerCommand
+    public class StartCommand : AbstractMessengerCommand
     {
-        public const string UsageConst = "/start you_project_name invite-code";
+        private readonly Argument<string> _nameArgument =
+            new Argument<string>("name", "new unique project name");
 
-        public StartCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "start",
-            subCommandName: String.Empty,
-            minArgumentsCount: 1, // wo code for supervisers
-            maxArgumentsCount: 2,
-            usage: UsageConst)
+        private readonly Argument<string> _codeArgument =
+            new Argument<string>(
+                name: "code",
+                description: "invite code",
+                getDefaultValue: () => string.Empty);
+
+        public StartCommand(IGrainFactory factory) : base(factory)
         {
         }
 
+        protected override Command Command => new Command(
+            "start", "start new project")
+        {
+            _nameArgument,
+            _codeArgument
+        };
+
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
+            var code = GetArgumentValue(_codeArgument);
+
             // 1. check invite code if not supervisor
             if (!context.IsSupervisor)
             {
-                var code = context.Arguments[1];
                 if (!context.Manager.CheckInvite(code, out var findedProject))
                 {
                     return CommandResult.LogicError("Invite code not found");
@@ -41,7 +51,7 @@ namespace Xioru.Messaging.MessengerCommand
             }
 
             // 2. check new project name
-            var projectName = context.Arguments[0];
+            var projectName = GetArgumentValue(_nameArgument);
             if (projectName == "you_project_name" || projectName.Contains(' '))
             {
                 return CommandResult.LogicError("Project name cannot contain spaces and be named 'you_project_name'");
@@ -84,11 +94,9 @@ namespace Xioru.Messaging.MessengerCommand
                 projectName,
                 projectId);
 
-            if (!context.IsSupervisor &&
-                context.ArgsCount == 2 &&
-                !string.IsNullOrWhiteSpace(context.Arguments[1]))
+            if (!context.IsSupervisor && !string.IsNullOrWhiteSpace(code))
             {
-                await context.Manager.DeleteInvite(context.Arguments[1]);
+                await context.Manager.DeleteInvite(code);
             }
 
             return CommandResult.Success($"Welcome to {projectName} project");

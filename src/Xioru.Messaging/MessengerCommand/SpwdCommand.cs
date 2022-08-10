@@ -1,5 +1,6 @@
 ﻿using ConsoleTables;
 using Orleans;
+using System.CommandLine;
 using System.Text;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.ProjectReadModel;
@@ -9,19 +10,22 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class SpwdCommand : BaseMessengerCommand
+    public class SpwdCommand : AbstractMessengerCommand
     {
-        public const string UsageConst = "/s-pwd";
+        private readonly Argument<string> _filterArgument = new Argument<string>(
+            name: "filter",
+            description: "substring to search in project names",
+            getDefaultValue: () => string.Empty);
 
-        public SpwdCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "s-pwd",
-            subCommandName: string.Empty,
-            minArgumentsCount: 0,
-            maxArgumentsCount: 1,
-            usage: UsageConst)
+        public SpwdCommand(IGrainFactory factory) : base(factory)
         {
         }
+
+        protected override Command Command => new Command(
+            "s-pwd", "display all projects in the system (supervisor)")
+        {
+            _filterArgument
+        };
 
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
@@ -30,10 +34,11 @@ namespace Xioru.Messaging.MessengerCommand
                 return CommandResult.LogicError("Command not found");
             }
 
+            // TODO: ???
             context.Manager.TryGetChannels(context.ChatId, out var channels);
 
-            var filter = context.Arguments.Length == 1 ? context.Arguments[0] : string.Empty;
-
+            var filter = GetArgumentValue(_filterArgument);
+            
             var readModel = _factory.GetGrain<IProjectReadModelGrain>(
                 GrainConstants.ClusterStreamId);
 

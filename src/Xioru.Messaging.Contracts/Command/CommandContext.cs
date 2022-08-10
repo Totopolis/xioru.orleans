@@ -4,8 +4,6 @@
     {
         public bool IsSupervisor { get; set; } = false;
 
-        public string[] Arguments { get; set; } = default!;
-
-        public int ArgsCount => Arguments.Length;
+        public string CommandText { get; set; } = default!;
     }
 }

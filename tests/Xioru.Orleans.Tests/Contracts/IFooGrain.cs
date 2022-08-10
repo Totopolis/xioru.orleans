@@ -1,7 +1,7 @@
 ﻿using Orleans;
 using System.Threading.Tasks;
 
-namespace Xioru.Orleans.Tests.Foo
+namespace Xioru.Orleans.Tests.Contracts
 {
     public interface IFooGrain : IGrainWithGuidKey
     {

@@ -1,5 +1,5 @@
-﻿using Xioru.Messaging.Contracts.Channel;
-using Xioru.Messaging.Contracts.Formatting;
+﻿using System.Text.RegularExpressions;
+using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
@@ -15,87 +15,74 @@ namespace Xioru.Messaging.Messenger
                 return;
             }
 
-            var resultText = new FormattedString();
-
             using var reader = new StringReader(message);
-            var line = await reader.ReadLineAsync();
-            while (line != null)
+            do
             {
-                var segments = line.Split(" ");
+                var line = await reader.ReadLineAsync();
 
-                if (segments == null ||
-                    segments.Length <= 0 ||
-                    !segments![0].StartsWith('/'))
+                if (line == null)
                 {
-                    return;
+                    break;
                 }
 
-                var context = new MessengerCommandContext()
+                // skip comment
+                if (line.StartsWith('#'))
                 {
-                    IsSupervisor = _config.Supervisors?.Any(x => x == chatId) == true,
-                    ChatId = chatId,
-                    Manager = _repository,
-                    MessengerType = MessengerType
-                };
-
-                var commandText = segments[0].TrimStart('/');
-
-                // find messenger command or send to channel
-                if (segments.Length >= 2 &&
-                    _commands.TryGetValue($"{commandText}.{segments[1].ToLower()}", out var command))
-                {
-                    context.Arguments = segments.Skip(2).ToArray();
+                    continue;
                 }
-                else if (_commands.TryGetValue($"{commandText}", out command))
+
+                if (!line.StartsWith('/'))
                 {
-                    context.Arguments = segments.Skip(1).ToArray();
+                    await SendDirectMessage(chatId, "Bad syntax. Abort.");
+                    break;
+                }
+
+                var commandText = line.TrimStart('/');
+                var commandName = Regex.Match(commandText, @"^\w+").Value;
+
+                // first, try find messenger command
+                if (_commands.TryGetValue(commandName, out var command))
+                {
+                    var context = new MessengerCommandContext()
+                    {
+                        IsSupervisor = _config.Supervisors?.Any(x => x == chatId) == true,
+                        ChatId = chatId,
+                        Manager = _repository,
+                        MessengerType = MessengerType,
+                        CommandText = commandText
+                    };
+
+                    var messengerCommandResult = await command.Execute(context);
+                    await SendDirectMessage(chatId, messengerCommandResult.Message);
+
+                    if (!messengerCommandResult.IsSuccess)
+                    {
+                        break;
+                    }
+
+                    continue;
+                }
+
+                // else, send to channel channel
+                if (_repository.TryGetCurrentChannel(chatId, out var channel))
+                {
+                    var stream = GetChannelStream(channel.ChannelId);
+                    await stream.OnNextAsync(new ChannelIncomingMessage
+                    {
+                        IsSupervisor = _config.Supervisors?.Any(x => x == chatId) == true,
+                        Created = DateTime.UtcNow,
+                        Text = line
+                    });
+
+                    continue;
                 }
                 else
                 {
-                    if (_repository.TryGetCurrentChannel(chatId, out var channel))
-                    {
-                        var stream = GetChannelStream(channel.ChannelId);
-                        await stream.OnNextAsync(new ChannelIncomingMessage
-                        {
-                            IsSupervisor = _config.Supervisors?.Any(x => x == chatId) == true,
-                            Created = DateTime.UtcNow,
-                            Text = line
-                        });
-
-                        // go next line
-                        line = await reader.ReadLineAsync();
-                        continue;
-                    }
-                    else
-                    {
-                        await SendDirectMessage(chatId, "Project not selected. Abort.");
-                        return;
-                    }
+                    await SendDirectMessage(chatId, "Project not selected. Abort.");
+                    break;
                 }
-
-                if (command == null)
-                {
-                    await SendDirectMessage(chatId, "Internal error. Abort.");
-                    return;
-                }
-
-                var result = await command.Execute(context);
-                resultText.Append(result.Message); // + Environment.NewLine; //to discord grain?
-
-                // abort if not successed
-                if (!result.IsSuccess)
-                {
-                    await SendDirectMessage(chatId, resultText);
-                    return;
-                }
-
-                line = await reader.ReadLineAsync();
-            }//while lines
-
-            if (!string.IsNullOrWhiteSpace(resultText))
-            {
-                await SendDirectMessage(chatId, resultText);
             }
+            while (true);
         }
     }
 }

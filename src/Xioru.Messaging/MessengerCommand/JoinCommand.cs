@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using System.CommandLine;
 using Xioru.Grain.Contracts.Project;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
@@ -7,23 +8,24 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class JoinCommand : BaseMessengerCommand
+    public class JoinCommand : AbstractMessengerCommand
     {
-        public const string UsageConst = "/join invite-code";
+        private readonly Argument<string> _codeArgument =
+            new Argument<string>("code", "invite-code");
 
-        public JoinCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "join",
-            subCommandName: String.Empty,
-            minArgumentsCount: 1,
-            maxArgumentsCount: 1,
-            usage: UsageConst)
+        public JoinCommand(IGrainFactory factory) : base(factory)
         {
         }
 
+        protected override Command Command => new Command(
+            "join", "join to project")
+        {
+            _codeArgument
+        };
+
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
-            var code = context.Arguments[0];
+            var code = GetArgumentValue(_codeArgument);
             if (string.IsNullOrWhiteSpace(code))
             {
                 return CommandResult.LogicError("Bad code argument");

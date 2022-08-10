@@ -1,4 +1,6 @@
 ﻿using Orleans;
+using System.CommandLine;
+using System.CommandLine.Parsing;
 using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Messaging.Contracts.Channel;
 
@@ -9,60 +11,40 @@ namespace Xioru.Messaging.Contracts.Command
         protected readonly IGrainFactory _factory;
         protected IGrainReadModelGrain _grainReadModel = default!;
 
-        public AbstractChannelCommand(
-            IGrainFactory factory,
-            string commandName,
-            string subCommandName,
-            int minArgumentsCount,
-            int maxArgumentsCount,
-            string usage)
+        private ParseResult _parseResult = default!;
+
+        public AbstractChannelCommand(IGrainFactory factory)
         {
             _factory = factory;
-
-            CommandName = commandName;
-            SubCommandName = subCommandName;
-            MinArgumentsCount = minArgumentsCount;
-            MaxArgumentsCount = maxArgumentsCount;
-            Usage = usage;
         }
 
-        public string CommandName { get; init; }
+        public virtual string Name => Command.Name;
 
-        public string SubCommandName { get; init; }
+        protected abstract System.CommandLine.Command Command { get; }
 
-        public bool IsSubCommandExists
-            => !string.IsNullOrWhiteSpace(SubCommandName);
-
-        public int MinArgumentsCount { get; init; }
-
-        public int MaxArgumentsCount { get; init; }
-
-        public string Usage { get; init; }
-
-        // No exceptions
         public async Task<CommandResult> Execute(CommandContext context)
         {
             var ctx = context as ChannelCommandContext;
+            if (ctx == null)
+            {
+                throw new CommandInternalErrorException("Bad context");
+            }
 
             try
             {
-                if (ctx == null)
-                {
-                    throw new CommandInternalErrorException("Bad context");
-                }
-
                 if (ctx.ProjectId == Guid.Empty)
                 {
                     throw new CommandInternalErrorException("No current project");
                 }
 
-                _grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(ctx.ProjectId);
-
-                if (context.Arguments.Length < MinArgumentsCount ||
-                    context.Arguments.Length > MaxArgumentsCount)
+                _parseResult = Command.Parse(context.CommandText);
+                if (_parseResult.Errors.Any())
                 {
-                    throw new CommandSyntaxErrorException($"Bad usage\nMust be: {Usage}");
+                    var msg = string.Join(';', _parseResult.Errors.Select(x => x.Message));
+                    return CommandResult.SyntaxError(msg);
                 }
+
+                _grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(ctx.ProjectId);
 
                 return await ExecuteInternal(ctx);
             }
@@ -82,6 +64,16 @@ namespace Xioru.Messaging.Contracts.Command
             {
                 return CommandResult.InternalError($"Unknown error: {ex.Message}");
             }
+        }
+
+        protected T GetArgumentValue<T>(Argument<T> argument)
+        {
+            return _parseResult.GetValueForArgument(argument);
+        }
+
+        protected T? GetOptionValue<T>(Option<T> option)
+        {
+            return _parseResult.GetValueForOption(option);
         }
 
         protected abstract Task<CommandResult> ExecuteInternal(ChannelCommandContext context);

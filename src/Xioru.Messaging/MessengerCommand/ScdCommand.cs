@@ -1,4 +1,5 @@
 ﻿using Orleans;
+using System.CommandLine;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.ProjectReadModel;
 using Xioru.Messaging.Contracts.Channel;
@@ -8,19 +9,20 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class ScdCommand : BaseMessengerCommand
+    public class ScdCommand : AbstractMessengerCommand
     {
-        public const string UsageConst = "/s-cd projectname";
+        private readonly Argument<string> _nameArgument =
+            new Argument<string>("name", "unique project name");
 
-        public ScdCommand(IGrainFactory factory) : base(
-            factory: factory,
-            commandName: "s-cd",
-            subCommandName: string.Empty,
-            minArgumentsCount: 1,
-            maxArgumentsCount: 1,
-            usage: UsageConst)
+        public ScdCommand(IGrainFactory factory) : base(factory)
         {
         }
+
+        protected override Command Command => new Command(
+            "s-cd", "change current project (supervisor)")
+        {
+            _nameArgument
+        };
 
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
@@ -32,7 +34,7 @@ namespace Xioru.Messaging.MessengerCommand
             var readModel = _factory.GetGrain<IProjectReadModelGrain>(
                 GrainConstants.ClusterStreamId);
 
-            var projectName = context.Arguments[0];
+            var projectName = GetArgumentValue(_nameArgument);
             var project = await readModel.GetProjectByName(projectName);
 
             if (project == null)
