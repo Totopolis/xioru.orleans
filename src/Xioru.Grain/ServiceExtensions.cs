@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson.Serialization;
 using Xioru.Grain.Contracts.Config;
+using Xioru.Grain.GrainReadModel.State;
 using Xioru.Grain.Project;
 
 namespace Xioru.Grain
@@ -13,6 +15,8 @@ namespace Xioru.Grain
             this IServiceCollection services,
             IConfiguration config)
         {
+            BsonClassMap.RegisterClassMap<GrainDetailsDocument>();
+
             // validators
             services.AddValidatorsFromAssemblyContaining<ProjectGrain>();
 
