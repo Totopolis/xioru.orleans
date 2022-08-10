@@ -8,13 +8,13 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class UnameCommand : BaseMessengerCommand
+    public class UnameCommand : AbstractMessengerCommand
     {
         public UnameCommand(IGrainFactory factory) : base(factory)
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "uname", "display system info");
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)

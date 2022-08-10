@@ -18,7 +18,7 @@ namespace Xioru.Messaging.ChannelCommand
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "list", "display all objects")
         {
             _filterArgument
@@ -27,7 +27,7 @@ namespace Xioru.Messaging.ChannelCommand
         protected override async Task<CommandResult> ExecuteInternal(
             ChannelCommandContext context)
         {
-            var filterValue = context.GetArgumentValue(_filterArgument);
+            var filterValue = GetArgumentValue(_filterArgument);
 
             if (!string.IsNullOrWhiteSpace(filterValue) && filterValue.Length < 3)
             {

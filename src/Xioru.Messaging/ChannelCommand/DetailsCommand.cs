@@ -16,7 +16,7 @@ namespace Xioru.Messaging.ChannelCommand
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "details", "display object internals")
         {
             _nameArgument
@@ -25,7 +25,7 @@ namespace Xioru.Messaging.ChannelCommand
         protected override async Task<CommandResult> ExecuteInternal(
             ChannelCommandContext context)
         {
-            var objName = context.GetArgumentValue(_nameArgument);
+            var objName = GetArgumentValue(_nameArgument);
 
             var grainDetails = await CheckGrain(objName);
             var serializedDetails = JsonConvert.SerializeObject(grainDetails, Formatting.Indented);

@@ -69,7 +69,8 @@ namespace Xioru.Orleans.Tests.Common
                 DisplayName: name,
                 Description: string.Empty,
                 Tags: new string[0],
-                FooData: $"Hello {name}"));
+                FooData: $"Hello {name}",
+                FooMeta: $"By {name}"));
 
             return foo;
         }

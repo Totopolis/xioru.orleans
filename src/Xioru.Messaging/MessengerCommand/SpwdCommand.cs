@@ -10,7 +10,7 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class SpwdCommand : BaseMessengerCommand
+    public class SpwdCommand : AbstractMessengerCommand
     {
         private readonly Argument<string> _filterArgument = new Argument<string>(
             name: "filter",
@@ -21,7 +21,7 @@ namespace Xioru.Messaging.MessengerCommand
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "s-pwd", "display all projects in the system (supervisor)")
         {
             _filterArgument
@@ -37,7 +37,7 @@ namespace Xioru.Messaging.MessengerCommand
             // TODO: ???
             context.Manager.TryGetChannels(context.ChatId, out var channels);
 
-            var filter = context.GetArgumentValue(_filterArgument);
+            var filter = GetArgumentValue(_filterArgument);
             
             var readModel = _factory.GetGrain<IProjectReadModelGrain>(
                 GrainConstants.ClusterStreamId);

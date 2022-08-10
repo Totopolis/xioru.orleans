@@ -1,4 +1,6 @@
 ﻿using Orleans;
+using System.CommandLine;
+using System.CommandLine.Parsing;
 using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Messaging.Contracts.Channel;
 
@@ -9,14 +11,17 @@ namespace Xioru.Messaging.Contracts.Command
         protected readonly IGrainFactory _factory;
         protected IGrainReadModelGrain _grainReadModel = default!;
 
+        private ParseResult _parseResult = default!;
+
         public AbstractChannelCommand(IGrainFactory factory)
         {
             _factory = factory;
         }
 
-        public abstract System.CommandLine.Command Command { get; }
+        public virtual string Name => Command.Name;
 
-        // No exceptions
+        protected abstract System.CommandLine.Command Command { get; }
+
         public async Task<CommandResult> Execute(CommandContext context)
         {
             var ctx = context as ChannelCommandContext;
@@ -30,6 +35,13 @@ namespace Xioru.Messaging.Contracts.Command
                 if (ctx.ProjectId == Guid.Empty)
                 {
                     throw new CommandInternalErrorException("No current project");
+                }
+
+                _parseResult = Command.Parse(context.CommandText);
+                if (_parseResult.Errors.Any())
+                {
+                    var msg = string.Join(';', _parseResult.Errors.Select(x => x.Message));
+                    return CommandResult.SyntaxError(msg);
                 }
 
                 _grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(ctx.ProjectId);
@@ -52,6 +64,16 @@ namespace Xioru.Messaging.Contracts.Command
             {
                 return CommandResult.InternalError($"Unknown error: {ex.Message}");
             }
+        }
+
+        protected T GetArgumentValue<T>(Argument<T> argument)
+        {
+            return _parseResult.GetValueForArgument(argument);
+        }
+
+        protected T? GetOptionValue<T>(Option<T> option)
+        {
+            return _parseResult.GetValueForOption(option);
         }
 
         protected abstract Task<CommandResult> ExecuteInternal(ChannelCommandContext context);

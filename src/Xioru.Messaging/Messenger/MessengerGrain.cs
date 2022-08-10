@@ -51,7 +51,7 @@ namespace Xioru.Messaging.Messenger
                 _logger.LogError($"Configuration for {MessengerType.ToString()} messenger type not found");
             }
 
-            _commands = commands.ToDictionary(x => x.Command.Name);
+            _commands = commands.ToDictionary(x => x.Name);
         }
 
         public virtual async Task StartAsync()

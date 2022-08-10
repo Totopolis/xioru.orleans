@@ -8,7 +8,7 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class JoinCommand : BaseMessengerCommand
+    public class JoinCommand : AbstractMessengerCommand
     {
         private readonly Argument<string> _codeArgument =
             new Argument<string>("code", "invite-code");
@@ -17,7 +17,7 @@ namespace Xioru.Messaging.MessengerCommand
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "join", "join to project")
         {
             _codeArgument
@@ -25,7 +25,7 @@ namespace Xioru.Messaging.MessengerCommand
 
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
-            var code = context.GetArgumentValue(_codeArgument);
+            var code = GetArgumentValue(_codeArgument);
             if (string.IsNullOrWhiteSpace(code))
             {
                 return CommandResult.LogicError("Bad code argument");

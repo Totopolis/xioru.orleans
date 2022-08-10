@@ -27,7 +27,8 @@ namespace Xioru.Orleans.Tests.Domain
                 DisplayName: State.DisplayName,
                 Description: State.Description,
                 Tags: State.Tags.ToArray(),
-                FooData: State.FooData));
+                FooData: State.FooData,
+                FooMeta: State.FooMeta));
         }
 
         protected override async Task EmitDeleteEvent()
@@ -41,7 +42,8 @@ namespace Xioru.Orleans.Tests.Domain
                 DisplayName: updateCommand.DisplayName,
                 Description: updateCommand.Description,
                 Tags: updateCommand.Tags.ToArray(),
-                FooData: State.FooData));
+                FooData: State.FooData,
+                FooMeta: State.FooMeta));
         }
     }
 }

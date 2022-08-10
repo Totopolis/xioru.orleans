@@ -6,13 +6,13 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class LeaveCommand : BaseMessengerCommand
+    public class LeaveCommand : AbstractMessengerCommand
     {
         public LeaveCommand(IGrainFactory factory) : base(factory)
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "leave", "leave project");
 
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)

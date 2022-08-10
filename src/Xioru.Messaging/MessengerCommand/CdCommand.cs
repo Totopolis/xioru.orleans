@@ -6,7 +6,7 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class CdCommand : BaseMessengerCommand
+    public class CdCommand : AbstractMessengerCommand
     {
         private readonly Argument<string> _nameArgument =
             new Argument<string>("name", "unique project name");
@@ -15,7 +15,7 @@ namespace Xioru.Messaging.MessengerCommand
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "cd", "navigate to project")
         {
             _nameArgument
@@ -28,7 +28,7 @@ namespace Xioru.Messaging.MessengerCommand
                 return Task.FromResult(CommandResult.Success("No accessed projects"));
             }
 
-            var projectName = context.GetArgumentValue(_nameArgument);
+            var projectName = GetArgumentValue(_nameArgument);
 
             if (!channels.Any(x => x.ProjectName == projectName))
             {

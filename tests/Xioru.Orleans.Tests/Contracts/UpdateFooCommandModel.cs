@@ -7,7 +7,8 @@ namespace Xioru.Orleans.Tests.Contracts
         string Description,
         string[] Tags,
         //
-        string FooData) : UpdateAbstractGrainCommandModel(
+        string FooData,
+        string FooMeta) : UpdateAbstractGrainCommandModel(
             DisplayName,
             Description,
             Tags);

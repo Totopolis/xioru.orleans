@@ -15,33 +15,40 @@ namespace Xioru.Orleans.Tests.Domain
                 name: "name",
                 description: "foo name");
 
-        // optional
+        // required option
         private readonly Option<string> _dataOption = new Option<string>(
                 name: "data",
-                description: "foo data",
+                description: "foo data");
+
+        // optional option
+        private readonly Option<string> _metaOption = new Option<string>(
+                name: "meta",
+                description: "foo meta",
                 getDefaultValue: () => "nodata");
 
         public UpsertFooCommand(IGrainFactory factory) : base(factory)
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "upsert", "upsert foo instance")
         {
             _nameArgument,
-            _dataOption
+            _dataOption,
+            _metaOption
         };
 
         protected override async Task<CommandResult> ExecuteInternal(
             ChannelCommandContext context)
         {
-            var name = context.GetArgumentValue(_nameArgument);
+            var name = GetArgumentValue(_nameArgument);
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new CommandSyntaxErrorException("Bad foo name");
             }
 
-            var data = context.GetOptionValue(_dataOption)!;
+            var data = GetOptionValue(_dataOption)!;
+            var meta = GetOptionValue(_metaOption)!;
 
             var details = await _grainReadModel.GetGrainDetailsByName(name);
             if (details == null)
@@ -54,7 +61,8 @@ namespace Xioru.Orleans.Tests.Domain
                     DisplayName: name,
                     Description: string.Empty,
                     Tags: Array.Empty<string>(),
-                    FooData: data));
+                    FooData: data,
+                    FooMeta: meta));
             }
             else
             {
@@ -64,7 +72,8 @@ namespace Xioru.Orleans.Tests.Domain
                     DisplayName: name,
                     Description: string.Empty,
                     Tags: Array.Empty<string>(),
-                    FooData: data));
+                    FooData: data,
+                    FooMeta: meta));
             }
 
             return CommandResult.Success("ok");

@@ -8,13 +8,13 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class PwdCommand : BaseMessengerCommand
+    public class PwdCommand : AbstractMessengerCommand
     {
         public PwdCommand(IGrainFactory factory) : base(factory)
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "pwd", "display current project");
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)

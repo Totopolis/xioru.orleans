@@ -64,6 +64,7 @@ namespace Xioru.Orleans.Tests
 
             var projection = await grain!.GetProjection();
             Assert.Equal("123", projection.FooData);
+            Assert.Equal("nodata", projection.FooMeta);
         }
 
         [Fact]
@@ -72,12 +73,13 @@ namespace Xioru.Orleans.Tests
             await PrepareAsync();
 
             await _channel.ExecuteCommand("/upsert foo1 data=123");
-            var result = await _channel.ExecuteCommand("/upsert foo1 data=666");
+            var result = await _channel.ExecuteCommand("/upsert foo1 data=666 meta=111");
             Assert.True(result.IsSuccess, result.Message);
 
             var grain = await _grainReadModel.GetGrainByNameOrDefault<IFooGrain>("foo1");
             var projection = await grain!.GetProjection();
             Assert.Equal("666", projection.FooData);
+            Assert.Equal("111", projection.FooMeta);
         }
 
         [Fact]

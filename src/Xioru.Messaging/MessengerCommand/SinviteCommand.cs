@@ -6,13 +6,13 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class SinviteCommand : BaseMessengerCommand
+    public class SinviteCommand : AbstractMessengerCommand
     {
         public SinviteCommand(IGrainFactory factory) : base(factory)
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
            "s-invite", "create invite code to create new project (supervisor)");
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)

@@ -7,7 +7,8 @@ namespace Xioru.Orleans.Tests.Contracts
         string Description,
         string[] Tags,
         //
-        string FooData) : AbstractGrainUpdatedEvent(
+        string FooData,
+        string FooMeta) : AbstractGrainUpdatedEvent(
             DisplayName,
             Description,
             Tags);

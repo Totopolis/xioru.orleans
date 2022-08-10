@@ -9,7 +9,7 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class ScdCommand : BaseMessengerCommand
+    public class ScdCommand : AbstractMessengerCommand
     {
         private readonly Argument<string> _nameArgument =
             new Argument<string>("name", "unique project name");
@@ -18,7 +18,7 @@ namespace Xioru.Messaging.MessengerCommand
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "s-cd", "change current project (supervisor)")
         {
             _nameArgument
@@ -34,7 +34,7 @@ namespace Xioru.Messaging.MessengerCommand
             var readModel = _factory.GetGrain<IProjectReadModelGrain>(
                 GrainConstants.ClusterStreamId);
 
-            var projectName = context.GetArgumentValue(_nameArgument);
+            var projectName = GetArgumentValue(_nameArgument);
             var project = await readModel.GetProjectByName(projectName);
 
             if (project == null)

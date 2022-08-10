@@ -10,7 +10,8 @@ namespace Xioru.Orleans.Tests.Contracts
         string Description,
         string[] Tags,
         //
-        string FooData) : CreateAbstractGrainCommandModel(
+        string FooData,
+        string FooMeta) : CreateAbstractGrainCommandModel(
             ProjectId,
             Name,
             DisplayName,

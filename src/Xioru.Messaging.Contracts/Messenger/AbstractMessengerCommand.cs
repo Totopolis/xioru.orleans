@@ -1,21 +1,25 @@
 ﻿using Orleans;
+using System.CommandLine;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Messenger
 {
-    public abstract class BaseMessengerCommand : IMessengerCommand
+    public abstract class AbstractMessengerCommand : IMessengerCommand
     {
         protected readonly IGrainFactory _factory;
 
-        public BaseMessengerCommand(IGrainFactory factory)
+        private System.CommandLine.Parsing.ParseResult _parseResult = default!;
+
+        public AbstractMessengerCommand(IGrainFactory factory)
         {
             _factory = factory;
         }
 
-        public abstract System.CommandLine.Command Command { get; }
+        public virtual string Name => Command.Name;
 
-        // No exceptions
+        protected abstract System.CommandLine.Command Command { get; }
+
         public async Task<CommandResult> Execute(CommandContext context)
         {
             var ctx = context as MessengerCommandContext;
@@ -26,6 +30,13 @@ namespace Xioru.Messaging.Messenger
 
             try
             {
+                _parseResult = Command.Parse(context.CommandText);
+                if (_parseResult.Errors.Any())
+                {
+                    var msg = string.Join(';', _parseResult.Errors.Select(x => x.Message));
+                    return CommandResult.SyntaxError(msg);
+                }
+
                 return await ExecuteInternal(ctx);
             }
             catch (CommandInternalErrorException ex)
@@ -44,6 +55,16 @@ namespace Xioru.Messaging.Messenger
             {
                 return CommandResult.InternalError($"Unknown error: {ex.Message}");
             }
+        }
+
+        protected T GetArgumentValue<T>(Argument<T> argument)
+        {
+            return _parseResult.GetValueForArgument(argument);
+        }
+
+        protected T? GetOptionValue<T>(Option<T> option)
+        {
+            return _parseResult.GetValueForOption(option);
         }
 
         protected abstract Task<CommandResult> ExecuteInternal(MessengerCommandContext context);

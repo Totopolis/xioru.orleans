@@ -10,7 +10,7 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class StartCommand : BaseMessengerCommand
+    public class StartCommand : AbstractMessengerCommand
     {
         private readonly Argument<string> _nameArgument =
             new Argument<string>("name", "new unique project name");
@@ -25,7 +25,7 @@ namespace Xioru.Messaging.MessengerCommand
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "start", "start new project")
         {
             _nameArgument,
@@ -34,7 +34,7 @@ namespace Xioru.Messaging.MessengerCommand
 
         protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
-            var code = context.GetArgumentValue(_codeArgument);
+            var code = GetArgumentValue(_codeArgument);
 
             // 1. check invite code if not supervisor
             if (!context.IsSupervisor)
@@ -51,7 +51,7 @@ namespace Xioru.Messaging.MessengerCommand
             }
 
             // 2. check new project name
-            var projectName = context.GetArgumentValue(_nameArgument);
+            var projectName = GetArgumentValue(_nameArgument);
             if (projectName == "you_project_name" || projectName.Contains(' '))
             {
                 return CommandResult.LogicError("Project name cannot contain spaces and be named 'you_project_name'");

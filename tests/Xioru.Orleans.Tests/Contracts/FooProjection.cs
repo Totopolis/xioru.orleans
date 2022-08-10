@@ -10,7 +10,8 @@ namespace Xioru.Orleans.Tests.Contracts
         string Description,
         string[] Tags,
         //
-        string FooData) : AbstractGrainProjection(
+        string FooData,
+        string FooMeta) : AbstractGrainProjection(
             Name,
             ProjectId,
             DisplayName,

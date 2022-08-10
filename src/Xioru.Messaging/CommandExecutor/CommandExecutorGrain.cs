@@ -17,7 +17,7 @@ namespace Xioru.Messaging.CommandExecutor
 
         public CommandExecutorGrain(IEnumerable<IChannelCommand> commands)
         {
-            _commands = commands.ToDictionary(x => x.Command.Name);
+            _commands = commands.ToDictionary(x => x.Name);
         }
 
         public async Task<CommandResult> Execute(
@@ -50,19 +50,12 @@ namespace Xioru.Messaging.CommandExecutor
                 return CommandResult.SyntaxError("Unknown command\nSee /help");
             }
 
-            var parseResult = command.Command.Parse(cleanCommand);
-            if (parseResult.Errors.Any())
-            {
-                var msg = string.Join(';', parseResult.Errors.Select(x => x.Message));
-                return CommandResult.SyntaxError(msg);
-            }
-
             var context = new ChannelCommandContext()
             {
                 IsSupervisor = isSupervisor,
                 ProjectId = projectId,
                 ChannelId = channelId,
-                ParsedCommand = parseResult
+                CommandText = commandText
             };
 
             var result = await command.Execute(context);

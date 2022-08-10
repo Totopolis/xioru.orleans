@@ -7,13 +7,13 @@ using Xioru.Messaging.Messenger;
 
 namespace Xioru.Messaging.MessengerCommand
 {
-    public class MecCommand : BaseMessengerCommand
+    public class MecCommand : AbstractMessengerCommand
     {
         public MecCommand(IGrainFactory factory) : base(factory)
         {
         }
 
-        public override Command Command => new Command(
+        protected override Command Command => new Command(
             "mec", "display my channel id");
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)

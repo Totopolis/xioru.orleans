@@ -2,7 +2,7 @@
 {
     public interface ICommand
     {
-        System.CommandLine.Command Command { get; }
+        string Name { get; }
 
         Task<CommandResult> Execute(CommandContext context);
     }
