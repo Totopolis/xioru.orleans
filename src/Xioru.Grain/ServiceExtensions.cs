@@ -15,8 +15,6 @@ namespace Xioru.Grain
             this IServiceCollection services,
             IConfiguration config)
         {
-            BsonClassMap.RegisterClassMap<GrainDetailsDocument>();
-
             // validators
             services.AddValidatorsFromAssemblyContaining<ProjectGrain>();
 
