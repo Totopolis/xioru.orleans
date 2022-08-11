@@ -33,9 +33,9 @@ jobs:
       - uses: actions/setup-dotnet@v2
         with:
           dotnet-version: '6.0.x'
-          source-url: https://nuget.pkg.github.com/Totopolis/index.json
+          source-url: https://api.nuget.org/v3/index.json
         env:
-          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
@@ -43,5 +43,5 @@ jobs:
       - name: Create the package
         run: dotnet pack --configuration Release -o src/
       - name: Publish the package to GPR
-        run: dotnet nuget push src/*.nupkg --skip-duplicate -k ${{secrets.GITHUB_TOKEN}}
+        run: dotnet nuget push src/*.nupkg --skip-duplicate -k ${{secrets.NUGET_API_KEY}}
 
