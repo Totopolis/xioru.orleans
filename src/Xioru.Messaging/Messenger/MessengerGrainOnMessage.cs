@@ -38,7 +38,7 @@ namespace Xioru.Messaging.Messenger
                 }
 
                 var commandText = line.TrimStart('/');
-                var commandName = Regex.Match(commandText, @"^\w+").Value;
+                var commandName = Regex.Match(commandText, @"^([\w\-]+)").Value;
 
                 // first, try find messenger command
                 if (_commands.TryGetValue(commandName, out var command))

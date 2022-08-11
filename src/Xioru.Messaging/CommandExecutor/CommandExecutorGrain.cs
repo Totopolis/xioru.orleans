@@ -43,7 +43,7 @@ namespace Xioru.Messaging.CommandExecutor
             }
 
             var cleanCommand = commandText.TrimStart('/');
-            var commandName = Regex.Match(cleanCommand, @"^\w+").Value;
+            var commandName = Regex.Match(cleanCommand, @"^([\w\-]+)").Value;
 
             if (!_commands.TryGetValue(commandName, out var command))
             {
