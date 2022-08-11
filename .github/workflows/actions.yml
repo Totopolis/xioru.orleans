@@ -39,7 +39,7 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release --version-suffix "${GITHUB_RUN_NUMBER}"
+        run: dotnet build --configuration Release -p:VersionPrefix=1.0.0 --version-suffix "${GITHUB_RUN_NUMBER}"
       - name: Create the package
         run: dotnet pack --configuration Release --version-suffix "${GITHUB_RUN_NUMBER}" -o src/
       - name: Publish the package to GPR
