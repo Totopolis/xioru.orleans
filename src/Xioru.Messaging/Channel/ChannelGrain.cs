@@ -1,11 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using Orleans;
+﻿using Orleans;
 using Orleans.Runtime;
 using Orleans.Streams;
 using Orleans.Streams.Core;
 using Xioru.Grain.AbstractGrain;
 using Xioru.Grain.Contracts;
-using Xioru.Grain.Contracts.Messages;
 using Xioru.Messaging.Contracts;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Channel.Events;
@@ -68,7 +66,7 @@ namespace Xioru.Messaging.Channel
 
         private IAsyncStream<ChannelOutcomingMessage> GetLazyOutcomingStream()
         {
-            var _streamProvider = GetStreamProvider("SMSProvider");
+            var _streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
             var outcomingStream = _streamProvider.GetStream<ChannelOutcomingMessage>(
                 streamId: Guid.Empty,
                 streamNamespace: MessagingConstants.GetChannelOutcomingStreamNamespace(State.MessengerType));

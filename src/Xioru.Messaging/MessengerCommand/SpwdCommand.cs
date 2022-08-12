@@ -34,7 +34,6 @@ namespace Xioru.Messaging.MessengerCommand
                 return CommandResult.LogicError("Command not found");
             }
 
-            // TODO: ???
             context.Manager.TryGetChannels(context.ChatId, out var channels);
 
             var filter = GetArgumentValue(_filterArgument);

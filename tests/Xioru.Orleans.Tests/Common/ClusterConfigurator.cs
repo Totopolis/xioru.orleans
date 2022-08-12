@@ -52,6 +52,8 @@ namespace Xioru.Orleans.Tests.Common
             siloBuilder.ConfigureApplicationParts(parts => parts
                 .AddApplicationPart(typeof(FooGrain).Assembly).WithReferences()
                 .AddApplicationPart(typeof(MessengerGrain).Assembly).WithReferences());
+
+            siloBuilder.AddStartupTask<StartupTask>();
         }
     }
 }

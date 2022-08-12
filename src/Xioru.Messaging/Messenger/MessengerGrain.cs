@@ -62,7 +62,7 @@ namespace Xioru.Messaging.Messenger
                 await _repository.StartAsync(this.MessengerType);
 
                 // init subscriptions
-                var streamProvider = this.GetStreamProvider("SMSProvider");
+                var streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
 
                 _clusterRepositoryStream = await streamProvider
                     .GetStreamAndSingleSubscribe<GrainEvent>(
@@ -126,7 +126,7 @@ namespace Xioru.Messaging.Messenger
 
         private IAsyncStream<ChannelIncomingMessage> GetChannelStream(Guid channelId)
         {
-            var streamProvider = this.GetStreamProvider("SMSProvider");
+            var streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
 
             return streamProvider.GetStream<ChannelIncomingMessage>(
                 channelId,
