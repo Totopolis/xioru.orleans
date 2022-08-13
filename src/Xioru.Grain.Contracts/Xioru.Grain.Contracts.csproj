@@ -16,4 +16,8 @@
     <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="3.6.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Orleans_CodeGenInputs Remove="IVersionProvider.cs" />
+  </ItemGroup>
+
 </Project>

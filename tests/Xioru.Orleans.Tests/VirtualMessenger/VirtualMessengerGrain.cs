@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -24,7 +23,6 @@ namespace Xioru.Orleans.Tests.VirtualMessenger
             _commands = commands.ToDictionary(x => x.Name);
             _repository = repository;
         }
-
 
         public async Task<CommandResult> ExecuteSupervisorCommand(
             string commandText)

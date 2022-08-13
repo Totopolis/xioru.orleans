@@ -1,7 +1,8 @@
-﻿using Orleans;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Orleans;
 using System.CommandLine;
-using System.Reflection;
 using System.Text;
+using Xioru.Grain.Contracts;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
@@ -10,8 +11,13 @@ namespace Xioru.Messaging.MessengerCommand
 {
     public class UnameCommand : AbstractMessengerCommand
     {
-        public UnameCommand(IGrainFactory factory) : base(factory)
+        private readonly IVersionProvider? _versionProvider;
+
+        public UnameCommand(
+            IGrainFactory factory,
+            IServiceProvider services) : base(factory)
         {
+            _versionProvider = services.GetService<IVersionProvider>();
         }
 
         protected override Command Command => new Command(
@@ -19,10 +25,13 @@ namespace Xioru.Messaging.MessengerCommand
 
         protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
         {
-            var version = Assembly
-                .GetExecutingAssembly()
-                .GetName()
-                .Version!;
+            if (_versionProvider == null)
+            {
+                return Task.FromResult(
+                    CommandResult.InternalError("No version provider provided"));
+            }
+
+            var version = _versionProvider.GetVersion();
 
             var sb = new StringBuilder();
             sb.Append(version.Major);

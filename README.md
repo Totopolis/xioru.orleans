@@ -6,5 +6,6 @@
 
 * Abstract grain (crud, cqrs)
 * Pseudo event sourcing
+* Read models
 * Project scopes
-* Messenger interface
+* Command interface based on System.CommandLine (discord, telegram)

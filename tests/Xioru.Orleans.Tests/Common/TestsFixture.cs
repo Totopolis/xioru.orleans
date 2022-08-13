@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Orleans.TestingHost;
+﻿using Orleans.TestingHost;
 using System;
 
 namespace Xioru.Orleans.Tests.Common
@@ -8,12 +7,8 @@ namespace Xioru.Orleans.Tests.Common
     {
         public TestsFixture()
         {
-            Cluster = new TestClusterBuilder()
+            Cluster = new TestClusterBuilder(initialSilosCount: 1)
                 .AddSiloBuilderConfigurator<ClusterConfigurator>()
-                .ConfigureHostConfiguration(configurationBuilder =>
-                {
-                    configurationBuilder.AddEnvironmentVariables();
-                })
                 .Build();
 
             Cluster.Deploy();
