@@ -116,7 +116,7 @@ namespace Xioru.Grain.Project
             // 2. Emit to project stream
             if (_projectRepositoryStream == null)
             {
-                var _streamProvider = GetStreamProvider("SMSProvider");
+                var _streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
 
                 _projectRepositoryStream = _streamProvider.GetStream<GrainEvent>(
                     streamId: grainId,
@@ -128,7 +128,7 @@ namespace Xioru.Grain.Project
             // 3. Emit to global cluster stream
             if (_clusterRepositoryStream == null)
             {
-                var _streamProvider = GetStreamProvider("SMSProvider");
+                var _streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
 
                 _clusterRepositoryStream = _streamProvider.GetStream<GrainEvent>(
                     streamId: GrainConstants.ClusterStreamId,

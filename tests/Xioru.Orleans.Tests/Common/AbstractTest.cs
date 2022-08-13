@@ -56,7 +56,7 @@ namespace Xioru.Orleans.Tests.Common
                 Description: string.Empty,
                 Tags: new string[0],
                 //
-                MessengerType: MessengerType.Discord,
+                MessengerType: MessengerType.Virtual,
                 ChatId: Guid.NewGuid().ToString("N")));
         }
 

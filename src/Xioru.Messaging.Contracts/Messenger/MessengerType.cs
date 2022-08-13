@@ -5,6 +5,7 @@
         Discord,
         Telegram,
         Slack,
-        Teams
+        Teams,
+        Virtual
     }
 }

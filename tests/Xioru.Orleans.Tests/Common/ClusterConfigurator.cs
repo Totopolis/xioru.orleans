@@ -10,8 +10,10 @@ using Xioru.Grain;
 using Xioru.Grain.Contracts;
 using Xioru.Messaging;
 using Xioru.Messaging.Contracts.Channel;
+using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 using Xioru.Orleans.Tests.Domain;
+using Xioru.Orleans.Tests.VirtualMessenger;
 
 namespace Xioru.Orleans.Tests.Common
 {
@@ -34,7 +36,13 @@ namespace Xioru.Orleans.Tests.Common
                    .AddGrainServices(hbc.Configuration)
                    .AddMessagingServices(hbc.Configuration);
 
+                // for MessagingStartupTask
+                services.AddTransient<IMessengerGrain>(
+                    sb => sb.GetService<IGrainFactory>()!.GetGrain<IVirtualMessengerGrain>(Guid.Empty));
+
                 services.AddTransient<IChannelCommand, UpsertFooCommand>();
+
+                services.AddTransient<IVersionProvider, VersionProvider>();
 
                 var db = _mongoClient.GetDatabase(
                     $"IntegrationTest_{Guid.NewGuid().ToString("N")}");
@@ -52,6 +60,8 @@ namespace Xioru.Orleans.Tests.Common
             siloBuilder.ConfigureApplicationParts(parts => parts
                 .AddApplicationPart(typeof(FooGrain).Assembly).WithReferences()
                 .AddApplicationPart(typeof(MessengerGrain).Assembly).WithReferences());
+
+            siloBuilder.AddStartupTask<MessagingStartupTask>();
         }
     }
 }
