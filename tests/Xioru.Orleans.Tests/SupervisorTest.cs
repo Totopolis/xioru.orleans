@@ -39,5 +39,17 @@ namespace Xioru.Orleans.Tests
             Assert.True(result.IsSuccess, result.Message);
             Assert.Contains("myproject", result.Message);
         }
+
+        [Fact]
+        public async Task HelpCommand()
+        {
+            var messenger = _factory.GetGrain<IVirtualMessengerGrain>(Guid.Empty);
+
+            var result = await messenger.ExecuteSupervisorCommand("/help");
+            Assert.True(result.IsSuccess, result.Message);
+
+            result = await messenger.ExecuteSupervisorCommand("/help start");
+            Assert.True(result.IsSuccess, result.Message);
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Orleans;
 using System.CommandLine;
+using System.CommandLine.Help;
 using System.CommandLine.Parsing;
 using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Messaging.Contracts.Channel;
@@ -19,6 +20,17 @@ namespace Xioru.Messaging.Contracts.Command
         }
 
         public virtual string Name => Command.Name;
+
+        public virtual string Description => Command.Description ?? string.Empty;
+
+        public virtual string GetHelp()
+        {
+            using var textWriter = new StringWriter();
+            var helpBuilder = new HelpBuilder(LocalizationResources.Instance);
+
+            helpBuilder.Write(new HelpContext(helpBuilder, Command, textWriter));
+            return textWriter.ToString();
+        }
 
         protected abstract System.CommandLine.Command Command { get; }
 
