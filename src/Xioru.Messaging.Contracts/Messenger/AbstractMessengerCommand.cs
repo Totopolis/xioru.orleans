@@ -1,5 +1,6 @@
 ﻿using Orleans;
 using System.CommandLine;
+using System.CommandLine.Help;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 
@@ -17,6 +18,17 @@ namespace Xioru.Messaging.Messenger
         }
 
         public virtual string Name => Command.Name;
+
+        public virtual string Description => Command.Description ?? string.Empty;
+
+        public virtual string GetHelp()
+        {
+            using var textWriter = new StringWriter();
+            var helpBuilder = new HelpBuilder(LocalizationResources.Instance);
+            
+            helpBuilder.Write(new HelpContext(helpBuilder, Command, textWriter));
+            return textWriter.ToString();
+        }
 
         protected abstract System.CommandLine.Command Command { get; }
 
