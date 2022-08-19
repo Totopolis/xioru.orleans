@@ -28,7 +28,6 @@ namespace Xioru.Grain.AbstractGrain
         protected readonly IPersistentState<T_STATE> _state;
         protected readonly ILogger _log;
         protected readonly IMapper _mapper;
-        protected readonly IGrainFactory _grainFactory;
         protected readonly IValidator<T_CREATE_COMMAND> _createValidator;
         protected readonly IValidator<T_UPDATE_COMMAND> _updateValidator;
 
@@ -43,7 +42,6 @@ namespace Xioru.Grain.AbstractGrain
             var loggerFactory = services.GetRequiredService<ILoggerFactory>();
             _log = loggerFactory.CreateLogger(this.GetType());
             _mapper = services.GetRequiredService<IMapper>();
-            _grainFactory = services.GetRequiredService<IGrainFactory>();
 
             _createValidator = services.GetRequiredService<IValidator<T_CREATE_COMMAND>>();
             _updateValidator = services.GetRequiredService<IValidator<T_UPDATE_COMMAND>>();
@@ -70,6 +68,7 @@ namespace Xioru.Grain.AbstractGrain
 
             // 2. Update local state and force save
             _mapper.Map(createCommand, State);
+            State.Id = this.GetPrimaryKey();
             await _state.WriteStateAsync();
 
             // 3. Event sourcing
