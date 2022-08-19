@@ -12,7 +12,6 @@ namespace Xioru.Messaging.Contracts.Channel
         string[] Tags,
         //
         MessengerType MessengerType,
-        Guid MessengerId,
         string ChatId,
         DateTime LastMessage) : AbstractGrainProjection(
             Id,

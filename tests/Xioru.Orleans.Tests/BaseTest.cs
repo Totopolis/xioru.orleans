@@ -26,6 +26,17 @@ namespace Xioru.Orleans.Tests
         }
 
         [Fact]
+        public async Task CheckChannel()
+        {
+            await PrepareAsync();
+
+            var channelProjection = await _channel.GetProjection();
+            Assert.NotNull(channelProjection);
+
+            await _channel.SendMessage("Hello");
+        }
+
+        [Fact]
         public async Task CheckGrainReadModel()
         {
             await PrepareAsync();

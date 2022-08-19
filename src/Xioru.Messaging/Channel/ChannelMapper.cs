@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using Xioru.Grain.Contracts.User;
-using Xioru.Grain.User;
 using Xioru.Messaging.Contracts.Channel;
 
 namespace Xioru.Messaging.Channel
