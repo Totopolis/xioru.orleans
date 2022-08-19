@@ -14,7 +14,7 @@ namespace Xioru.Messaging.Channel
         {
             try
             {
-                var executor = _grainFactory.GetGrain<ICommandExecutor>(Guid.Empty);
+                var executor = GrainFactory.GetGrain<ICommandExecutor>(Guid.Empty);
                 var result = await executor.Execute(
                     State.ProjectId,
                     this.GetPrimaryKey(),
@@ -50,7 +50,7 @@ namespace Xioru.Messaging.Channel
 
                 try
                 {
-                    var executor = _grainFactory.GetGrain<ICommandExecutor>(Guid.Empty);
+                    var executor = GrainFactory.GetGrain<ICommandExecutor>(Guid.Empty);
                     var result = await executor.Execute(
                         State.ProjectId,
                         this.GetPrimaryKey(),

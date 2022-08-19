@@ -3,6 +3,7 @@
 namespace Xioru.Grain.Contracts.ApiKey
 {
     public record ApiKeyProjection(
+        Guid Id,
         string Name,
         Guid ProjectId,
         string DisplayName,
@@ -11,6 +12,7 @@ namespace Xioru.Grain.Contracts.ApiKey
         //
         DateTime Created,
         Guid ApiKey) : AbstractGrainProjection(
+            Id,
             Name,
             ProjectId,
             DisplayName,

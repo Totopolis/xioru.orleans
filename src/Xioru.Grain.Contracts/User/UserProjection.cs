@@ -3,6 +3,7 @@
 namespace Xioru.Grain.Contracts.User
 {
     public record UserProjection(
+        Guid Id,
         string Name,
         Guid ProjectId,
         string DisplayName,
@@ -10,6 +11,7 @@ namespace Xioru.Grain.Contracts.User
         string[] Tags,
         //
         string Login) : AbstractGrainProjection(
+            Id,
             Name,
             ProjectId,
             DisplayName,
