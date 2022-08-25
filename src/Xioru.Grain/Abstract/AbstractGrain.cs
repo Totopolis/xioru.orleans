@@ -32,7 +32,7 @@ namespace Xioru.Grain.AbstractGrain
         protected readonly IValidator<T_UPDATE_COMMAND> _updateValidator;
 
         protected T_STATE State => _state.State;
-        protected bool IsCreated => _state.RecordExists;
+        protected virtual bool IsCreated => _state.RecordExists;
 
         public AbstractGrain(
             IPersistentState<T_STATE> state,
