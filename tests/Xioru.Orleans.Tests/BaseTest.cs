@@ -68,5 +68,14 @@ namespace Xioru.Orleans.Tests
             Assert.NotNull(foo);
             Assert.Equal("Foo", foo!.GrainName);
         }
+
+        [Fact]
+        public async Task FindProjectById()
+        {
+            await PrepareAsync();
+
+            var project = await _projectReadModel.GetProjectById(_projectId);
+            Assert.NotNull(project);
+        }
     }
 }

@@ -35,6 +35,22 @@ namespace Xioru.Grain.ProjectReadModel
                 .GetCollection<ProjectDocument>(ClusterProjectCollection);
         }
 
+        public async Task<ProjectDescription?> GetProjectById(Guid projectId)
+        {
+            var projectCursor = await _collection1.FindAsync(x => x.ProjectId == projectId);
+            var project = await projectCursor.FirstOrDefaultAsync();
+
+            ProjectDescription? result = project == null ?
+                default :
+                new ProjectDescription
+                {
+                    Id = project.ProjectId,
+                    Name = project.ProjectName
+                };
+
+            return result;
+        }
+
         public async Task<ProjectDescription?> GetProjectByName(string projectName)
         {
             var projectCursor = await _collection1.FindAsync(x => x.ProjectName == projectName);
