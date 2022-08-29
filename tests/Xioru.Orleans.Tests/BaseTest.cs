@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Orleans;
 using Xioru.Orleans.Tests.Common;
 using Xioru.Orleans.Tests.Contracts;
 using Xunit;
@@ -91,6 +92,9 @@ namespace Xioru.Orleans.Tests
             var id = details.GrainId;
             var foo = await _grainReadModel.GetGrainByIdOrDefault<IFooGrain>(id);
             Assert.NotNull(foo);
+
+            var notFoo = await _grainReadModel.GetGrainByIdOrDefault<INotFooGrain>(id);
+            Assert.Null(notFoo);
         }
 
         [Fact]
@@ -106,5 +110,9 @@ namespace Xioru.Orleans.Tests
             var fooDetails = await _grainReadModel.GetGrainDetailsByIdAndInterface<IFooGrain>(id);
             Assert.NotNull(fooDetails);
         }
+    }
+
+    public interface INotFooGrain : IGrainWithGuidKey
+    {
     }
 }

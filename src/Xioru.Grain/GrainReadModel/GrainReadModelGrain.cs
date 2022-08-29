@@ -75,7 +75,19 @@ namespace Xioru.Grain.GrainReadModel
         public async Task<T?> GetGrainByIdOrDefault<T>(Guid id) where T : class, IGrainWithGuidKey
         {
             var details = await GetDocumentByIdOrDefaultAsync(id);
-            return details is null ? null : GrainFactory.GetGrain<T>(details.GrainId, details.GrainType);
+            if (details is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return GrainFactory.GetGrain<T>(details.GrainId, details.GrainType);
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
         }
 
         public async Task<GrainDetails?> GetGrainDetailsByNameAndInterface<T>(string name) where T : class, IGrainWithGuidKey
