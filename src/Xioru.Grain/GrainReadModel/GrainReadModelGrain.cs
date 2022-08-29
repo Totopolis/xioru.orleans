@@ -41,7 +41,7 @@ namespace Xioru.Grain.GrainReadModel
         {
             // activated only prjId instances by implicit streaming
             var dbNamePrefix = this.GetPrimaryKey().ToString("N");
-            
+
             var collectionName = $"{dbNamePrefix}-{GrainReadModelCollectionName}";
             _grainCollection = _database.GetCollection<GrainDetailsDocument>(collectionName);
 
@@ -55,7 +55,7 @@ namespace Xioru.Grain.GrainReadModel
 
         public async Task<GrainDetails?> GetGrainDetailsByName(string name)
         {
-            var grainDetailsDocument = await GetDocumentOrDefaultAsync(name);
+            var grainDetailsDocument = await GetDocumentByNameOrDefaultAsync(name);
 
             return grainDetailsDocument == null ? null :
                 _mapper.Map<GrainDetails>(grainDetailsDocument);
@@ -63,7 +63,7 @@ namespace Xioru.Grain.GrainReadModel
 
         public async Task<T?> GetGrainByNameOrDefault<T>(string name) where T : class, IGrainWithGuidKey
         {
-            var details = await GetDocumentOrDefaultAsync(name);
+            var details = await GetDocumentByNameOrDefaultAsync(name);
             if(details == null)
             {
                 return null;
@@ -72,10 +72,15 @@ namespace Xioru.Grain.GrainReadModel
             return GrainFactory.GetGrain<T>(details!.GrainId, details.GrainType);
         }
 
+        public async Task<T?> GetGrainByIdOrDefault<T>(Guid id) where T : class, IGrainWithGuidKey
+        {
+            var details = await GetDocumentByIdOrDefaultAsync(id);
+            return details is null ? null : GrainFactory.GetGrain<T>(details.GrainId, details.GrainType);
+        }
 
         public async Task<GrainDetails?> GetGrainDetailsByNameAndInterface<T>(string name) where T : class, IGrainWithGuidKey
         {
-            var details = await GetDocumentOrDefaultAsync(name);
+            var details = await GetDocumentByNameOrDefaultAsync(name);
             if (details == null)
             {
                 return null;
@@ -88,6 +93,18 @@ namespace Xioru.Grain.GrainReadModel
             }
 
             return _mapper.Map<GrainDetails>(details);
+        }
+
+        public async Task<GrainDetails?> GetGrainDetailsByIdAndInterface<T>(Guid id) where T : class, IGrainWithGuidKey
+        {
+            var details = await GetDocumentByIdOrDefaultAsync(id);
+            if (details is null)
+            {
+                return null;
+            }
+
+            var grain = GrainFactory.GetGrain<T>(details.GrainId, details.GrainType);
+            return grain == null ? null : _mapper.Map<GrainDetails>(details);
         }
 
         public async Task<GrainDetails?> GetGrainById(Guid id)
@@ -104,7 +121,7 @@ namespace Xioru.Grain.GrainReadModel
             var filter = filterText == null
                 ? Builders<GrainDetailsDocument>.Filter.Empty
                 : Builders<GrainDetailsDocument>.Filter.Or(
-                    Builders<GrainDetailsDocument>.Filter.Regex(x => x.GrainName, 
+                    Builders<GrainDetailsDocument>.Filter.Regex(x => x.GrainName,
                         new BsonRegularExpression(
                         new Regex(filterText, RegexOptions.IgnoreCase))),
                     Builders<GrainDetailsDocument>.Filter.Regex(x => x.GrainType,
@@ -162,9 +179,15 @@ namespace Xioru.Grain.GrainReadModel
             return Task.CompletedTask;
         }
 
-        private async Task<GrainDetailsDocument> GetDocumentOrDefaultAsync(string grainName)
+        private async Task<GrainDetailsDocument?> GetDocumentByNameOrDefaultAsync(string grainName)
         {
             var grainCursor = await _grainCollection.FindAsync(x => x.GrainName == grainName);
+            return await grainCursor.FirstOrDefaultAsync();
+        }
+
+        private async Task<GrainDetailsDocument?> GetDocumentByIdOrDefaultAsync(Guid grainId)
+        {
+            var grainCursor = await _grainCollection.FindAsync(x => x.GrainId == grainId);
             return await grainCursor.FirstOrDefaultAsync();
         }
     }
