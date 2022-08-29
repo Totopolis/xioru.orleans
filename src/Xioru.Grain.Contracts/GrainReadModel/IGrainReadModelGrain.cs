@@ -37,11 +37,21 @@ namespace Xioru.Grain.Contracts.GrainReadModel
         Task<T?> GetGrainByNameOrDefault<T>(string name) where T : class, IGrainWithGuidKey;
 
         /// <summary>
+        /// Get grain by id if it exists.
+        /// </summary>
+        Task<T?> GetGrainByIdOrDefault<T>(Guid id) where T : class, IGrainWithGuidKey;
+
+        /// <summary>
         /// Get grain description by name if it exists and implements T.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="name"></param>
         /// <returns></returns>
         Task<GrainDetails?> GetGrainDetailsByNameAndInterface<T>(string name) where T : class, IGrainWithGuidKey;
+
+        /// <summary>
+        /// Get grain description by id if it exists and implements T.
+        /// </summary>
+        Task<GrainDetails?> GetGrainDetailsByIdAndInterface<T>(Guid id) where T : class, IGrainWithGuidKey;
     }
 }

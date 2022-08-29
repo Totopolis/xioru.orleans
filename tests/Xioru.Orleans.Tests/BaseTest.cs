@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Xioru.Orleans.Tests.Common;
+using Xioru.Orleans.Tests.Contracts;
 using Xunit;
 
 namespace Xioru.Orleans.Tests
@@ -76,6 +77,34 @@ namespace Xioru.Orleans.Tests
 
             var project = await _projectReadModel.GetProjectById(_projectId);
             Assert.NotNull(project);
+        }
+
+        [Fact]
+        public async Task GetGrainByIdOrDefault()
+        {
+            await PrepareAsync();
+            await InternalCreateFoo("Foo");
+
+            var details = await _grainReadModel.GetGrainDetailsByName("Foo");
+            Assert.NotNull(details);
+
+            var id = details.GrainId;
+            var foo = await _grainReadModel.GetGrainByIdOrDefault<IFooGrain>(id);
+            Assert.NotNull(foo);
+        }
+
+        [Fact]
+        public async Task GetGrainDetailsByIdAndInterface()
+        {
+            await PrepareAsync();
+            await InternalCreateFoo("Foo");
+
+            var details = await _grainReadModel.GetGrainDetailsByName("Foo");
+            Assert.NotNull(details);
+
+            var id = details.GrainId;
+            var fooDetails = await _grainReadModel.GetGrainDetailsByIdAndInterface<IFooGrain>(id);
+            Assert.NotNull(fooDetails);
         }
     }
 }
