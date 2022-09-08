@@ -4,7 +4,7 @@ namespace Xioru.Messaging.Contracts.Formatting
 {
     public class FormattedString
     {
-        private const string _limitComment = "\n\nСообщение усечено. Уточните запрос";
+        private const string _footerComment = "\n\nСообщение усечено. Уточните запрос";
         public FormattedString(string str, StringFormatting formatting = StringFormatting.None)
         {
             _formattedElements = new List<(string, StringFormatting)> { (str, formatting) };
@@ -43,15 +43,16 @@ namespace Xioru.Messaging.Contracts.Formatting
             Dictionary<string, string>? replaces = null,
             int limit = int.MaxValue)
         {
-            var limitWithComment = limit - _limitComment.Length;
+            var limitWithComment = limit - _footerComment.Length;
             var builder = new StringBuilder();
             foreach(var elm in _formattedElements)
             {
                 var strApplied = 
                     ApplyFormatRules(Escape(elm.Text, replaces), elm.Formatting);
 
-                if (builder.Length + strApplied.Length > limitWithComment)
+                if (builder.Length + strApplied.Length > limit)
                 {
+                    var formatedFooter = ApplyFormatRules(Escape(_footerComment, replaces), StringFormatting.Bold);
                     var serviceAdditionLength = strApplied.Length - elm.Text.Length;
                     var rawLength = limitWithComment - builder.Length - serviceAdditionLength;
                     if (rawLength > 0)
@@ -59,10 +60,9 @@ namespace Xioru.Messaging.Contracts.Formatting
                         var cuttedText = elm.Text.Substring(0, rawLength);
                         strApplied = 
                             ApplyFormatRules(Escape(cuttedText, replaces), elm.Formatting);
-                        strApplied += 
-                            ApplyFormatRules(Escape(_limitComment, replaces), StringFormatting.Bold);
+                        strApplied += formatedFooter;
                     }
-
+                    builder.Append(strApplied);
                     break;
                 }
 
