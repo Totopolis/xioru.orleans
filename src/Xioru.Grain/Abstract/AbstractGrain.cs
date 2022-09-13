@@ -88,10 +88,13 @@ namespace Xioru.Grain.AbstractGrain
             await EmitDeleteEvent();
             //TODO: map state to DelEvt?
 
+            var name = State.Name;
+            var projectId = State.ProjectId;
+
             // 2. Delete state after emit event!!!
             await _state.ClearStateAsync();
 
-            _log.LogInformation($"Grain {State.Name} deleted in project {State.ProjectId}");
+            _log.LogInformation("Grain {Name} deleted in project {ProjectId}", name, projectId);
         }
 
         protected abstract Task EmitDeleteEvent();
