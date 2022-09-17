@@ -1,44 +1,45 @@
 ﻿using Orleans;
 
-namespace Xioru.Grain.Contracts.Account
+namespace Xioru.Grain.Contracts.Account;
+
+/// <summary>
+/// GrainId = email or phone number
+/// </summary>
+public interface IAccountGrain : IGrainWithStringKey
 {
-    /// <summary>
-    /// GrainId = email or phone number
-    /// </summary>
-    public interface IAccountGrain : IGrainWithStringKey
-    {
-        Task InviteToProject(Guid projectId);
+    Task InviteToProject(Guid projectId);
 
-        Task RemoveFromProject(Guid projectId);
+    Task RemoveFromProject(Guid projectId);
 
-        // If not confirmed - send email with url (accountId+confirmCode)
-        Task Hello();
+    // If not confirmed - send email with url (accountId+confirmCode)
+    Task Hello();
 
-        // If success - user can set password
-        Task<Token> Confirm(string confirmCode, string password);
+    // If success - user can set password
+    Task<Token> Confirm(string confirmCode, string password);
 
-        // If success generate new jwt
-        Task<Token> Login(string password);
+    // If success generate new jwt
+    Task<Token> Login(string password);
 
-        Task<Token> RefreshToken(string refreshToken);
+    Task<Token> RefreshToken(string refreshToken);
 
-        // send email with confirmation code (+accountId+confirmCode)
-        Task ResetPassword();
+    // send email with confirmation code (+accountId+confirmCode)
+    Task ResetPassword();
 
-        Task SetBillingEmail(string email);
+    Task SetBillingEmail(string email);
 
-        Task<AccountProjection> GetProjection();
+    Task<AccountProjection> GetProjection();
 
-        /*Task AttachPhone(string phone);
+    Task ForceCreate(string password);
 
-        Task ConfirmPhone(string confirmCode);
+    /*Task AttachPhone(string phone);
 
-        Task AttachEmail(string email);
+    Task ConfirmPhone(string confirmCode);
 
-        Task ConfirmEmail(string confirmCode);
+    Task AttachEmail(string email);
 
-        Task Enable2FA();
+    Task ConfirmEmail(string confirmCode);
 
-        Task Disable2FA();*/
-    }
+    Task Enable2FA();
+
+    Task Disable2FA();*/
 }
