@@ -1,7 +1,6 @@
-﻿namespace Xioru.Grain.Contracts
+﻿namespace Xioru.Grain.Contracts;
+
+public interface IVersionProvider
 {
-    public interface IVersionProvider
-    {
-        Version GetVersion();
-    }
+    Version GetVersion();
 }
