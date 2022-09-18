@@ -78,7 +78,8 @@ namespace Xioru.Messaging.Messenger
 
             await OnMessage(
                 message: message.Content,
-                chatId: message.Channel.Id.ToString());
+                chatId: message.Channel.Id.ToString(),
+                userName: message.Author.Username);
         }
 
         protected override async Task SendDirectMessage(string chatId, FormattedString message)

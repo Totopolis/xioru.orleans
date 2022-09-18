@@ -6,7 +6,7 @@ namespace Xioru.Messaging.Messenger
 {
     public partial class MessengerGrain //TODO: move to handler ?
     {
-        public async Task OnMessage(string message, string chatId)
+        public async Task OnMessage(string message, string chatId, string userName)
         {
             if (string.IsNullOrWhiteSpace(message) ||
                 string.IsNullOrWhiteSpace(chatId) ||
@@ -69,6 +69,7 @@ namespace Xioru.Messaging.Messenger
                     var stream = GetChannelStream(channel.ChannelId);
                     await stream.OnNextAsync(new ChannelIncomingMessage
                     {
+                        UserName = userName,
                         IsSupervisor = _config.Supervisors?.Any(x => x == chatId) == true,
                         Created = DateTime.UtcNow,
                         Text = line
