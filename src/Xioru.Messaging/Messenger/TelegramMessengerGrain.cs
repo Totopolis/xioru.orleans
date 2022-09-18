@@ -126,7 +126,10 @@ namespace Xioru.Messaging.Messenger
                 return;
             }
 
-            await OnMessage(update.Message.Text, update.Message.Chat.Id.ToString());
+            await OnMessage(
+                message: update.Message.Text,
+                chatId: update.Message.Chat.Id.ToString(),
+                userName: update.ChatMember?.From.Username ?? string.Empty);
         }
 
         private readonly Dictionary<string, string> _telegramSpecificReplaces = new Dictionary<string, string> {

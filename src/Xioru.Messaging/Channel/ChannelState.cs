@@ -1,14 +1,13 @@
 ﻿using Xioru.Grain.AbstractGrain;
 using Xioru.Messaging.Contracts.Messenger;
 
-namespace Xioru.Messaging
+namespace Xioru.Messaging;
+
+public class ChannelState : AbstractGrainState
 {
-    public class ChannelState : AbstractGrainState
-    {
-        public MessengerType MessengerType { get; set; }
+    public MessengerType MessengerType { get; set; }
 
-        public string ChatId { get; set; } = default!;
+    public string ChatId { get; set; } = default!;
 
-        public DateTime LastMessage { get; set; } = DateTime.MinValue;
-    }
+    public DateTime LastMessage { get; set; } = DateTime.MinValue;
 }
