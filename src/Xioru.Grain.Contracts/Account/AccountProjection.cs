@@ -1,5 +1,7 @@
-﻿namespace Xioru.Grain.Contracts.Account;
+﻿using Xioru.Grain.Contracts.ProjectReadModel;
+
+namespace Xioru.Grain.Contracts.Account;
 
 public record AccountProjection(
     string AccountId,
-    Guid[] AccessibleProjects);
+    ProjectDescription[] AccessibleProjects);

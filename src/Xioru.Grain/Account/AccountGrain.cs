@@ -11,6 +11,7 @@ using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.Account;
 using Xioru.Grain.Contracts.Config;
 using Xioru.Grain.Contracts.Exception;
+using Xioru.Grain.Contracts.ProjectReadModel;
 
 namespace Xioru.Grain.Account;
 
@@ -48,11 +49,6 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
     // exec from /create user
     public async Task InviteToProject(Guid projectId)
     {
-        if (State.AccessibleProjects == null)
-        {
-            State.AccessibleProjects = new();
-        }
-
         State.AccessibleProjects.Add(projectId);
         await _state.WriteStateAsync();
 
@@ -65,8 +61,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
     // exec from /delete user
     public async Task RemoveFromProject(Guid projectId)
     {
-        if (!_state.RecordExists ||
-            State.AccessibleProjects == null)
+        if (!_state.RecordExists)
         {
             return;
         }
@@ -185,15 +180,15 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
         throw new NotImplementedException();
     }
 
-    public Task<AccountProjection> GetProjection()
+    public async Task<AccountProjection> GetProjection()
     {
         CheckConfirmed();
 
-        return Task.FromResult(new AccountProjection(
+        var projectReadModel = _grainFactory.GetGrain<IProjectReadModelGrain>(GrainConstants.ClusterStreamId);
+        var projectList = await projectReadModel.GetProjectsByFilter(string.Empty);
+        return new AccountProjection(
             AccountId: AccountId,
-            AccessibleProjects: State.AccessibleProjects == null ?
-                Array.Empty<Guid>() :
-                State.AccessibleProjects.ToArray()));
+            AccessibleProjects: projectList.Where(x => State.AccessibleProjects.Contains(x.Id)).ToArray());
     }
 
     public async Task ForceCreate(string password)
