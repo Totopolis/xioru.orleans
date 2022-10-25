@@ -1,8 +1,7 @@
 ﻿using Xioru.Grain.Contracts.Messages;
 
-namespace Xioru.Orleans.Tests.Contracts
+namespace Xioru.Orleans.Tests.Contracts;
+
+public record FooDeletedEvent : GrainDeletedEvent
 {
-    public record FooDeletedEvent : GrainDeletedEvent
-    {
-    }
 }

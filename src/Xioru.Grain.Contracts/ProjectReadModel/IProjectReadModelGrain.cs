@@ -1,13 +1,12 @@
 ﻿using Orleans;
 
-namespace Xioru.Grain.Contracts.ProjectReadModel
+namespace Xioru.Grain.Contracts.ProjectReadModel;
+
+public interface IProjectReadModelGrain : IGrainWithGuidKey
 {
-    public interface IProjectReadModelGrain : IGrainWithGuidKey
-    {
-        Task<ProjectDescription?> GetProjectById(Guid projectId);
+    Task<ProjectDescription?> GetProjectById(Guid projectId);
 
-        Task<ProjectDescription?> GetProjectByName(string projectName);
+    Task<ProjectDescription?> GetProjectByName(string projectName);
 
-        Task<ProjectDescription[]> GetProjectsByFilter(string projectNameFilter);
-    }
+    Task<ProjectDescription[]> GetProjectsByFilter(string projectNameFilter);
 }

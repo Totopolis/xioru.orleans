@@ -2,14 +2,13 @@
 using Xioru.Grain.AbstractGrain;
 using Xioru.Orleans.Tests.Contracts;
 
-namespace Xioru.Orleans.Tests.Domain
+namespace Xioru.Orleans.Tests.Domain;
+
+public class UpdateFooValidator :
+    UpdateAbstractGrainValidator<UpdateFooCommandModel>
 {
-    public class UpdateFooValidator :
-        UpdateAbstractGrainValidator<UpdateFooCommandModel>
+    public UpdateFooValidator(IGrainFactory factory)
+        : base(factory)
     {
-        public UpdateFooValidator(IGrainFactory factory)
-            : base(factory)
-        {
-        }
     }
 }

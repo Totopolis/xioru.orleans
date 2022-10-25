@@ -7,78 +7,77 @@ using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 
-namespace Xioru.Messaging.MessengerCommand
+namespace Xioru.Messaging.MessengerCommand;
+
+public class HelpCommand : AbstractMessengerCommand
 {
-    public class HelpCommand : AbstractMessengerCommand
+    private readonly IServiceProvider _services;
+
+    private readonly Argument<string?> _nameArgument = new Argument<string?>(
+            name: "command-name",
+            description: "name of the available command",
+            getDefaultValue: () => null);
+
+    public HelpCommand(
+        IGrainFactory factory,
+        IServiceProvider serviceProvider) : base(factory)
     {
-        private readonly IServiceProvider _services;
+        _services = serviceProvider;
+    }
 
-        private readonly Argument<string?> _nameArgument = new Argument<string?>(
-                name: "command-name",
-                description: "name of the available command",
-                getDefaultValue: () => null);
+    protected override Command Command => new Command(
+        "help", "system help")
+    {
+        _nameArgument
+    };
 
-        public HelpCommand(
-            IGrainFactory factory,
-            IServiceProvider serviceProvider) : base(factory)
+    protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
+    {
+        var messengerCommands = _services.GetRequiredService<IEnumerable<IMessengerCommand>>();
+        var channelCommands = _services.GetRequiredService<IEnumerable<IChannelCommand>>();
+
+        var commandName = GetArgumentValue(_nameArgument);
+
+        var sb = new StringBuilder();
+
+        if (string.IsNullOrWhiteSpace(commandName))
         {
-            _services = serviceProvider;
+            sb.AppendLine("Common commands:");
+            messengerCommands
+                .ToList()
+                .ForEach(x =>
+                {
+                    sb.Append(x.Name);
+                    sb.Append(": ");
+                    sb.AppendLine(x.Description);
+                });
+
+            sb.AppendLine();
+            sb.AppendLine("Project commands:");
+            channelCommands
+                .ToList()
+                .ForEach(x =>
+                {
+                    sb.Append(x.Name);
+                    sb.Append(": ");
+                    sb.AppendLine(x.Description);
+                });
         }
-
-        protected override Command Command => new Command(
-            "help", "system help")
+        else
         {
-            _nameArgument
-        };
+            ICommand? command = messengerCommands.FirstOrDefault(x => x.Name == commandName) as ICommand ??
+                channelCommands.FirstOrDefault(x => x.Name == commandName) ?? null;
 
-        protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
-        {
-            var messengerCommands = _services.GetRequiredService<IEnumerable<IMessengerCommand>>();
-            var channelCommands = _services.GetRequiredService<IEnumerable<IChannelCommand>>();
-
-            var commandName = GetArgumentValue(_nameArgument);
-
-            var sb = new StringBuilder();
-
-            if (string.IsNullOrWhiteSpace(commandName))
+            if (command != null)
             {
-                sb.AppendLine("Common commands:");
-                messengerCommands
-                    .ToList()
-                    .ForEach(x =>
-                    {
-                        sb.Append(x.Name);
-                        sb.Append(": ");
-                        sb.AppendLine(x.Description);
-                    });
-
-                sb.AppendLine();
-                sb.AppendLine("Project commands:");
-                channelCommands
-                    .ToList()
-                    .ForEach(x =>
-                    {
-                        sb.Append(x.Name);
-                        sb.Append(": ");
-                        sb.AppendLine(x.Description);
-                    });
+                sb.AppendLine(command.GetHelp());
             }
             else
             {
-                ICommand? command = messengerCommands.FirstOrDefault(x => x.Name == commandName) as ICommand ??
-                    channelCommands.FirstOrDefault(x => x.Name == commandName) ?? null;
-
-                if (command != null)
-                {
-                    sb.AppendLine(command.GetHelp());
-                }
-                else
-                {
-                    sb.AppendLine("Command not found");
-                }
+                sb.AppendLine("Command not found");
             }
-
-            return Task.FromResult(CommandResult.Success(sb.ToString()));
         }
+
+        return Task.FromResult(CommandResult.Success(sb.ToString()));
     }
 }

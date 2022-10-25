@@ -1,7 +1,6 @@
-﻿namespace Xioru.Grain.Contracts.Messages
+﻿namespace Xioru.Grain.Contracts.Messages;
+
+public abstract record class GrainEvent : IGrainEvent
 {
-    public abstract record class GrainEvent : IGrainEvent
-    {
-        public GrainEventMetadata? Metadata { get; set; }
-    }
+    public GrainEventMetadata? Metadata { get; set; }
 }

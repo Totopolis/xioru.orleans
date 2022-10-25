@@ -1,15 +1,14 @@
-﻿namespace Xioru.Grain.Contracts.Messages
+﻿namespace Xioru.Grain.Contracts.Messages;
+
+public class GrainEventMetadata
 {
-    public class GrainEventMetadata
-    {
-        public Guid ProjectId { get; set; } = Guid.Empty;
+    public Guid ProjectId { get; set; } = Guid.Empty;
 
-        public string GrainType { get; set; } = default!;
+    public string GrainType { get; set; } = default!;
 
-        public Guid GrainId { get; set; } = Guid.Empty;
+    public Guid GrainId { get; set; } = Guid.Empty;
 
-        public string GrainName { get; set; } = default!;
+    public string GrainName { get; set; } = default!;
 
-        public DateTime CreatedUtc { get; set; }
-    }
+    public DateTime CreatedUtc { get; set; }
 }

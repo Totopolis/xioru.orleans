@@ -1,8 +1,7 @@
 ﻿using Orleans;
 
-namespace Xioru.Messaging.Contracts.Messenger
+namespace Xioru.Messaging.Contracts.Messenger;
+
+public interface IDiscordMessengerGrain : IMessengerGrain
 {
-    public interface IDiscordMessengerGrain : IMessengerGrain
-    {
-    }
 }

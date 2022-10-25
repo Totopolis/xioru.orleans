@@ -9,70 +9,69 @@ using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Orleans.Tests.Contracts;
 
-namespace Xioru.Orleans.Tests.Common
+namespace Xioru.Orleans.Tests.Common;
+
+public abstract class AbstractTest
 {
-    public abstract class AbstractTest
+    protected readonly IGrainFactory _factory;
+
+    protected readonly Guid _projectId;
+    protected readonly string _projectName;
+    protected readonly IProjectGrain _project;
+
+    protected readonly Guid _channelId;
+    protected readonly IChannelGrain _channel;
+    protected readonly string _channelName;
+    protected readonly IGrainReadModelGrain _grainReadModel;
+    protected readonly IProjectReadModelGrain _projectReadModel;
+
+    public AbstractTest(TestsFixture fixture)
     {
-        protected readonly IGrainFactory _factory;
+        _factory = fixture.Cluster.GrainFactory;
 
-        protected readonly Guid _projectId;
-        protected readonly string _projectName;
-        protected readonly IProjectGrain _project;
+        _projectId = Guid.NewGuid();
+        _projectName = $"IntegrationProject_{_projectId.ToString("N")}";
+        _project = _factory.GetGrain<IProjectGrain>(_projectId);
 
-        protected readonly Guid _channelId;
-        protected readonly IChannelGrain _channel;
-        protected readonly string _channelName;
-        protected readonly IGrainReadModelGrain _grainReadModel;
-        protected readonly IProjectReadModelGrain _projectReadModel;
+        _projectReadModel = _factory.GetGrain<IProjectReadModelGrain>(
+            GrainConstants.ClusterStreamId);
 
-        public AbstractTest(TestsFixture fixture)
-        {
-            _factory = fixture.Cluster.GrainFactory;
+        _channelId = Guid.NewGuid();
+        _channelName = _channelId.ToString("N");
+        _channel = _factory.GetGrain<IChannelGrain>(_channelId);
+        _grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(_projectId);
+    }
 
-            _projectId = Guid.NewGuid();
-            _projectName = $"IntegrationProject_{_projectId.ToString("N")}";
-            _project = _factory.GetGrain<IProjectGrain>(_projectId);
+    protected async Task PrepareAsync()
+    {
+        await _project.Create(new CreateProjectCommand(
+            Name: _projectName,
+            DisplayName: _projectName,
+            Description: String.Empty));
+        
+        await _channel.CreateAsync(new CreateChannelCommandModel(
+            ProjectId: _projectId,
+            Name: _channelName,
+            DisplayName: _channelName,
+            Description: string.Empty,
+            Tags: new string[0],
+            //
+            MessengerType: MessengerType.Virtual,
+            ChatId: Guid.NewGuid().ToString("N")));
+    }
 
-            _projectReadModel = _factory.GetGrain<IProjectReadModelGrain>(
-                GrainConstants.ClusterStreamId);
+    protected async Task<IFooGrain> InternalCreateFoo(string name)
+    {
+        var foo = _factory.GetGrain<IFooGrain>(Guid.NewGuid());
+        await foo.CreateAsync(new CreateFooCommandModel(
+            ProjectId: _projectId,
+            Name: name,
+            DisplayName: name,
+            Description: string.Empty,
+            Tags: new string[0],
+            FooData: $"Hello {name}",
+            FooMeta: $"By {name}"));
 
-            _channelId = Guid.NewGuid();
-            _channelName = _channelId.ToString("N");
-            _channel = _factory.GetGrain<IChannelGrain>(_channelId);
-            _grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(_projectId);
-        }
-
-        protected async Task PrepareAsync()
-        {
-            await _project.Create(new CreateProjectCommand(
-                Name: _projectName,
-                DisplayName: _projectName,
-                Description: String.Empty));
-            
-            await _channel.CreateAsync(new CreateChannelCommandModel(
-                ProjectId: _projectId,
-                Name: _channelName,
-                DisplayName: _channelName,
-                Description: string.Empty,
-                Tags: new string[0],
-                //
-                MessengerType: MessengerType.Virtual,
-                ChatId: Guid.NewGuid().ToString("N")));
-        }
-
-        protected async Task<IFooGrain> InternalCreateFoo(string name)
-        {
-            var foo = _factory.GetGrain<IFooGrain>(Guid.NewGuid());
-            await foo.CreateAsync(new CreateFooCommandModel(
-                ProjectId: _projectId,
-                Name: name,
-                DisplayName: name,
-                Description: string.Empty,
-                Tags: new string[0],
-                FooData: $"Hello {name}",
-                FooMeta: $"By {name}"));
-
-            return foo;
-        }
+        return foo;
     }
 }

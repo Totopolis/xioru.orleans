@@ -1,10 +1,9 @@
 ﻿using Orleans;
 using Xioru.Messaging.Contracts.Config;
 
-namespace Xioru.Messaging.Contracts.Messenger
+namespace Xioru.Messaging.Contracts.Messenger;
+
+public interface IMessengerGrain : IGrainWithGuidKey
 {
-    public interface IMessengerGrain : IGrainWithGuidKey
-    {
-        Task StartAsync();
-    }
+    Task StartAsync();
 }

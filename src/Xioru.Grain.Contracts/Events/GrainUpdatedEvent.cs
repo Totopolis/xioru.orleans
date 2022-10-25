@@ -1,6 +1,5 @@
-﻿namespace Xioru.Grain.Contracts.Messages
+﻿namespace Xioru.Grain.Contracts.Messages;
+
+public abstract record class GrainUpdatedEvent : GrainEvent
 {
-    public abstract record class GrainUpdatedEvent : GrainEvent
-    {
-    }
 }

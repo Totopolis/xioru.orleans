@@ -1,7 +1,6 @@
-﻿namespace Xioru.Grain.Contracts.Messages
+﻿namespace Xioru.Grain.Contracts.Messages;
+
+public interface IGrainEvent
 {
-    public interface IGrainEvent
-    {
-        GrainEventMetadata? Metadata { get; set; }
-    }
+    GrainEventMetadata? Metadata { get; set; }
 }
