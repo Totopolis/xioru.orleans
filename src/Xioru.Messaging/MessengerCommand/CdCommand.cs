@@ -4,40 +4,39 @@ using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 
-namespace Xioru.Messaging.MessengerCommand
+namespace Xioru.Messaging.MessengerCommand;
+
+public class CdCommand : AbstractMessengerCommand
 {
-    public class CdCommand : AbstractMessengerCommand
+    private readonly Argument<string> _nameArgument =
+        new Argument<string>("name", "unique project name");
+
+    public CdCommand(IGrainFactory factory) : base(factory)
     {
-        private readonly Argument<string> _nameArgument =
-            new Argument<string>("name", "unique project name");
+    }
 
-        public CdCommand(IGrainFactory factory) : base(factory)
+    protected override Command Command => new Command(
+        "cd", "navigate to project")
+    {
+        _nameArgument
+    };
+
+    protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
+    {
+        if (!context.Manager.TryGetChannels(context.ChatId, out var channels))
         {
+            return Task.FromResult(CommandResult.Success("No accessed projects"));
         }
 
-        protected override Command Command => new Command(
-            "cd", "navigate to project")
+        var projectName = GetArgumentValue(_nameArgument);
+
+        if (!channels.Any(x => x.ProjectName == projectName))
         {
-            _nameArgument
-        };
-
-        protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
-        {
-            if (!context.Manager.TryGetChannels(context.ChatId, out var channels))
-            {
-                return Task.FromResult(CommandResult.Success("No accessed projects"));
-            }
-
-            var projectName = GetArgumentValue(_nameArgument);
-
-            if (!channels.Any(x => x.ProjectName == projectName))
-            {
-                return Task.FromResult(CommandResult.LogicError("Project name not found"));
-            }
-
-            context.Manager.SetCurrentProject(context.ChatId, projectName);
-
-            return Task.FromResult(CommandResult.Success("Current project changed"));
+            return Task.FromResult(CommandResult.LogicError("Project name not found"));
         }
+
+        context.Manager.SetCurrentProject(context.ChatId, projectName);
+
+        return Task.FromResult(CommandResult.Success("Current project changed"));
     }
 }

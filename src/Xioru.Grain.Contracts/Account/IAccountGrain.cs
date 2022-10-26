@@ -3,7 +3,7 @@
 namespace Xioru.Grain.Contracts.Account;
 
 /// <summary>
-/// GrainId = email or phone number
+/// GrainId = email (john@domain.com) or phone number (79031234567)
 /// </summary>
 public interface IAccountGrain : IGrainWithStringKey
 {

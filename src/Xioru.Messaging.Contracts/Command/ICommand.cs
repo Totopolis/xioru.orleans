@@ -1,13 +1,12 @@
-﻿namespace Xioru.Messaging.Contracts.Command
+﻿namespace Xioru.Messaging.Contracts.Command;
+
+public interface ICommand
 {
-    public interface ICommand
-    {
-        string Name { get; }
+    string Name { get; }
 
-        string Description { get; }
+    string Description { get; }
 
-        string GetHelp();
+    string GetHelp();
 
-        Task<CommandResult> Execute(CommandContext context);
-    }
+    Task<CommandResult> Execute(CommandContext context);
 }

@@ -35,6 +35,7 @@ public static class ServiceExtensions
         services.AddTransient<IMessengerCommand, SinviteCommand>();
         services.AddTransient<IMessengerCommand, SpwdCommand>();
         services.AddTransient<IMessengerCommand, ScdCommand>();
+        services.AddTransient<IMessengerCommand, SmailCommand>();
 
         //common channel commands
         services.AddTransient<IChannelCommand, ListCommand>();

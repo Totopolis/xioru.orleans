@@ -1,15 +1,14 @@
-﻿namespace Xioru.Messaging.Contracts.Messenger
+﻿namespace Xioru.Messaging.Contracts.Messenger;
+
+public class AccessRecord
 {
-    public class AccessRecord
-    {
-        public string ChatId { get; set; } = default!;
+    public string ChatId { get; set; } = default!;
 
-        public Guid ChannelId { get; set; } = Guid.Empty;
+    public Guid ChannelId { get; set; } = Guid.Empty;
 
-        public string ProjectName { get; set; } = default!;
+    public string ProjectName { get; set; } = default!;
 
-        public Guid ProjectId { get; set; } = Guid.Empty;
+    public Guid ProjectId { get; set; } = Guid.Empty;
 
-        public bool IsCurrent { get; set; } = false;
-    }
+    public bool IsCurrent { get; set; } = false;
 }

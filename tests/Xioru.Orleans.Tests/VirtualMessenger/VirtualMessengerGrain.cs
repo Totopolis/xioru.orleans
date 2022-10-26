@@ -7,56 +7,55 @@ using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using MicrosoftGrain = Orleans.Grain;
 
-namespace Xioru.Orleans.Tests.VirtualMessenger
+namespace Xioru.Orleans.Tests.VirtualMessenger;
+
+public class VirtualMessengerGrain :
+    MicrosoftGrain,
+    IVirtualMessengerGrain
 {
-    public class VirtualMessengerGrain :
-        MicrosoftGrain,
-        IVirtualMessengerGrain
+    private readonly IMessengerRepository _repository;
+    private readonly Dictionary<string, IMessengerCommand> _commands;
+
+    public VirtualMessengerGrain(
+        IMessengerRepository repository,
+        IEnumerable<IMessengerCommand> commands)
     {
-        private readonly IMessengerRepository _repository;
-        private readonly Dictionary<string, IMessengerCommand> _commands;
+        _commands = commands.ToDictionary(x => x.Name);
+        _repository = repository;
+    }
 
-        public VirtualMessengerGrain(
-            IMessengerRepository repository,
-            IEnumerable<IMessengerCommand> commands)
+    public async Task<CommandResult> ExecuteSupervisorCommand(
+        string commandText)
+    {
+        if (!commandText.StartsWith('/'))
         {
-            _commands = commands.ToDictionary(x => x.Name);
-            _repository = repository;
+            throw new ArgumentException();
         }
 
-        public async Task<CommandResult> ExecuteSupervisorCommand(
-            string commandText)
+        commandText = commandText.TrimStart('/');
+        var commandName = Regex.Match(commandText, @"^([\w\-]+)").Value;
+
+        if (!_commands.TryGetValue(commandName, out var command))
         {
-            if (!commandText.StartsWith('/'))
-            {
-                throw new ArgumentException();
-            }
-
-            commandText = commandText.TrimStart('/');
-            var commandName = Regex.Match(commandText, @"^([\w\-]+)").Value;
-
-            if (!_commands.TryGetValue(commandName, out var command))
-            {
-                throw new ArgumentException();
-            }
-
-            var context = new MessengerCommandContext()
-            {
-                IsSupervisor = true,
-                ChatId = "1234",
-                Manager = _repository,
-                MessengerType = MessengerType.Virtual,
-                CommandText = commandText
-            };
-
-            var result = await command.Execute(context);
-
-            return result;
+            throw new ArgumentException();
         }
 
-        public async Task StartAsync()
+        var context = new MessengerCommandContext()
         {
-            await _repository.StartAsync(MessengerType.Virtual);
-        }
+            IsSupervisor = true,
+            ChatId = "1234",
+            Manager = _repository,
+            MessengerType = MessengerType.Virtual,
+            CommandText = commandText
+        };
+
+        var result = await command.Execute(context);
+
+        return result;
+    }
+
+    public async Task StartAsync()
+    {
+        await _repository.StartAsync(MessengerType.Virtual);
     }
 }

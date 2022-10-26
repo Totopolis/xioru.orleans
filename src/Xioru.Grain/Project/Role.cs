@@ -1,7 +1,6 @@
-﻿namespace Xioru.Grain.Project
+﻿namespace Xioru.Grain.Project;
+
+public class Role
 {
-    public class Role
-    {
-        public string Name { get; set; } = default!;
-    }
+    public string Name { get; set; } = default!;
 }

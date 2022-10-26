@@ -1,9 +1,8 @@
 ﻿using Xioru.Grain.AbstractGrain;
 
-namespace Xioru.Grain.User
+namespace Xioru.Grain.User;
+
+public class UserState : AbstractGrainState
 {
-    public class UserState : AbstractGrainState
-    {
-        public string Login { get; set; } = default!;
-    }
+    public string Login { get; set; } = default!;
 }

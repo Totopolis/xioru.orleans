@@ -6,70 +6,69 @@ using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 
-namespace Xioru.Messaging.MessengerCommand
+namespace Xioru.Messaging.MessengerCommand;
+
+public class JoinCommand : AbstractMessengerCommand
 {
-    public class JoinCommand : AbstractMessengerCommand
+    private readonly Argument<string> _codeArgument =
+        new Argument<string>("code", "invite-code");
+
+    public JoinCommand(IGrainFactory factory) : base(factory)
     {
-        private readonly Argument<string> _codeArgument =
-            new Argument<string>("code", "invite-code");
+    }
 
-        public JoinCommand(IGrainFactory factory) : base(factory)
+    protected override Command Command => new Command(
+        "join", "join to project")
+    {
+        _codeArgument
+    };
+
+    protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
+    {
+        var code = GetArgumentValue(_codeArgument);
+        if (string.IsNullOrWhiteSpace(code))
         {
+            return CommandResult.LogicError("Bad code argument");
         }
 
-        protected override Command Command => new Command(
-            "join", "join to project")
+        if (!context.Manager.CheckInvite(code, out var projectId))
         {
-            _codeArgument
-        };
+            return CommandResult.LogicError("Invite code not found");
+        }
 
-        protected override async Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
+        if (projectId == default!)
         {
-            var code = GetArgumentValue(_codeArgument);
-            if (string.IsNullOrWhiteSpace(code))
-            {
-                return CommandResult.LogicError("Bad code argument");
-            }
+            return CommandResult.InternalError("Project not found");
+        }
 
-            if (!context.Manager.CheckInvite(code, out var projectId))
-            {
-                return CommandResult.LogicError("Invite code not found");
-            }
+        // TODO: check chatId in project already
 
-            if (projectId == default!)
-            {
-                return CommandResult.InternalError("Project not found");
-            }
+        // check project exists
+        var project = _factory.GetGrain<IProjectGrain>(projectId);
+        var descr = await project.GetProjection();
 
-            // TODO: check chatId in project already
-
-            // check project exists
-            var project = _factory.GetGrain<IProjectGrain>(projectId);
-            var descr = await project.GetProjection();
-
-            // create channel
-            var channelId = Guid.NewGuid();
-            var channel = _factory.GetGrain<IChannelGrain>(channelId);
-            await channel.CreateAsync(new CreateChannelCommandModel(
-                ProjectId: projectId,
-                Name: $"{context.MessengerType}-{context.ChatId}",
-                DisplayName: $"{context.MessengerType}-{context.ChatId}",
-                Description: String.Empty,
-                Tags: new List<string>().ToArray(),
-                //
-                MessengerType: context.MessengerType,
-                ChatId: context.ChatId));
-
+        // create channel
+        var channelId = Guid.NewGuid();
+        var channel = _factory.GetGrain<IChannelGrain>(channelId);
+        await channel.CreateAsync(new CreateChannelCommandModel(
+            ProjectId: projectId,
+            Name: $"{context.MessengerType}-{context.ChatId}",
+            DisplayName: $"{context.MessengerType}-{context.ChatId}",
+            Description: String.Empty,
+            Tags: new List<string>().ToArray(),
             //
-            await context.Manager.JoinToProject(
-                context.ChatId,
-                channelId,
-                descr.Name,
-                projectId);
+            MessengerType: context.MessengerType,
+            ChatId: context.ChatId));
 
-            await context.Manager.DeleteInvite(code);
+        //
+        await context.Manager.JoinToProject(
+            context.ChatId,
+            channelId,
+            descr.Name,
+            projectId);
 
-            return CommandResult.Success($"Welcome to {descr.Name} project");
-        }
+        await context.Manager.DeleteInvite(code);
+
+        return CommandResult.Success($"Welcome to {descr.Name} project");
     }
 }

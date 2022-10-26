@@ -1,9 +1,8 @@
 ﻿using Orleans;
 
-namespace Xioru.Grain.Contracts.ApiKeyReadModel
+namespace Xioru.Grain.Contracts.ApiKeyReadModel;
+
+public interface IApiKeyReadModelGrain : IGrainWithGuidKey
 {
-    public interface IApiKeyReadModelGrain : IGrainWithGuidKey
-    {
-        Task<ApiKeyDescription?> TryGetApiKey(Guid apiKey);
-    }
+    Task<ApiKeyDescription?> TryGetApiKey(Guid apiKey);
 }

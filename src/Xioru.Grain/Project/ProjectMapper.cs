@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
 using Xioru.Grain.Contracts.Project;
 
-namespace Xioru.Grain.Project
+namespace Xioru.Grain.Project;
+
+public class ProjectMapper : Profile
 {
-    public class ProjectMapper : Profile
+    public ProjectMapper()
     {
-        public ProjectMapper()
-        {
-            CreateMap<CreateProjectCommand, ProjectState>();
-        }
+        CreateMap<CreateProjectCommand, ProjectState>();
     }
 }

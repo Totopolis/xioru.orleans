@@ -2,16 +2,15 @@
 using System.Reflection;
 using Xioru.Grain.Contracts;
 
-namespace Xioru.Orleans.Tests.Common
+namespace Xioru.Orleans.Tests.Common;
+
+public class VersionProvider : IVersionProvider
 {
-    public class VersionProvider : IVersionProvider
+    public Version GetVersion()
     {
-        public Version GetVersion()
-        {
-            return Assembly
-                .GetExecutingAssembly()
-                .GetName()
-                .Version!;
-        }
+        return Assembly
+            .GetExecutingAssembly()
+            .GetName()
+            .Version!;
     }
 }

@@ -6,38 +6,37 @@ using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 
-namespace Xioru.Messaging.MessengerCommand
+namespace Xioru.Messaging.MessengerCommand;
+
+public class PwdCommand : AbstractMessengerCommand
 {
-    public class PwdCommand : AbstractMessengerCommand
+    public PwdCommand(IGrainFactory factory) : base(factory)
     {
-        public PwdCommand(IGrainFactory factory) : base(factory)
+    }
+
+    protected override Command Command => new Command(
+        "pwd", "display current project");
+
+    protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
+    {
+        if (!context.Manager.TryGetChannels(context.ChatId, out var channels))
         {
+            return Task.FromResult(CommandResult.Success("No accessed projects"));
         }
 
-        protected override Command Command => new Command(
-            "pwd", "display current project");
+        var sb = new StringBuilder();
+        sb.AppendLine("> List of the accessible projects");
+        sb.Append("```");
 
-        protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
+        var table = new ConsoleTable("Name", "Current");
+
+        foreach (var it in channels)
         {
-            if (!context.Manager.TryGetChannels(context.ChatId, out var channels))
-            {
-                return Task.FromResult(CommandResult.Success("No accessed projects"));
-            }
-
-            var sb = new StringBuilder();
-            sb.AppendLine("> List of the accessible projects");
-            sb.Append("```");
-
-            var table = new ConsoleTable("Name", "Current");
-
-            foreach (var it in channels)
-            {
-                table.AddRow(it.ProjectName, it.IsCurrent ? "X" : string.Empty);
-            }
-
-            sb.Append($"{table.ToMinimalString()}```");
-
-            return Task.FromResult(CommandResult.Success(sb.ToString()));
+            table.AddRow(it.ProjectName, it.IsCurrent ? "X" : string.Empty);
         }
+
+        sb.Append($"{table.ToMinimalString()}```");
+
+        return Task.FromResult(CommandResult.Success(sb.ToString()));
     }
 }

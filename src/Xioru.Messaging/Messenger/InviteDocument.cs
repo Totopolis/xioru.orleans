@@ -1,16 +1,15 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace Xioru.Messaging.Messenger
+namespace Xioru.Messaging.Messenger;
+
+internal class InviteDocument
 {
-    internal class InviteDocument
-    {
-        [BsonId]
-        public Guid Id { get; set; }
+    [BsonId]
+    public Guid Id { get; set; }
 
-        public DateTime Created { get; set; }
+    public DateTime Created { get; set; }
 
-        public string Code { get; set; } = default!;
+    public string Code { get; set; } = default!;
 
-        public Guid ProjectId { get; set; }
-    }
+    public Guid ProjectId { get; set; }
 }

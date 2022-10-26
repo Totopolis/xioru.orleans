@@ -1,21 +1,19 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
-using Xioru.Messaging.Contracts.Messenger;
 
-namespace Xioru.Messaging.Messenger
+namespace Xioru.Messaging.Messenger;
+
+internal class AccessDocument
 {
-    internal class AccessDocument
-    {
-        [BsonId]
-        public Guid Id { get; set; }
+    [BsonId]
+    public Guid Id { get; set; }
 
-        public string ChatId { get; set; } = default!;
+    public string ChatId { get; set; } = default!;
 
-        public Guid ChannelId { get; set; } = Guid.Empty;
+    public Guid ChannelId { get; set; } = Guid.Empty;
 
-        public string ProjectName { get; set; } = default!;
+    public string ProjectName { get; set; } = default!;
 
-        public Guid ProjectId { get; set; } = Guid.Empty;
+    public Guid ProjectId { get; set; } = Guid.Empty;
 
-        public bool IsCurrent { get; set; } = false;
-    }
+    public bool IsCurrent { get; set; } = false;
 }

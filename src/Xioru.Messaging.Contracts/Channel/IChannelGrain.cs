@@ -2,20 +2,19 @@
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Formatting;
 
-namespace Xioru.Messaging.Contracts.Channel
+namespace Xioru.Messaging.Contracts.Channel;
+
+public interface IChannelGrain : IGrainWithGuidKey
 {
-    public interface IChannelGrain : IGrainWithGuidKey
-    {
-        Task CreateAsync(CreateChannelCommandModel createCommand);
+    Task CreateAsync(CreateChannelCommandModel createCommand);
 
-        Task UpdateAsync(UpdateChannelCommandModel updateCommand);
+    Task UpdateAsync(UpdateChannelCommandModel updateCommand);
 
-        Task DeleteAsync();
+    Task DeleteAsync();
 
-        Task<ChannelProjection> GetProjection();
+    Task<ChannelProjection> GetProjection();
 
-        Task SendMessage(FormattedString textMessage);
+    Task SendMessage(FormattedString textMessage);
 
-        Task<CommandResult> ExecuteCommand(string command, bool isSupervisor = false);
-    }
+    Task<CommandResult> ExecuteCommand(string command, bool isSupervisor = false);
 }

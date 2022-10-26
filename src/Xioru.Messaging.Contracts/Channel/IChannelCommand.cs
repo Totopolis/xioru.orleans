@@ -1,8 +1,7 @@
 ﻿using Xioru.Messaging.Contracts.Command;
 
-namespace Xioru.Messaging.Contracts.Channel
+namespace Xioru.Messaging.Contracts.Channel;
+
+public interface IChannelCommand : ICommand
 {
-    public interface IChannelCommand : ICommand
-    {
-    }
 }

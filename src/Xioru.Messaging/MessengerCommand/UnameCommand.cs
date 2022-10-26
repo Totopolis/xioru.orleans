@@ -7,40 +7,39 @@ using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 
-namespace Xioru.Messaging.MessengerCommand
+namespace Xioru.Messaging.MessengerCommand;
+
+public class UnameCommand : AbstractMessengerCommand
 {
-    public class UnameCommand : AbstractMessengerCommand
+    private readonly IVersionProvider? _versionProvider;
+
+    public UnameCommand(
+        IGrainFactory factory,
+        IServiceProvider services) : base(factory)
     {
-        private readonly IVersionProvider? _versionProvider;
+        _versionProvider = services.GetService<IVersionProvider>();
+    }
 
-        public UnameCommand(
-            IGrainFactory factory,
-            IServiceProvider services) : base(factory)
+    protected override Command Command => new Command(
+        "uname", "display system info");
+
+    protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
+    {
+        if (_versionProvider == null)
         {
-            _versionProvider = services.GetService<IVersionProvider>();
+            return Task.FromResult(
+                CommandResult.InternalError("No version provider provided"));
         }
 
-        protected override Command Command => new Command(
-            "uname", "display system info");
+        var version = _versionProvider.GetVersion();
 
-        protected override Task<CommandResult> ExecuteInternal(MessengerCommandContext context)
-        {
-            if (_versionProvider == null)
-            {
-                return Task.FromResult(
-                    CommandResult.InternalError("No version provider provided"));
-            }
+        var sb = new StringBuilder();
+        sb.Append(version.Major);
+        sb.Append('.');
+        sb.Append(version.Minor);
+        sb.Append('.');
+        sb.Append(version.Build);
 
-            var version = _versionProvider.GetVersion();
-
-            var sb = new StringBuilder();
-            sb.Append(version.Major);
-            sb.Append('.');
-            sb.Append(version.Minor);
-            sb.Append('.');
-            sb.Append(version.Build);
-
-            return Task.FromResult(CommandResult.Success(sb.ToString()));
-        }
+        return Task.FromResult(CommandResult.Success(sb.ToString()));
     }
 }

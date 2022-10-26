@@ -15,53 +15,52 @@ using Xioru.Messaging.Messenger;
 using Xioru.Orleans.Tests.Domain;
 using Xioru.Orleans.Tests.VirtualMessenger;
 
-namespace Xioru.Orleans.Tests.Common
+namespace Xioru.Orleans.Tests.Common;
+
+public class ClusterConfigurator : ISiloConfigurator
 {
-    public class ClusterConfigurator : ISiloConfigurator
+    private static readonly MongoDbRunner _mongoRunner;
+    private static readonly MongoClient _mongoClient;
+
+    static ClusterConfigurator()
     {
-        private static readonly MongoDbRunner _mongoRunner;
-        private static readonly MongoClient _mongoClient;
+        _mongoRunner = MongoDbRunner.Start();
+        _mongoClient = new MongoClient(_mongoRunner.ConnectionString);
+    }
 
-        static ClusterConfigurator()
+    public void Configure(ISiloBuilder siloBuilder)
+    {
+        siloBuilder.ConfigureServices((hbc, services) =>
         {
-            _mongoRunner = MongoDbRunner.Start();
-            _mongoClient = new MongoClient(_mongoRunner.ConnectionString);
-        }
+            services
+               .AddGrainServices(hbc.Configuration)
+               .AddMessagingServices(hbc.Configuration);
 
-        public void Configure(ISiloBuilder siloBuilder)
-        {
-            siloBuilder.ConfigureServices((hbc, services) =>
-            {
-                services
-                   .AddGrainServices(hbc.Configuration)
-                   .AddMessagingServices(hbc.Configuration);
+            // for MessagingStartupTask
+            services.AddTransient<IMessengerGrain>(
+                sb => sb.GetService<IGrainFactory>()!.GetGrain<IVirtualMessengerGrain>(Guid.Empty));
 
-                // for MessagingStartupTask
-                services.AddTransient<IMessengerGrain>(
-                    sb => sb.GetService<IGrainFactory>()!.GetGrain<IVirtualMessengerGrain>(Guid.Empty));
+            services.AddTransient<IChannelCommand, UpsertFooCommand>();
 
-                services.AddTransient<IChannelCommand, UpsertFooCommand>();
+            services.AddTransient<IVersionProvider, VersionProvider>();
 
-                services.AddTransient<IVersionProvider, VersionProvider>();
+            var db = _mongoClient.GetDatabase(
+                $"IntegrationTest_{Guid.NewGuid().ToString("N")}");
+            services.AddSingleton<IMongoDatabase>(db);
 
-                var db = _mongoClient.GetDatabase(
-                    $"IntegrationTest_{Guid.NewGuid().ToString("N")}");
-                services.AddSingleton<IMongoDatabase>(db);
+            services.AddValidatorsFromAssemblyContaining<FooGrain>();
+            services.AddAutoMapper(typeof(FooGrain));
+        });
 
-                services.AddValidatorsFromAssemblyContaining<FooGrain>();
-                services.AddAutoMapper(typeof(FooGrain));
-            });
+        siloBuilder.AddSimpleMessageStreamProvider(GrainConstants.StreamProviderName)
+            .AddMemoryGrainStorage("PubSubStore")
+            .AddMemoryGrainStorage(GrainConstants.StateStorageName)
+            .UseInMemoryReminderService();
 
-            siloBuilder.AddSimpleMessageStreamProvider(GrainConstants.StreamProviderName)
-                .AddMemoryGrainStorage("PubSubStore")
-                .AddMemoryGrainStorage(GrainConstants.StateStorageName)
-                .UseInMemoryReminderService();
+        siloBuilder.ConfigureApplicationParts(parts => parts
+            .AddApplicationPart(typeof(FooGrain).Assembly).WithReferences()
+            .AddApplicationPart(typeof(MessengerGrain).Assembly).WithReferences());
 
-            siloBuilder.ConfigureApplicationParts(parts => parts
-                .AddApplicationPart(typeof(FooGrain).Assembly).WithReferences()
-                .AddApplicationPart(typeof(MessengerGrain).Assembly).WithReferences());
-
-            siloBuilder.AddStartupTask<MessagingStartupTask>();
-        }
+        siloBuilder.AddStartupTask<MessagingStartupTask>();
     }
 }
