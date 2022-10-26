@@ -16,4 +16,6 @@ public class MailerSection
 
     // like no-reply@domain.com
     public string SenderMail { get; set; } = default!;
+
+    public List<string> AdminEmails { get; set; } = default!;
 }

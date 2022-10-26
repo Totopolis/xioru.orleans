@@ -11,4 +11,8 @@ public static class GrainConstants
     public const string ClusterRepositoryStreamNamespace = "ClusterRepositoryStream";
 
     public static Guid ClusterStreamId = new Guid("1BE1582F-E71B-4763-AA0C-EA8B1D925174");
+
+    public const string MailerStreamNamespace = "MailerStream";
+
+    public static Guid MailerStreamId = new Guid("CB74AD24-2D85-426D-84FB-8D95D2EFC374");
 }

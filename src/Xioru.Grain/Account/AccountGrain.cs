@@ -1,7 +1,5 @@
-﻿using MailKit.Net.Smtp;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MimeKit;
 using Orleans;
 using Orleans.Runtime;
 using System.ComponentModel.DataAnnotations;
@@ -106,46 +104,14 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
 
         sb.AppendLine("Or ignore this email.");
 
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(
-            name: _mailerConfig.SenderMail,
-            address: _mailerConfig.SenderMail));
+        await _grainFactory.SendEmail(
+            email: email,
+            body: sb.ToString(),
+            subject: "Need confirm email");
 
-        message.To.Add(new MailboxAddress(email, email));
-        message.Subject = "Need confirm email";
-
-        message.Body = new TextPart("plain")
-        {
-            Text = sb.ToString()
-        };
-
-        using var client = new SmtpClient();
-
-        try
-        {
-            client.Connect(
-                host: _mailerConfig.Host,
-                port: _mailerConfig.Port,
-                useSsl: _mailerConfig.UseSsl);
-
-            // Note: only needed if the SMTP server requires authentication
-            await client.AuthenticateAsync(
-                userName: _mailerConfig.UserName,
-                password: _mailerConfig.Password);
-
-            await client.SendAsync(message);
-            await client.DisconnectAsync(true);
-
-            _log.LogInformation($"Send confirmation email to {email}");
-
-            State.AccountId = AccountId;
-            State.IsConfirmed = false;
-            await _state.WriteStateAsync();
-        }
-        catch (Exception ex)
-        {
-            _log.LogError(ex, $"Error during send email to {email}");
-        }
+        State.AccountId = AccountId;
+        State.IsConfirmed = false;
+        await _state.WriteStateAsync();
     }
 
     public async Task<Token> Confirm(string confirmCode, string password)

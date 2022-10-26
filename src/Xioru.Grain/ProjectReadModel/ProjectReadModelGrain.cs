@@ -94,10 +94,7 @@ public class ProjectReadModelGrain :
         return result;
     }
 
-    public Task OnCompletedAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task OnCompletedAsync() => Task.CompletedTask;
 
     public Task OnErrorAsync(Exception ex)
     {
