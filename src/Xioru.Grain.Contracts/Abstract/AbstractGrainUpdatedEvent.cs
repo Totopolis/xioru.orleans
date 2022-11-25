@@ -2,6 +2,7 @@
 
 namespace Xioru.Grain.Contracts.AbstractGrain;
 
+[GenerateSerializer]
 public abstract record AbstractGrainUpdatedEvent(
     string DisplayName,
     string Description,

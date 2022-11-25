@@ -66,10 +66,10 @@ public partial class ChannelGrain : AbstractGrain<
 
     private IAsyncStream<ChannelOutcomingMessage> GetLazyOutcomingStream()
     {
-        var _streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
-        var outcomingStream = _streamProvider.GetStream<ChannelOutcomingMessage>(
-            streamId: Guid.Empty,
-            streamNamespace: MessagingConstants.GetChannelOutcomingStreamNamespace(State.MessengerType));
+        var _streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
+        var outcomingStream = _streamProvider.GetStream<ChannelOutcomingMessage>(StreamId.Create(
+            ns: MessagingConstants.GetChannelOutcomingStreamNamespace(State.MessengerType),
+            key: Guid.Empty));
 
         return outcomingStream;
     }

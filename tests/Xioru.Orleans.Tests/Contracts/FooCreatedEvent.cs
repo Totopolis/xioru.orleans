@@ -1,7 +1,9 @@
-﻿using Xioru.Grain.Contracts.AbstractGrain;
+﻿using Orleans;
+using Xioru.Grain.Contracts.AbstractGrain;
 
 namespace Xioru.Orleans.Tests.Contracts;
 
+[GenerateSerializer]
 public record FooCreatedEvent(
     string DisplayName,
     string Description,

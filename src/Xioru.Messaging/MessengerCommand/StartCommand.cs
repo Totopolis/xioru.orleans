@@ -1,6 +1,8 @@
 ﻿using Orleans;
 using System.CommandLine;
+using Xioru.Grain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Grain.Contracts.Project;
 using Xioru.Grain.Contracts.ProjectReadModel;
 using Xioru.Messaging.Contracts.Channel;
@@ -72,7 +74,19 @@ public class StartCommand : AbstractMessengerCommand
         await project.Create(new CreateProjectCommand(
             Name: projectName,
             DisplayName: projectName,
-            Description: String.Empty));
+            Description: string.Empty));
+
+        var checkProjectReadModel = async () =>
+        {
+            var grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(projectId);
+            var projectDescription = await grainReadModel.GetGrainById(projectId);
+            return projectDescription != null;
+        };
+
+        if (!await checkProjectReadModel.CheckTimeoutedAsync())
+        {
+            throw new Exception("Project not created");
+        }
 
         // 5. create channel
         var channelId = Guid.NewGuid();
@@ -82,10 +96,22 @@ public class StartCommand : AbstractMessengerCommand
             Name: $"{context.MessengerType}-{context.ChatId}",
             DisplayName: $"{context.MessengerType}-{context.ChatId}",
             Description: String.Empty,
-            Tags: new List<string>().ToArray(),
+            Tags: Array.Empty<string>(),
             //
             MessengerType: context.MessengerType,
             ChatId: context.ChatId));
+
+        var checkChannelCreated = async () =>
+        {
+            var grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(projectId);
+            var channelDetails = await grainReadModel.GetGrainById(channelId);
+            return channelDetails != null;
+        };
+
+        if (!await checkChannelCreated.CheckTimeoutedAsync())
+        {
+            throw new Exception("Channel not created");
+        }
 
         // 6. Set channel current
         await context.Manager.JoinToProject(

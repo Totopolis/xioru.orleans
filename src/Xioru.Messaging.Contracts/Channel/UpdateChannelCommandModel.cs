@@ -2,6 +2,7 @@
 
 namespace Xioru.Messaging.Contracts.Channel;
 
+[GenerateSerializer]
 public record UpdateChannelCommandModel(
     string DisplayName,
     string Description,

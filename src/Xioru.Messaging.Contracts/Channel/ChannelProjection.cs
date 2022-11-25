@@ -3,6 +3,7 @@ using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Contracts.Channel;
 
+[GenerateSerializer]
 public record ChannelProjection(
     Guid Id,
     string Name,

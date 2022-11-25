@@ -3,7 +3,7 @@ using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using Orleans;
+using Orleans.Runtime;
 using Orleans.Streams;
 using Orleans.Streams.Core;
 using System.ComponentModel.DataAnnotations;
@@ -39,11 +39,11 @@ public class MailerGrain :
         {
             return;
         }
-
-        var streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
-        var stream = streamProvider.GetStream<EmailEvent>(
-                streamId: GrainConstants.MailerStreamId,
-                streamNamespace: GrainConstants.MailerStreamNamespace);
+        
+        var streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
+        var stream = streamProvider.GetStream<EmailEvent>(StreamId.Create(
+            ns: GrainConstants.MailerStreamNamespace,
+            key: GrainConstants.MailerStreamId));
 
         var emailEvent = new EmailEvent
         {
@@ -64,10 +64,10 @@ public class MailerGrain :
             return;
         }
 
-        var streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
-        var stream = streamProvider.GetStream<EmailEvent>(
-                streamId: GrainConstants.MailerStreamId,
-                streamNamespace: GrainConstants.MailerStreamNamespace);
+        var streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
+        var stream = streamProvider.GetStream<EmailEvent>(StreamId.Create(
+            ns: GrainConstants.MailerStreamNamespace,
+            key: GrainConstants.MailerStreamId));
 
         foreach (var it in _mailerConfig.AdminEmails)
             if (!new EmailAddressAttribute().IsValid(it))
@@ -91,7 +91,7 @@ public class MailerGrain :
         return Task.CompletedTask;
     }
 
-    public async Task OnNextAsync(EmailEvent item, StreamSequenceToken token)
+    public async Task OnNextAsync(EmailEvent item, StreamSequenceToken? token)
     {
         if (_mailerConfig == null ||
             string.IsNullOrWhiteSpace(_mailerConfig.SenderMail) ||

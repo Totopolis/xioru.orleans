@@ -1,5 +1,7 @@
 ﻿using Orleans;
 using System.CommandLine;
+using Xioru.Grain.Contracts.GrainReadModel;
+using Xioru.Grain;
 using Xioru.Grain.Contracts.Project;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
@@ -55,10 +57,22 @@ public class JoinCommand : AbstractMessengerCommand
             Name: $"{context.MessengerType}-{context.ChatId}",
             DisplayName: $"{context.MessengerType}-{context.ChatId}",
             Description: String.Empty,
-            Tags: new List<string>().ToArray(),
+            Tags: Array.Empty<string>(),
             //
             MessengerType: context.MessengerType,
             ChatId: context.ChatId));
+
+        var checkChannelCreated = async () =>
+        {
+            var grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(projectId);
+            var channelDetails = await grainReadModel.GetGrainById(channelId);
+            return channelDetails != null;
+        };
+
+        if (!await checkChannelCreated.CheckTimeoutedAsync())
+        {
+            throw new Exception("Channel not created");
+        }
 
         //
         await context.Manager.JoinToProject(

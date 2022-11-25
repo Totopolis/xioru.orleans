@@ -1,6 +1,7 @@
 ﻿using Orleans;
 using System;
 using System.Threading.Tasks;
+using Xioru.Grain;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Grain.Contracts.Project;
@@ -47,30 +48,75 @@ public abstract class AbstractTest
         await _project.Create(new CreateProjectCommand(
             Name: _projectName,
             DisplayName: _projectName,
-            Description: String.Empty));
-        
+            Description: string.Empty));
+
+        var checkProjectExists = async () =>
+        {
+            var projectDescription = await _projectReadModel.GetProjectById(_projectId);
+            return projectDescription != null;
+        };
+
+        if (!await checkProjectExists.CheckTimeoutedAsync())
+        {
+            throw new Exception("Project not created in cluster");
+        }
+
+        var checkProjectReadModel = async () =>
+        {
+            var projectDescription = await _grainReadModel.GetGrainById(_projectId);
+            return projectDescription != null;
+        };
+
+        if (!await checkProjectReadModel.CheckTimeoutedAsync())
+        {
+            throw new Exception("Project not created in readModel");
+        }
+
         await _channel.CreateAsync(new CreateChannelCommandModel(
             ProjectId: _projectId,
             Name: _channelName,
             DisplayName: _channelName,
             Description: string.Empty,
-            Tags: new string[0],
+            Tags: Array.Empty<string>(),
             //
             MessengerType: MessengerType.Virtual,
             ChatId: Guid.NewGuid().ToString("N")));
+
+        var checkChannelCreated = async () =>
+        {
+            var channelDetails = await _grainReadModel.GetGrainById(_channelId);
+            return channelDetails != null;
+        };
+
+        if (!await checkChannelCreated.CheckTimeoutedAsync())
+        {
+            throw new Exception("Channel not created");
+        }
     }
 
     protected async Task<IFooGrain> InternalCreateFoo(string name)
     {
-        var foo = _factory.GetGrain<IFooGrain>(Guid.NewGuid());
+        var fooId = Guid.NewGuid();
+        var foo = _factory.GetGrain<IFooGrain>(fooId);
         await foo.CreateAsync(new CreateFooCommandModel(
             ProjectId: _projectId,
             Name: name,
             DisplayName: name,
             Description: string.Empty,
-            Tags: new string[0],
+            Tags: Array.Empty<string>(),
             FooData: $"Hello {name}",
             FooMeta: $"By {name}"));
+
+        var checkFooCreated = async () =>
+        {
+            var fooDetails = await _grainReadModel.GetGrainById(fooId);
+            return fooDetails != null;
+        };
+
+        if (!await checkFooCreated.CheckTimeoutedAsync())
+        {
+            throw new Exception("Foo not created");
+        }
 
         return foo;
     }

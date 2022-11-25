@@ -25,12 +25,12 @@ public class DiscordMessengerGrain : MessengerGrain, IDiscordMessengerGrain
 
     protected override MessengerType MessengerType => MessengerType.Discord;
 
-    public override async Task OnDeactivateAsync()
+    public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken token)
     {
         await _discordClient.StopAsync();
 
         // TODO: increase deactivation time
-        await base.OnDeactivateAsync();
+        await base.OnDeactivateAsync(reason, token);
     }
 
     public override async Task StartAsync()

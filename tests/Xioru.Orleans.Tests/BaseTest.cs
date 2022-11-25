@@ -53,6 +53,7 @@ public class BaseTest : AbstractTest
         await PrepareAsync();
 
         await InternalCreateFoo("Foo");
+
         var details = await _grainReadModel.GetGrainDetailsByName("Foo");
         Assert.NotNull(details);
         Assert.Equal("Foo", details!.GrainName);

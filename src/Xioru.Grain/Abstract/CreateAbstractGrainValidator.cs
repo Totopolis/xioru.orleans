@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using Orleans;
 using Xioru.Grain.Contracts.AbstractGrain;
 using Xioru.Grain.Contracts.GrainReadModel;
 
@@ -31,6 +30,5 @@ public abstract class CreateAbstractGrainValidator<T> : AbstractValidator<T>
             })
             .WithName("Grain project")
             .WithMessage("ProjectId not found");
-
     }
 }

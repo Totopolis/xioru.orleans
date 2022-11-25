@@ -1,5 +1,6 @@
 ﻿namespace Xioru.Messaging.Contracts.Channel;
 
+[GenerateSerializer]
 public class ChannelIncomingMessage
 {
     public DateTime Created { get; set; } = DateTime.Now;

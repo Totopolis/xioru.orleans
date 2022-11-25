@@ -1,5 +1,6 @@
 ﻿namespace Xioru.Grain.Contracts.ApiKeyReadModel;
 
+[GenerateSerializer]
 public class ApiKeyDescription
 {
     public DateTime Created { get; set; }

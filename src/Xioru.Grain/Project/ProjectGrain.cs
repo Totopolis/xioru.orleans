@@ -115,11 +115,11 @@ public class ProjectGrain : Orleans.Grain, IProjectGrain
         // 2. Emit to project stream
         if (_projectRepositoryStream == null)
         {
-            var _streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
+            var _streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
 
-            _projectRepositoryStream = _streamProvider.GetStream<GrainEvent>(
-                streamId: grainId,
-                streamNamespace: GrainConstants.ProjectRepositoryStreamNamespace);
+            _projectRepositoryStream = _streamProvider.GetStream<GrainEvent>(StreamId.Create(
+                ns: GrainConstants.ProjectRepositoryStreamNamespace,
+                key: grainId));
         }
 
         await _projectRepositoryStream.OnNextAsync(grainEvent);
@@ -127,11 +127,11 @@ public class ProjectGrain : Orleans.Grain, IProjectGrain
         // 3. Emit to global cluster stream
         if (_clusterRepositoryStream == null)
         {
-            var _streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
+            var _streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
 
-            _clusterRepositoryStream = _streamProvider.GetStream<GrainEvent>(
-                streamId: GrainConstants.ClusterStreamId,
-                streamNamespace: GrainConstants.ClusterRepositoryStreamNamespace);
+            _clusterRepositoryStream = _streamProvider.GetStream<GrainEvent>(StreamId.Create(
+                ns: GrainConstants.ClusterRepositoryStreamNamespace,
+                key: GrainConstants.ClusterStreamId));
         }
 
         await _clusterRepositoryStream.OnNextAsync(grainEvent);

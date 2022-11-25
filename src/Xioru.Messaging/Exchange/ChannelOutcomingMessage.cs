@@ -1,12 +1,11 @@
 ﻿using Xioru.Messaging.Contracts.Formatting;
-using Xioru.Messaging.Contracts.Messenger;
 
-namespace Xioru.Messaging.Contracts.Channel
+namespace Xioru.Messaging.Contracts.Channel;
+
+[GenerateSerializer]
+public class ChannelOutcomingMessage
 {
-    public class ChannelOutcomingMessage
-    {
-        public string ChatId { get; set; } = default!;
+    public string ChatId { get; set; } = default!;
 
-        public FormattedString Message { get; set; } = default!;
-    }
+    public FormattedString Message { get; set; } = default!;
 }
