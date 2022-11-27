@@ -8,7 +8,8 @@ public class TestsFixture : IDisposable
     public TestsFixture()
     {
         Cluster = new TestClusterBuilder(initialSilosCount: 1)
-            .AddSiloBuilderConfigurator<ClusterConfigurator>()
+            .AddSiloBuilderConfigurator<HostConfigurator>()
+            .AddSiloBuilderConfigurator<SiloConfigurator>()
             .Build();
 
         Cluster.Deploy();

@@ -1,5 +1,6 @@
 ﻿namespace Xioru.Grain.Contracts.GrainReadModel;
 
+[GenerateSerializer]
 public class GrainDescription
 {
     public string GrainName { get; set; } = default!;

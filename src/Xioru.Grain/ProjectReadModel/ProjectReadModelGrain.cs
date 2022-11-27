@@ -42,11 +42,9 @@ public class ProjectReadModelGrain :
 
         ProjectDescription? result = project == null ?
             default :
-            new ProjectDescription
-            {
-                Id = project.ProjectId,
-                Name = project.ProjectName
-            };
+            new ProjectDescription(
+                Id: project.ProjectId,
+                Name: project.ProjectName);
 
         return result;
     }
@@ -58,11 +56,9 @@ public class ProjectReadModelGrain :
 
         ProjectDescription? result = project == null ?
             default :
-            new ProjectDescription
-            {
-                Id = project.ProjectId,
-                Name = projectName
-            };
+            new ProjectDescription(
+                Id: project.ProjectId,
+                Name: projectName);
 
         return result;
     }
@@ -76,11 +72,9 @@ public class ProjectReadModelGrain :
         if (allProjects != null)
         {
             result = allProjects
-                .Select(x => new ProjectDescription
-                {
-                    Id = x.ProjectId,
-                    Name = x.ProjectName
-                })
+                .Select(x => new ProjectDescription(
+                    Id: x.ProjectId,
+                    Name: x.ProjectName))
                 .ToArray();
 
             if (!string.IsNullOrWhiteSpace(projectNameFilter))
@@ -102,7 +96,7 @@ public class ProjectReadModelGrain :
         return Task.CompletedTask;
     }
 
-    public async Task OnNextAsync(GrainEvent grainEvent, StreamSequenceToken token = default!)
+    public async Task OnNextAsync(GrainEvent grainEvent, StreamSequenceToken? token)
     {
         switch (grainEvent)
         {

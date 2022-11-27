@@ -2,6 +2,7 @@
 
 namespace Xioru.Grain.Contracts.User;
 
+[GenerateSerializer]
 public record UserProjection(
     Guid Id,
     string Name,

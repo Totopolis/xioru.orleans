@@ -2,6 +2,7 @@
 
 namespace Xioru.Grain.Contracts.Account;
 
+[GenerateSerializer]
 public record AccountProjection(
     string AccountId,
     ProjectDescription[] AccessibleProjects);

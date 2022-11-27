@@ -37,7 +37,7 @@ public class GrainReadModelGrain :
         _log = log;
     }
 
-    public override async Task OnActivateAsync()
+    public override async Task OnActivateAsync(CancellationToken cancellationToken)
     {
         // activated only prjId instances by implicit streaming
         var dbNamePrefix = this.GetPrimaryKey().ToString("N");
@@ -45,7 +45,7 @@ public class GrainReadModelGrain :
         var collectionName = $"{dbNamePrefix}-{GrainReadModelCollectionName}";
         _grainCollection = _database.GetCollection<GrainDetailsDocument>(collectionName);
 
-        await base.OnActivateAsync();
+        await base.OnActivateAsync(cancellationToken);
     }
 
     public async Task<long> GrainsCount()

@@ -2,6 +2,7 @@
 
 namespace Xioru.Messaging.Contracts.Formatting;
 
+[GenerateSerializer]
 public class FormattedString
 {
     private const string _footerComment = "\n\nСообщение усечено. Уточните запрос";
@@ -15,6 +16,7 @@ public class FormattedString
         _formattedElements = new List<(string, StringFormatting)>();
     }
 
+    [Id(0)]
     private List<(string Text, StringFormatting Formatting)> _formattedElements;
 
     public FormattedString Append(string text, StringFormatting formatting = StringFormatting.None)
@@ -101,7 +103,7 @@ public class FormattedString
 
     public static implicit operator string(FormattedString self)
     {
-        return self.ToString();
+        return self == null ? string.Empty : self.ToString();
     }
 
     public static implicit operator FormattedString(string self)
@@ -111,6 +113,7 @@ public class FormattedString
 }
 
 [Flags]
+[GenerateSerializer]
 public enum StringFormatting
 {
     None = 0,

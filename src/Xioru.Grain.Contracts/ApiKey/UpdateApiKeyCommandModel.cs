@@ -2,6 +2,7 @@
 
 namespace Xioru.Grain.Contracts.ApiKey;
 
+[GenerateSerializer]
 public record UpdateApiKeyCommandModel(
     string DisplayName,
     string Description,

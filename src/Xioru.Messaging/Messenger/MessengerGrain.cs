@@ -77,7 +77,7 @@ public abstract partial class MessengerGrain :
                     observer: this);
 
             // prevent from sleep
-            await RegisterOrUpdateReminder(
+            await this.RegisterOrUpdateReminder(
                 "KeepAlive",
                 TimeSpan.FromMinutes(15),
                 TimeSpan.FromMinutes(15));
@@ -102,7 +102,7 @@ public abstract partial class MessengerGrain :
 
     public async Task OnNextAsync(
         ChannelOutcomingMessage item,
-        StreamSequenceToken token)
+        StreamSequenceToken? token)
     {
         await SendDirectMessage(item.ChatId, item.Message);
         
@@ -110,7 +110,7 @@ public abstract partial class MessengerGrain :
 
     public async Task OnNextAsync(
         GrainEvent grainEvent,
-        StreamSequenceToken token)
+        StreamSequenceToken? token)
     {
         switch (grainEvent)
         {
@@ -128,9 +128,9 @@ public abstract partial class MessengerGrain :
     {
         var streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
 
-        return streamProvider.GetStream<ChannelIncomingMessage>(
-            channelId,
-            MessagingConstants.ChannelIncomingStreamNamespace);
+        return streamProvider.GetStream<ChannelIncomingMessage>(StreamId.Create(
+            ns: MessagingConstants.ChannelIncomingStreamNamespace,
+            key: channelId));
     }
 
     public Task ReceiveReminder(string reminderName, TickStatus status) => Task.CompletedTask;

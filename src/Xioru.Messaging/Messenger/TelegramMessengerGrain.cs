@@ -28,12 +28,12 @@ public class TelegramMessengerGrain : MessengerGrain, ITelegramMessengerGrain
 
     protected override MessengerType MessengerType => MessengerType.Telegram;
 
-    public override async Task OnDeactivateAsync()
+    public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken token)
     {
         _cts.Cancel();
 
         // TODO: increase deactivation time
-        await base.OnDeactivateAsync();
+        await base.OnDeactivateAsync(reason, token);
     }
 
     public override async Task StartAsync()

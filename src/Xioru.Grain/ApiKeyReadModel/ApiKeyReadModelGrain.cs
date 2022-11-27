@@ -73,7 +73,7 @@ public class ApiKeyReadModelGrain :
         return Task.CompletedTask;
     }
 
-    public async Task OnNextAsync(GrainEvent grainEvent, StreamSequenceToken token = default!)
+    public async Task OnNextAsync(GrainEvent grainEvent, StreamSequenceToken? token)
     {
         switch (grainEvent)
         {

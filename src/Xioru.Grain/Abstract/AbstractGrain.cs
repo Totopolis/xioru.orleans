@@ -150,11 +150,11 @@ public abstract class AbstractGrain<
         // 2. Emit to project stream
         if (_projectRepositoryStream == null)
         {
-            var streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
+            var streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
 
-            _projectRepositoryStream = streamProvider.GetStream<GrainEvent>(
-                streamId: State.ProjectId,
-                streamNamespace: GrainConstants.ProjectRepositoryStreamNamespace);
+            _projectRepositoryStream = streamProvider.GetStream<GrainEvent>(StreamId.Create(
+                ns: GrainConstants.ProjectRepositoryStreamNamespace,
+                key: State.ProjectId));
         }
 
         await _projectRepositoryStream.OnNextAsync(grainEvent!);
@@ -162,11 +162,11 @@ public abstract class AbstractGrain<
         // 3. Emit to global cluster stream
         if (_clusterRepositoryStream == null)
         {
-            var streamProvider = GetStreamProvider(GrainConstants.StreamProviderName);
+            var streamProvider = this.GetStreamProvider(GrainConstants.StreamProviderName);
 
-            _clusterRepositoryStream = streamProvider.GetStream<GrainEvent>(
-                streamId: GrainConstants.ClusterStreamId,
-                streamNamespace: GrainConstants.ClusterRepositoryStreamNamespace);
+            _clusterRepositoryStream = streamProvider.GetStream<GrainEvent>(StreamId.Create(
+                ns: GrainConstants.ClusterRepositoryStreamNamespace,
+                key: GrainConstants.ClusterStreamId));
         }
 
         await _clusterRepositoryStream.OnNextAsync(grainEvent!);

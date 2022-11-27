@@ -3,6 +3,7 @@ using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging.Contracts.Channel;
 
+[GenerateSerializer]
 public record CreateChannelCommandModel(
     Guid ProjectId,
     string Name,

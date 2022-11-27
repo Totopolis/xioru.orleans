@@ -1,5 +1,6 @@
 ﻿namespace Xioru.Grain.AbstractGrain;
 
+[GenerateSerializer]
 public abstract class AbstractGrainState
 {
     public Guid Id { get; set; }

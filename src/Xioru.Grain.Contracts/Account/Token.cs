@@ -1,5 +1,6 @@
 ﻿namespace Xioru.Grain.Contracts.Account;
 
+[GenerateSerializer]
 public class Token
 {
     public string AccessToken { get; set; } = default!;

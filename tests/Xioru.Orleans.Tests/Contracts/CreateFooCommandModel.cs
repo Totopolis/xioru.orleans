@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Orleans;
+using System;
 using Xioru.Grain.Contracts.AbstractGrain;
 
 namespace Xioru.Orleans.Tests.Contracts;
 
+[GenerateSerializer]
 public record CreateFooCommandModel(
     Guid ProjectId,
     string Name,

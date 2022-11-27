@@ -2,6 +2,7 @@
 
 namespace Xioru.Messaging.Contracts.Command;
 
+[GenerateSerializer]
 public class CommandResult
 {
     public CommandResult(ResultKind kind, FormattedString message)
@@ -12,8 +13,10 @@ public class CommandResult
 
     public bool IsSuccess => Kind == ResultKind.Ok;
 
+    [Id(0)]
     public FormattedString Message { get; init; }
 
+    [Id(1)]
     public ResultKind Kind { get; init; }
 
     public static CommandResult SyntaxError(FormattedString message) =>

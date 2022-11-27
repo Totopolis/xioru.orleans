@@ -1,5 +1,6 @@
 ﻿namespace Xioru.Grain.Project;
 
+[GenerateSerializer]
 public class ProjectState
 {
     public string Name { get; set; } = default!;

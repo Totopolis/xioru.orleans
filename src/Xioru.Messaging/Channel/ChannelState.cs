@@ -3,6 +3,7 @@ using Xioru.Messaging.Contracts.Messenger;
 
 namespace Xioru.Messaging;
 
+[GenerateSerializer]
 public class ChannelState : AbstractGrainState
 {
     public MessengerType MessengerType { get; set; }

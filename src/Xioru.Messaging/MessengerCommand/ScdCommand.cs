@@ -1,6 +1,8 @@
 ﻿using Orleans;
 using System.CommandLine;
+using Xioru.Grain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Grain.Contracts.ProjectReadModel;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
@@ -66,6 +68,18 @@ public class ScdCommand : AbstractMessengerCommand
                 //
                 MessengerType: context.MessengerType,
                 ChatId: context.ChatId));
+
+            var checkChannelCreated = async () =>
+            {
+                var grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(project.Id);
+                var channelDetails = await grainReadModel.GetGrainById(channelId);
+                return channelDetails != null;
+            };
+
+            if (!await checkChannelCreated.CheckTimeoutedAsync())
+            {
+                throw new Exception("Channel not created");
+            }
 
             //
             await context.Manager.JoinToProject(

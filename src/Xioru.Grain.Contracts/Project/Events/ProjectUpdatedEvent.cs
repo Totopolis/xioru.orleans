@@ -2,6 +2,7 @@
 
 namespace Xioru.Grain.Contracts.Project.Events;
 
+[GenerateSerializer]
 public record ProjectUpdatedEvent : GrainCreatedEvent
 {
 }
