@@ -1,5 +1,4 @@
-﻿using Orleans;
-using Orleans.Runtime;
+﻿using Orleans.Runtime;
 using Orleans.Streams;
 using Orleans.Streams.Core;
 using Xioru.Grain.AbstractGrain;
@@ -37,6 +36,7 @@ public partial class ChannelGrain : AbstractGrain<
             DisplayName: State.DisplayName,
             Description: State.Description,
             Tags: State.Tags.ToArray(),
+            CreatedUtc: State.CreatedUtc,
             MessengerType: State.MessengerType,
             ChatId: State.ChatId));
     }
@@ -51,7 +51,8 @@ public partial class ChannelGrain : AbstractGrain<
         await EmitEvent(new ChannelUpdatedEvent(
             DisplayName: updateCommand.DisplayName,
             Description: updateCommand.Description,
-            Tags: updateCommand.Tags.ToArray()));
+            Tags: updateCommand.Tags.ToArray(),
+            UpdatedUtc: State.UpdatedUtc));
     }
 
     public async Task SendMessage(FormattedString textMessage)

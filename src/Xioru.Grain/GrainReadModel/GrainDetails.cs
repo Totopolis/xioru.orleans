@@ -2,7 +2,8 @@
 
 namespace Xioru.Grain.GrainReadModel;
 
-internal class GrainDocument
+[BsonDiscriminator(nameof(GrainDetailsDocument))]
+public class GrainDetailsDocument
 {
     public string GrainName { get; set; } = default!;
 
@@ -10,4 +11,8 @@ internal class GrainDocument
 
     [BsonId]
     public Guid GrainId { get; set; } = default!;
+
+    public DateTime CreatedUtc { get; set; } = DateTime.MinValue;
+
+    public DateTime UpdatedUtc { get; set; } = DateTime.MinValue;
 }

@@ -25,7 +25,7 @@ public class ApiKeyGrain : AbstractGrain<
             DisplayName: State.DisplayName,
             Description: State.Description,
             Tags: State.Tags.ToArray(),
-            Created: State.Created,
+            CreatedUtc: State.CreatedUtc,
             ApiKey: State.ApiKey));
     }
 
@@ -39,6 +39,7 @@ public class ApiKeyGrain : AbstractGrain<
         await EmitEvent(new ApiKeyUpdatedEvent(
             DisplayName: updateCommand.DisplayName,
             Description: updateCommand.Description,
-            Tags: updateCommand.Tags.ToArray()));
+            Tags: updateCommand.Tags.ToArray(),
+            UpdatedUtc: State.UpdatedUtc));
     }
 }

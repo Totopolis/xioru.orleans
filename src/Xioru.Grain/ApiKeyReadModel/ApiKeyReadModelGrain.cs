@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
-using Orleans;
 using Orleans.Streams;
 using Orleans.Streams.Core;
 using Xioru.Grain.Contracts;
@@ -82,7 +81,7 @@ public class ApiKeyReadModelGrain :
                 var docToInsert = new ApiKeyDocument
                 {
                     ApiKey = createdEvent.ApiKey,
-                    Created = createdEvent.Created,
+                    Created = createdEvent.CreatedUtc,
                     ProjectId = grainEvent.Metadata!.ProjectId,
                     GrainId = grainEvent.Metadata.GrainId
                 };

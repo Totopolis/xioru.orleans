@@ -14,7 +14,4 @@ public class GrainEventMetadata
 
     [Id(3)]
     public string GrainName { get; set; } = default!;
-
-    [Id(4)]
-    public DateTime CreatedUtc { get; set; }
 }

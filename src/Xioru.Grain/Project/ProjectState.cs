@@ -8,4 +8,6 @@ public class ProjectState
     public string DisplayName { get; set; } = default!;
 
     public string Description { get; set; } = default!;
+
+    public DateTime CreatedUtc { get; set; } = DateTime.MinValue;
 }
