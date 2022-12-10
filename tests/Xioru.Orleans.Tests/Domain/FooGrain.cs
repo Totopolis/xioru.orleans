@@ -27,6 +27,7 @@ public class FooGrain : AbstractGrain<
             DisplayName: State.DisplayName,
             Description: State.Description,
             Tags: State.Tags.ToArray(),
+            State.CreatedUtc,
             FooData: State.FooData,
             FooMeta: State.FooMeta));
     }
@@ -42,6 +43,7 @@ public class FooGrain : AbstractGrain<
             DisplayName: updateCommand.DisplayName,
             Description: updateCommand.Description,
             Tags: updateCommand.Tags.ToArray(),
+            UpdatedUtc: State.UpdatedUtc,
             FooData: State.FooData,
             FooMeta: State.FooMeta));
     }

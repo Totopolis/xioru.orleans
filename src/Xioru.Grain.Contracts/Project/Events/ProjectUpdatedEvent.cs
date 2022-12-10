@@ -3,6 +3,4 @@
 namespace Xioru.Grain.Contracts.Project.Events;
 
 [GenerateSerializer]
-public record ProjectUpdatedEvent : GrainCreatedEvent
-{
-}
+public record ProjectUpdatedEvent(DateTime UpdatedUtc) : GrainCreatedEvent(UpdatedUtc);

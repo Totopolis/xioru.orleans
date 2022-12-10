@@ -6,9 +6,10 @@ public record ApiKeyCreatedEvent(
     string DisplayName,
     string Description,
     string[] Tags,
+    DateTime CreatedUtc,
     //
-    DateTime Created,
     Guid ApiKey) : AbstractGrainCreatedEvent(
         DisplayName,
         Description,
-        Tags);
+        Tags,
+        CreatedUtc);

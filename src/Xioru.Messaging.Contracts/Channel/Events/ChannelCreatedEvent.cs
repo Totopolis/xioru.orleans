@@ -8,9 +8,11 @@ public record ChannelCreatedEvent(
     string DisplayName,
     string Description,
     string[] Tags,
+    DateTime CreatedUtc,
     //
     MessengerType MessengerType,
     string ChatId) : AbstractGrainCreatedEvent(
         DisplayName,
         Description,
-        Tags);
+        Tags,
+        CreatedUtc);
