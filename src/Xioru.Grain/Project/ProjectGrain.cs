@@ -69,11 +69,12 @@ public class ProjectGrain : Orleans.Grain, IProjectGrain
         State.Name = createCommand.Name;
         State.DisplayName = createCommand.DisplayName;
         State.Description = createCommand.Description;
+        State.CreatedUtc= DateTime.UtcNow;
 
         await _state.WriteStateAsync();
 
         // 3. Event sourcing
-        await EmitEvent(new ProjectCreatedEvent());
+        await EmitEvent(new ProjectCreatedEvent(State.CreatedUtc));
 
         _log.LogInformation($"Project {createCommand.Name} created");
     }
@@ -108,8 +109,7 @@ public class ProjectGrain : Orleans.Grain, IProjectGrain
             ProjectId = grainId,
             GrainType = typeof(ProjectGrain).Name,
             GrainId = grainId,
-            GrainName = State.Name,
-            CreatedUtc = DateTime.UtcNow
+            GrainName = State.Name
         };
 
         // 2. Emit to project stream

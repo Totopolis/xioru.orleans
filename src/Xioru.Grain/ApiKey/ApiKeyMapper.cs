@@ -9,8 +9,7 @@ public class ApiKeyMapper : Profile
     {
         CreateMap<ApiKeyState, ApiKeyProjection>();
         CreateMap<CreateApiKeyCommandModel, ApiKeyState>()
-            .ForMember(x => x.ApiKey, opt => opt.MapFrom(x => Guid.NewGuid()))
-            .ForMember(x => x.Created, opt => opt.MapFrom(x => DateTime.UtcNow));
+            .ForMember(x => x.ApiKey, opt => opt.MapFrom(x => Guid.NewGuid()));
         CreateMap<UpdateApiKeyCommandModel, ApiKeyState>();
     }
 }

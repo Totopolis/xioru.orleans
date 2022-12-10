@@ -191,7 +191,6 @@ public abstract class AbstractGrain<
         ProjectId = State.ProjectId,
         GrainType = this.GetType().FullName!,
         GrainId = this.GetPrimaryKey(),
-        GrainName = State.Name,
-        CreatedUtc = DateTime.UtcNow
+        GrainName = State.Name
     };
 }

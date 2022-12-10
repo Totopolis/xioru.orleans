@@ -4,4 +4,6 @@
 public record GrainDetails(
     string GrainName,
     string GrainType,
-    Guid GrainId);
+    Guid GrainId,
+    DateTime CreatedUtc,
+    DateTime UpdatedUtc);
