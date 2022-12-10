@@ -7,4 +7,6 @@ public abstract record AbstractGrainProjection(
     Guid ProjectId,
     string DisplayName,
     string Description,
-    string[] Tags);
+    string[] Tags,
+    DateTime CreatedUtc,
+    DateTime UpdatedUtc);

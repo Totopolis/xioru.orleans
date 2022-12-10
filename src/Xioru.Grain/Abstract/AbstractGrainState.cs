@@ -14,4 +14,8 @@ public abstract class AbstractGrainState
     public string Description { get; set; } = default!;
 
     public List<string> Tags { get; set; } = new();
+
+    public DateTime CreatedUtc { get; set; } = DateTime.MinValue;
+
+    public DateTime UpdatedUtc { get; set; } = DateTime.MinValue;
 }

@@ -12,6 +12,8 @@ public record FooProjection(
     string DisplayName,
     string Description,
     string[] Tags,
+    DateTime CreatedUtc,
+    DateTime UpdatedUtc,
     //
     string FooData,
     string FooMeta) : AbstractGrainProjection(
@@ -20,4 +22,6 @@ public record FooProjection(
         ProjectId,
         DisplayName,
         Description,
-        Tags);
+        Tags,
+        CreatedUtc,
+        UpdatedUtc);

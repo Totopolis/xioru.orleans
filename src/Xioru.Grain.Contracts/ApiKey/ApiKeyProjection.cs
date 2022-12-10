@@ -10,12 +10,15 @@ public record ApiKeyProjection(
     string DisplayName,
     string Description,
     string[] Tags,
+    DateTime CreatedUtc,
+    DateTime UpdatedUtc,
     //
-    DateTime Created,
     Guid ApiKey) : AbstractGrainProjection(
         Id,
         Name,
         ProjectId,
         DisplayName,
         Description,
-        Tags);
+        Tags,
+        CreatedUtc,
+        UpdatedUtc);

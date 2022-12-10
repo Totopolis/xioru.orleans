@@ -70,6 +70,8 @@ public abstract class AbstractGrain<
         // 2. Update local state and force save
         _mapper.Map(createCommand, State);
         State.Id = this.GetPrimaryKey();
+        State.CreatedUtc = DateTime.UtcNow;
+        State.UpdatedUtc= DateTime.UtcNow;
         await _state.WriteStateAsync();
 
         // 3. Event sourcing
@@ -118,6 +120,7 @@ public abstract class AbstractGrain<
 
         // 2. Update local state and force save
         _mapper.Map(updateCommand, State);
+        State.UpdatedUtc = DateTime.UtcNow;
         await _state.WriteStateAsync();
 
         // 3. Event sourcing
