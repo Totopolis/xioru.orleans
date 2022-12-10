@@ -10,6 +10,8 @@ public record UserProjection(
     string DisplayName,
     string Description,
     string[] Tags,
+    DateTime CreatedUtc,
+    DateTime UpdatedUtc,
     //
     string Login) : AbstractGrainProjection(
         Id,
@@ -17,4 +19,6 @@ public record UserProjection(
         ProjectId,
         DisplayName,
         Description,
-        Tags);
+        Tags,
+        CreatedUtc,
+        UpdatedUtc);

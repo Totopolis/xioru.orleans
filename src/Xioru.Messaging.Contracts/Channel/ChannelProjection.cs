@@ -11,6 +11,8 @@ public record ChannelProjection(
     string DisplayName,
     string Description,
     string[] Tags,
+    DateTime CreatedUtc,
+    DateTime UpdatedUtc,
     //
     MessengerType MessengerType,
     string ChatId,
@@ -20,4 +22,6 @@ public record ChannelProjection(
         ProjectId,
         DisplayName,
         Description,
-        Tags);
+        Tags,
+        CreatedUtc,
+        UpdatedUtc);
