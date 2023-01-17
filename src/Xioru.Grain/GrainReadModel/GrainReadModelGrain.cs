@@ -191,6 +191,8 @@ public class GrainReadModelGrain :
 
     private async Task<GrainDetailsDocument?> GetDocumentByNameOrDefaultAsync(string grainName)
     {
+        ArgumentException.ThrowIfNullOrEmpty(grainName);
+
         var grainCursor = await _grainCollection.FindAsync(x => x.GrainName == grainName);
         return await grainCursor.FirstOrDefaultAsync();
     }
