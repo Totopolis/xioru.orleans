@@ -116,6 +116,9 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
 
     public async Task<Token> Confirm(string confirmCode, string password)
     {
+        ArgumentException.ThrowIfNullOrEmpty(confirmCode);
+        ArgumentException.ThrowIfNullOrEmpty(password);
+
         if (State.ConfirmCode != confirmCode)
         {
             throw new ArgumentException("Bad confirmation code");
@@ -159,6 +162,8 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
 
     public async Task ForceCreate(string password)
     {
+        ArgumentException.ThrowIfNullOrEmpty(password);
+
         State.IsConfirmed = true;
         State.ConfirmCode = string.Empty;
         State.LastTouch = DateTime.MinValue;

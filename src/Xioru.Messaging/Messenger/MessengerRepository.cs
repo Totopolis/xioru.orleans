@@ -88,6 +88,9 @@ internal class MongoMessengerRepository : IMessengerRepository
 
     public async Task SetCurrentProject(string chatId, string projectName)
     {
+        ArgumentException.ThrowIfNullOrEmpty(chatId);
+        ArgumentException.ThrowIfNullOrEmpty(projectName);
+
         var newAccess = _access.FirstOrDefault(
             x => x.ChatId == chatId && x.ProjectName == projectName);
 
