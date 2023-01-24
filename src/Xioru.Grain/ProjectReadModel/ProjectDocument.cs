@@ -2,7 +2,7 @@
 
 namespace Xioru.Grain.ProjectReadModel;
 
-internal class ProjectDocument
+public class ProjectDocument
 {
     public string ProjectName { get; set; } = default!;
 
