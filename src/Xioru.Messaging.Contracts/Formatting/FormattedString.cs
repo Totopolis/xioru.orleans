@@ -113,7 +113,6 @@ public class FormattedString
 }
 
 [Flags]
-[GenerateSerializer]
 public enum StringFormatting
 {
     None = 0,
