@@ -25,7 +25,7 @@ public class ProjectGrain : Orleans.Grain, IProjectGrain
     protected ProjectState State => _state.State;
 
     public ProjectGrain(
-        [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<ProjectState> state,
+        [PersistentState("State", GrainConstants.StateStorageName)] IPersistentState<ProjectState> state,
         IServiceProvider services)
     {
         _state = state;

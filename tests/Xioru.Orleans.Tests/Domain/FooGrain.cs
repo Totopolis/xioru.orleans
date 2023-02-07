@@ -16,7 +16,7 @@ public class FooGrain : AbstractGrain<
     IFooGrain 
 {
     public FooGrain(
-        [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<FooState> state,
+        [PersistentState("State", GrainConstants.StateStorageName)] IPersistentState<FooState> state,
         IServiceProvider services) : base(state, services)
     {
     }
