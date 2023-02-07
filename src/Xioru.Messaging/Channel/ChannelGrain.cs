@@ -23,7 +23,7 @@ public partial class ChannelGrain : AbstractGrain<
     private Lazy<IAsyncStream<ChannelOutcomingMessage>> _outcomingStream;
 
     public ChannelGrain(
-        [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<ChannelState> state,
+        [PersistentState("State", GrainConstants.StateStorageName)] IPersistentState<ChannelState> state,
         IServiceProvider services) : base(state, services)
     {
         _outcomingStream = new Lazy<IAsyncStream<ChannelOutcomingMessage>>(

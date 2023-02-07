@@ -26,7 +26,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
     private AccountState State => _state.State;
 
     public AccountGrain(
-        [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<AccountState> state,
+        [PersistentState("State", GrainConstants.StateStorageName)] IPersistentState<AccountState> state,
         ILogger<AccountGrain> log,
         IGrainFactory grainFactory,
         IOptions<AuthSection> authOptions,

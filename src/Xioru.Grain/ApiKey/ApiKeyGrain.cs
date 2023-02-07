@@ -14,7 +14,7 @@ public class ApiKeyGrain : AbstractGrain<
     IApiKeyGrain 
 {
     public ApiKeyGrain(
-        [PersistentState("state", GrainConstants.StateStorageName)] IPersistentState<ApiKeyState> state,
+        [PersistentState("State", GrainConstants.StateStorageName)] IPersistentState<ApiKeyState> state,
         IServiceProvider services) : base(state, services)
     {
     }
