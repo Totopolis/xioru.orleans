@@ -34,7 +34,7 @@ public class PwdCommand : AbstractMessengerCommand
             table.AddRow(it.ProjectName, it.IsCurrent ? "X" : string.Empty);
         }
 
-        fString.Append($"{table.ToMinimalString()}", StringFormatting.Bold);
+        fString.Append($"{table.ToMinimalString()}", StringFormatting.Code);
 
         return Task.FromResult(CommandResult.Success(fString));
     }
