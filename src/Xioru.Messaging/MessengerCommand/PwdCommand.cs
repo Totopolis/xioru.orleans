@@ -3,6 +3,7 @@ using Orleans;
 using System.CommandLine;
 using System.Text;
 using Xioru.Messaging.Contracts.Command;
+using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 
@@ -24,9 +25,7 @@ public class PwdCommand : AbstractMessengerCommand
             return Task.FromResult(CommandResult.Success("No accessed projects"));
         }
 
-        var sb = new StringBuilder();
-        sb.AppendLine("> List of the accessible projects");
-        sb.Append("```");
+        var fString = new FormattedString("List of the accessible projects", StringFormatting.BoxedLine);
 
         var table = new ConsoleTable("Name", "Current");
 
@@ -35,8 +34,8 @@ public class PwdCommand : AbstractMessengerCommand
             table.AddRow(it.ProjectName, it.IsCurrent ? "X" : string.Empty);
         }
 
-        sb.Append($"{table.ToMinimalString()}```");
+        fString.Append($"{table.ToMinimalString()}", StringFormatting.Code);
 
-        return Task.FromResult(CommandResult.Success(sb.ToString()));
+        return Task.FromResult(CommandResult.Success(fString));
     }
 }

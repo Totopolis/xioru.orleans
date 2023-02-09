@@ -5,6 +5,7 @@ using System.Text;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.ProjectReadModel;
 using Xioru.Messaging.Contracts.Command;
+using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 
@@ -37,15 +38,13 @@ public class SpwdCommand : AbstractMessengerCommand
         context.Manager.TryGetChannels(context.ChatId, out var channels);
 
         var filter = GetArgumentValue(_filterArgument);
-        
+
         var readModel = _factory.GetGrain<IProjectReadModelGrain>(
             GrainConstants.ClusterStreamId);
 
         var projects = await readModel.GetProjectsByFilter(filter);
 
-        var sb = new StringBuilder();
-        sb.AppendLine("> List of all user projects");
-        sb.Append("```");
+        var fString = new FormattedString("List of all user projects", StringFormatting.BoxedLine);
 
         var table = new ConsoleTable("Id", "Name", "Current");
 
@@ -59,8 +58,8 @@ public class SpwdCommand : AbstractMessengerCommand
                     string.Empty : "X");
         }
 
-        sb.Append($"{table.ToMinimalString()}```");
+        fString.Append($"{table.ToMinimalString()}", StringFormatting.Code);
 
-        return CommandResult.Success(sb.ToString());
+        return CommandResult.Success(fString);
     }
 }
