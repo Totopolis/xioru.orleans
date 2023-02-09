@@ -4,6 +4,7 @@ using System.CommandLine;
 using System.Text;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
+using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
 
@@ -38,29 +39,33 @@ public class HelpCommand : AbstractMessengerCommand
 
         var commandName = GetArgumentValue(_nameArgument);
 
-        var sb = new StringBuilder();
+        var result = new FormattedString();
 
         if (string.IsNullOrWhiteSpace(commandName))
         {
-            sb.AppendLine("Common commands:");
+            result.Append("Common commands:\n");
             messengerCommands
+                .OrderBy(x => x.Name)
                 .ToList()
                 .ForEach(x =>
                 {
-                    sb.Append(x.Name);
-                    sb.Append(": ");
-                    sb.AppendLine(x.Description);
+                    result.Append(x.Name, StringFormatting.Bold);
+                    result.Append(": ");
+                    result.Append(x.Description);
+                    result.Append("\n");
                 });
 
-            sb.AppendLine();
-            sb.AppendLine("Project commands:");
+            result.Append("\n");
+            result.Append("Project commands:\n");
             channelCommands
+                .OrderBy(x => x.Name)
                 .ToList()
                 .ForEach(x =>
                 {
-                    sb.Append(x.Name);
-                    sb.Append(": ");
-                    sb.AppendLine(x.Description);
+                    result.Append(x.Name, StringFormatting.Bold);
+                    result.Append(": ");
+                    result.Append(x.Description);
+                    result.Append("\n");
                 });
         }
         else
@@ -70,14 +75,16 @@ public class HelpCommand : AbstractMessengerCommand
 
             if (command != null)
             {
-                sb.AppendLine(command.GetHelp());
+                result.Append(command.GetHelp());
+                result.Append("\n");
             }
             else
             {
-                sb.AppendLine("Command not found");
+                result.Append("Command not found");
+                result.Append("\n");
             }
         }
 
-        return Task.FromResult(CommandResult.Success(sb.ToString()));
+        return Task.FromResult(CommandResult.Success(result));
     }
 }
