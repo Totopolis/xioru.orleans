@@ -1,6 +1,7 @@
 ﻿namespace Xioru.Grain.Contracts.Exception;
 
 [Serializable]
+[GenerateSerializer]
 public class AccountNotConfirmedException : System.Exception
 {
 	public AccountNotConfirmedException() { }

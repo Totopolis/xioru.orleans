@@ -1,6 +1,7 @@
 ﻿namespace Xioru.Grain.Contracts.Exception;
 
 [Serializable]
+[GenerateSerializer]
 public class AccountBadPasswordException : System.Exception
 {
 	public AccountBadPasswordException() { }
