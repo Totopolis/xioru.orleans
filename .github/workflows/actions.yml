@@ -35,9 +35,9 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} /p:PublishDir=./publish
+        run: dotnet build --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} /p:PublishDir=./
       - name: Create the package
-        run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} /p:PublishDir=./publish
+        run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} --property PackageOutputPath=./
       - name: ls
         run: ls
       - name: Publish the package to GPR
