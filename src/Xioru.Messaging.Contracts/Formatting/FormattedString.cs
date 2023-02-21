@@ -64,6 +64,10 @@ public class FormattedString
                         ApplyFormatRules(Escape(cuttedText, replaces), elm.Formatting);
                     strApplied += formatedFooter;
                 }
+                else
+                {
+                    strApplied = Escape(elm.Text.Substring(0, (limitWithComment - builder.Length)/2), replaces);
+                }
                 builder.Append(strApplied);
                 break;
             }
