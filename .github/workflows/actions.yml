@@ -37,7 +37,7 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER}
       - name: Create the package
-        run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} /p:PackageOutputPath=src/
+        run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} /p:PackageOutputPath=./src
       - name: Publish the package to GPR
-        run: dotnet nuget push src/*.nupkg --skip-duplicate -k ${{secrets.NUGET_API_KEY}}
+        run: dotnet nuget push ./src/*.nupkg --skip-duplicate -k ${{secrets.NUGET_API_KEY}}
 
