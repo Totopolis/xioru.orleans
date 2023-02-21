@@ -40,8 +40,6 @@ jobs:
         run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER}
       - name: find
         run: find . -name "*.nupkg" -type f -exec cp {} . \;
-      - name: ls
-        run: ls
       - name: Publish the package to GPR
-        run: dotnet nuget push "**/*.nupkg" -NoSymbols --skip-duplicate -k ${{secrets.NUGET_API_KEY}}
+        run: dotnet nuget push "*.nupkg" --skip-duplicate -k ${{secrets.NUGET_API_KEY}}
 
