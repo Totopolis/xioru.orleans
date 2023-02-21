@@ -35,9 +35,9 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER}
+        run: dotnet build --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} -p:PublishDir=./publish
       - name: Create the package
-        run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} --output /src
+        run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} -p:PublishDir=./publish
       - name: Publish the package to GPR
         run: dotnet nuget push "**/*.nupkg" -NoSymbols --skip-duplicate -k ${{secrets.NUGET_API_KEY}}
 
