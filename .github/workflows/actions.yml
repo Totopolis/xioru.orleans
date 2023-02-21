@@ -2,28 +2,30 @@ name: .NET
 
 on:
   push:
-    branches: [ "*/*" ]
+    branches: [ "main", "feature/**" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-#   build:
-#     runs-on: ubuntu-20.04
-#     steps:
-#     - uses: actions/checkout@v3
-#     - name: Setup .NET
-#       uses: actions/setup-dotnet@v3
-#       with:
-#         dotnet-version: 7.0.x 
-#     - name: Build
-#       run: dotnet build
-#     - name: Test
-#       run: dotnet test --no-build --verbosity normal
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x 
+    - name: Build
+      run: dotnet build
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
   deploy:
     runs-on: ubuntu-latest
-#    needs: build
+    needs: build
     permissions:
       packages: write
       contents: read
-   # if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v2
@@ -38,7 +40,7 @@ jobs:
         run: dotnet build --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER}
       - name: Create the package
         run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER}
-      - name: find
+      - name: workaround for .net issue (https://github.com/dotnet/performance/pull/2774)
         run: find . -name "*.nupkg" -type f -exec cp {} . \;
       - name: Publish the package to GPR
         run: dotnet nuget push "*.nupkg" --skip-duplicate -k ${{secrets.NUGET_API_KEY}}
