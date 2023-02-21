@@ -25,7 +25,7 @@ jobs:
     permissions:
       packages: write
       contents: read
-   # if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-dotnet@v2
@@ -39,7 +39,9 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER}
       - name: Create the package
-        run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER} /p:PackageOutputPath=src/
+        run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER}
+      - name: workaround for .net issue (https://github.com/dotnet/performance/pull/2774)
+        run: find . -name "*.nupkg" -type f -exec cp {} . \;
       - name: Publish the package to GPR
-        run: dotnet nuget push src/*.nupkg --skip-duplicate -k ${{secrets.NUGET_API_KEY}}
+        run: dotnet nuget push "*.nupkg" --skip-duplicate -k ${{secrets.NUGET_API_KEY}}
 
