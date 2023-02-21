@@ -39,7 +39,7 @@ jobs:
       - name: Create the package
         run: dotnet pack --configuration Release -p:Version=1.0.${GITHUB_RUN_NUMBER}
       - name: find
-        run: find . -name "*.nupkg" -type f -exec cp {} . \
+        run: find . -name "*.nupkg" -type f -exec cp {} . \;
       - name: ls
         run: ls
       - name: Publish the package to GPR
