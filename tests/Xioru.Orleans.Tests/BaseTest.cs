@@ -1,8 +1,12 @@
-using System.Linq;
+using System;
 using System.Threading.Tasks;
 using Orleans;
+using Xioru.Grain.Contracts.ClusterRegistry;
+using Xioru.Grain.Contracts.GrainReadModel;
+using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Orleans.Tests.Common;
 using Xioru.Orleans.Tests.Contracts;
+using Xioru.Orleans.Tests.Domain;
 using Xunit;
 
 namespace Xioru.Orleans.Tests;
@@ -15,20 +19,20 @@ public class BaseTest : AbstractTest
     }
 
     [Fact]
-    public async Task CheckProjectAndChannelCreated()
+    public async Task CreateChannel_InExistedProject_ChannelCreated()
     {
         await PrepareAsync();
 
-        var project = await _projectReadModel
-            .GetProjectByName(_projectName);
-        Assert.NotNull(project);
-
-        var channel = await _grainReadModel.GetGrainDetailsByName(_channelName);
+        var projectId = await _factory.GetGrain<IClusterRegistryGrain>(Guid.Empty)
+            .GetProjectIdByNameOrDefaultAsync(_projectName);
+        Assert.NotNull(projectId);
+        var channel = await _factory.GetGrain<IProjectRegistryGrain>(projectId.Value)
+            .GetGrainDetailsByName(_channelName);
         Assert.NotNull(channel);
     }
 
     [Fact]
-    public async Task CheckChannel()
+    public async Task SendMessage_ChannelExists_SentWithNoException()
     {
         await PrepareAsync();
 
@@ -39,37 +43,29 @@ public class BaseTest : AbstractTest
     }
 
     [Fact]
-    public async Task CheckGrainReadModel()
+    public async Task CreateChannel_ExistedProject_ReadModelUpdated()
     {
         await PrepareAsync();
 
-        var details = await _grainReadModel.GetGrains();
+        await Task.Delay(400);
+        var details = await _factory.GetGrain<IGrainReadModelGrain>(_projectId)
+            .GetGrains();
+
         Assert.Equal(2, details.Count);
     }
 
     [Fact]
-    public async Task CreateFooGrain()
+    public async Task CreateFooGrain_ExistedProject_GrainCreatedInRegistry()
     {
         await PrepareAsync();
 
         await InternalCreateFoo("Foo");
 
-        var details = await _grainReadModel.GetGrainDetailsByName("Foo");
+        var details = await _factory.GetGrain<IProjectRegistryGrain>(_projectId)
+            .GetGrainDetailsByName("Foo");
         Assert.NotNull(details);
         Assert.Equal("Foo", details!.GrainName);
-    }
-
-    [Fact]
-    public async Task FindFooByFilter()
-    {
-        await PrepareAsync();
-
-        await InternalCreateFoo("Foo");
-        await InternalCreateFoo("Bob");
-
-        var foo = (await _grainReadModel.GetGrains("oo")).FirstOrDefault();
-        Assert.NotNull(foo);
-        Assert.Equal("Foo", foo!.GrainName);
+        Assert.Equal(typeof(FooGrain).FullName, details!.GrainType);
     }
 
     [Fact]
@@ -77,39 +73,29 @@ public class BaseTest : AbstractTest
     {
         await PrepareAsync();
 
-        var project = await _projectReadModel.GetProjectById(_projectId);
-        Assert.NotNull(project);
+        var name = await _factory.GetGrain<IClusterRegistryGrain>(Guid.Empty)
+            .GetProjectNameByIdOrDefaultAsync(_projectId);
+        Assert.NotNull(name);
     }
 
     [Fact]
-    public async Task GetGrainByIdOrDefault()
+    public async Task CreateFoo_CorrectCreation_OnlyFooGrainExists()
     {
         await PrepareAsync();
+
         await InternalCreateFoo("Foo");
 
-        var details = await _grainReadModel.GetGrainDetailsByName("Foo");
+        var details = await _factory.GetGrain<IProjectRegistryGrain>(_projectId)
+            .GetGrainDetailsByName("Foo");
         Assert.NotNull(details);
 
         var id = details.GrainId;
-        var foo = await _grainReadModel.GetGrainByIdOrDefault<IFooGrain>(id);
-        Assert.NotNull(foo);
+        var projection = await _factory.GetGrain<IFooGrain>(details.GrainId)!
+            .GetProjection();
+        Assert.NotNull(projection);
 
-        var notFoo = await _grainReadModel.GetGrainByIdOrDefault<INotFooGrain>(id);
-        Assert.Null(notFoo);
-    }
-
-    [Fact]
-    public async Task GetGrainDetailsByIdAndInterface()
-    {
-        await PrepareAsync();
-        await InternalCreateFoo("Foo");
-
-        var details = await _grainReadModel.GetGrainDetailsByName("Foo");
-        Assert.NotNull(details);
-
-        var id = details.GrainId;
-        var fooDetails = await _grainReadModel.GetGrainDetailsByIdAndInterface<IFooGrain>(id);
-        Assert.NotNull(fooDetails);
+        var otherGrainExists = await _factory.CheckGrainExistsInProjectAsync<INotFooGrain>(_projectId, id);
+        Assert.False(otherGrainExists);
     }
 }
 

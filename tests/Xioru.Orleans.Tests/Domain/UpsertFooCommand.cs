@@ -2,6 +2,7 @@
 using System;
 using System.CommandLine;
 using System.Threading.Tasks;
+using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Orleans.Tests.Contracts;
@@ -50,7 +51,8 @@ public class UpsertFooCommand : AbstractChannelCommand
         var data = GetOptionValue(_dataOption)!;
         var meta = GetOptionValue(_metaOption)!;
 
-        var details = await _grainReadModel.GetGrainDetailsByName(name);
+        var details = await _factory.GetGrain<IProjectRegistryGrain>(context.ProjectId)
+            .GetGrainDetailsByName(name);
         if (details == null)
         {
             var grain = _factory.GetGrain<IFooGrain>(Guid.NewGuid());

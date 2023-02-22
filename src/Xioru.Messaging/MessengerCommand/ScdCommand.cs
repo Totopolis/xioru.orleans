@@ -2,8 +2,9 @@
 using System.CommandLine;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.ClusterRegistry;
 using Xioru.Grain.Contracts.GrainReadModel;
-using Xioru.Grain.Contracts.ProjectReadModel;
+using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
@@ -33,13 +34,13 @@ public class ScdCommand : AbstractMessengerCommand
             return CommandResult.LogicError("Command not found");
         }
 
-        var readModel = _factory.GetGrain<IProjectReadModelGrain>(
+        var readModel = _factory.GetGrain<IClusterRegistryGrain>(
             GrainConstants.ClusterStreamId);
 
         var projectName = GetArgumentValue(_nameArgument);
-        var project = await readModel.GetProjectByName(projectName);
+        var projectId = await readModel.GetProjectIdByNameOrDefaultAsync(projectName);
 
-        if (project == null)
+        if (projectId == default)
         {
             return CommandResult.LogicError("Project name not found");
         }
@@ -60,7 +61,7 @@ public class ScdCommand : AbstractMessengerCommand
             var channelId = Guid.NewGuid();
             var channel = _factory.GetGrain<IChannelGrain>(channelId);
             await channel.CreateAsync(new CreateChannelCommandModel(
-                ProjectId: project.Id,
+                ProjectId: projectId.Value,
                 Name: $"{context.MessengerType}-{context.ChatId}",
                 DisplayName: $"{context.MessengerType}-{context.ChatId}",
                 Description: string.Empty,
@@ -69,24 +70,18 @@ public class ScdCommand : AbstractMessengerCommand
                 MessengerType: context.MessengerType,
                 ChatId: context.ChatId));
 
-            var checkChannelCreated = async () =>
-            {
-                var grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(project.Id);
-                var channelDetails = await grainReadModel.GetGrainById(channelId);
-                return channelDetails != null;
-            };
+            var success = await _factory.CheckGrainExistsInProjectAsync(projectId.Value, channelId);
 
-            if (!await checkChannelCreated.CheckTimeoutedAsync())
+            if (!success)
             {
                 throw new Exception("Channel not created");
             }
 
-            //
             await context.Manager.JoinToProject(
                 context.ChatId,
                 channelId,
-                project.Name,
-                project.Id);
+                projectName,
+                projectId.Value);
 
             return CommandResult.Success($"Project {projectName} joined");
         }

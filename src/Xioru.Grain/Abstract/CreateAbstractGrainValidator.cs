@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Xioru.Grain.Contracts.AbstractGrain;
 using Xioru.Grain.Contracts.GrainReadModel;
+using Xioru.Grain.Contracts.ProjectRegistry;
 
 namespace Xioru.Grain.AbstractGrain;
 
@@ -21,10 +22,10 @@ public abstract class CreateAbstractGrainValidator<T> : AbstractValidator<T>
         RuleFor(c => c.ProjectId)
             .MustAsync(async (projectId, cancel) =>
             {
-                var projectReadModel = factory
-                    .GetGrain<IGrainReadModelGrain>(projectId);
-                var projectDescription = await projectReadModel
-                    .GetGrainById(projectId);
+                var projectRegistry = factory
+                    .GetGrain<IProjectRegistryGrain>(projectId);
+                var projectDescription = await projectRegistry!
+                    .GetGrainDetailsById(projectId);
 
                 return projectDescription != null;
             })

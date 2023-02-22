@@ -1,6 +1,7 @@
 ﻿using ConsoleTables;
 using Orleans;
 using System.CommandLine;
+using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Formatting;
@@ -35,8 +36,9 @@ public class ListCommand : AbstractChannelCommand
                 "Filter must be at least 3 characters long");
         }
 
-        var grainDetails = await _grainReadModel.GetGrains(filterValue);
-        if (grainDetails!.Count == 0)
+        var grainDetails = await _factory.GetGrain<IGrainReadModelGrain>(context.ProjectId)
+            .GetGrains(filterValue);
+        if (!grainDetails!.Any())
         {
             return CommandResult.Success("No objects found");
         }

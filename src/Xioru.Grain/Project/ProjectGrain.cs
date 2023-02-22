@@ -5,10 +5,11 @@ using Orleans;
 using Orleans.Runtime;
 using Orleans.Streams;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.ClusterRegistry;
 using Xioru.Grain.Contracts.Messages;
 using Xioru.Grain.Contracts.Project;
 using Xioru.Grain.Contracts.Project.Events;
-using Xioru.Grain.Contracts.ProjectReadModel;
+using Xioru.Grain.Contracts.ProjectRegistry;
 
 namespace Xioru.Grain.Project;
 
@@ -36,7 +37,7 @@ public class ProjectGrain : Orleans.Grain, IProjectGrain
 
     public async Task Create(CreateProjectCommand createCommand)
     {
-        var grainId = this.GetPrimaryKey();
+        var projectId = this.GetPrimaryKey();
 
         // 0. Check state
         if (_state.RecordExists)
@@ -51,19 +52,14 @@ public class ProjectGrain : Orleans.Grain, IProjectGrain
             throw new Exception("Empty string in name or project");
         }
 
-        // Check projectId
-        /*if (createCommand.ProjectId != grainId)
-        {
-            throw new Exception("Bad projectId value");
-        }*/
-
-        // Check project name already exists
-        var projectReadModel = _grainFactory
-            .GetGrain<IProjectReadModelGrain>(GrainConstants.ClusterStreamId);
-        if (await projectReadModel.GetProjectByName(createCommand.Name) != default)
+        var clusterRegistry = _grainFactory
+            .GetGrain<IClusterRegistryWriterGrain>(Guid.Empty);
+        if (!await clusterRegistry.OnProjectCreatedAsync(projectId, createCommand.Name))
         {
             throw new Exception("Project name already exists");
         }
+        await _grainFactory.GetGrain<IProjectRegistryWriterGrain>(projectId)
+            .OnGrainCreated(createCommand.Name, projectId, this.GetType().FullName!);
 
         // 2. Save state
         State.Name = createCommand.Name;

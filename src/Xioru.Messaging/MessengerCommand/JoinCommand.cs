@@ -7,6 +7,7 @@ using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
+using Xioru.Grain.Contracts.ProjectRegistry;
 
 namespace Xioru.Messaging.MessengerCommand;
 
@@ -62,19 +63,13 @@ public class JoinCommand : AbstractMessengerCommand
             MessengerType: context.MessengerType,
             ChatId: context.ChatId));
 
-        var checkChannelCreated = async () =>
-        {
-            var grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(projectId);
-            var channelDetails = await grainReadModel.GetGrainById(channelId);
-            return channelDetails != null;
-        };
+        var success = await _factory.CheckGrainExistsInProjectAsync(projectId, channelId);
 
-        if (!await checkChannelCreated.CheckTimeoutedAsync())
+        if (!success)
         {
             throw new Exception("Channel not created");
         }
 
-        //
         await context.Manager.JoinToProject(
             context.ChatId,
             channelId,

@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.Linq;
 using System.Threading.Tasks;
 using Xioru.Grain;
+using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Orleans.Tests.Common;
 using Xioru.Orleans.Tests.Contracts;
 using Xunit;
@@ -17,10 +18,11 @@ public class CommandTest : AbstractTest
     }
 
     [Fact]
-    public async Task CheckListCommand()
+    public async Task ListCommand_ReadModelContainsGrains_ReturnsTheGrains()
     {
         await PrepareAsync();
         var foo = await InternalCreateFoo("Foo1");
+        await Task.Delay(300);
 
         var result = await _channel.ExecuteCommand("/list");
         var text = result.Message.ToString();
@@ -61,10 +63,9 @@ public class CommandTest : AbstractTest
         var result = await _channel.ExecuteCommand("/upsert foo1 data=123");
         Assert.True(result.IsSuccess, result.Message);
 
-        await CheckFooCreated("foo1");
+        await _factory.CheckGrainExistsInProjectAsync(_projectId, "foo1");
 
-        var grain = await _grainReadModel.GetGrainByNameOrDefault<IFooGrain>("foo1");
-        Assert.NotNull(grain);
+        var grain = await _factory.GetGrainFromProjectAsync<IFooGrain>(_projectId, "foo1");
 
         var projection = await grain!.GetProjection();
         Assert.Equal("123", projection.FooData);
@@ -77,21 +78,21 @@ public class CommandTest : AbstractTest
         await PrepareAsync();
 
         await _channel.ExecuteCommand("/upsert foo1 data=123");
-        await CheckFooCreated("foo1");
+        await _factory.CheckGrainExistsInProjectAsync(_projectId, "foo1");
 
         var result = await _channel.ExecuteCommand("/upsert foo1 data=666 meta=111");
         Assert.True(result.IsSuccess, result.Message);
 
         await Task.Delay(500);
 
-        var grain = await _grainReadModel.GetGrainByNameOrDefault<IFooGrain>("foo1");
-        var projection = await grain!.GetProjection();
+        var grain = await _factory.GetGrainFromProjectAsync<IFooGrain>(_projectId, "foo1");
+        var projection = await grain.GetProjection();
         Assert.Equal("666", projection.FooData);
         Assert.Equal("111", projection.FooMeta);
     }
 
     [Fact]
-    public void XXX()
+    public void CommandLineParse_CustomCommand_GetsArgumentsAndOptionsCorrectly()
     {
         var xxx = "hello tada key=1 val=\"2 3\" val=4";
 
@@ -132,20 +133,5 @@ public class CommandTest : AbstractTest
             .ToArray()[2].Tokens
             .Select(x => x.Value)
             .ToArray();
-    }
-
-    private async Task CheckFooCreated(string fooName)
-    {
-        var checkFooCreated = async () =>
-        {
-            var fooGrain = await _grainReadModel
-                .GetGrainByNameOrDefault<IFooGrain>(fooName);
-            return fooGrain != null;
-        };
-
-        if (!await checkFooCreated.CheckTimeoutedAsync())
-        {
-            throw new Exception("Foo not created");
-        }
     }
 }

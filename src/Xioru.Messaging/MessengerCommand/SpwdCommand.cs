@@ -1,7 +1,5 @@
 ﻿using ConsoleTables;
-using Orleans;
 using System.CommandLine;
-using System.Text;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.ProjectReadModel;
 using Xioru.Messaging.Contracts.Command;
