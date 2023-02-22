@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.Parsing;
 using Xioru.Grain.Contracts.GrainReadModel;
+using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Messaging.Contracts.Channel;
 
 namespace Xioru.Messaging.Contracts.Command;
@@ -10,7 +11,7 @@ namespace Xioru.Messaging.Contracts.Command;
 public abstract class AbstractChannelCommand : IChannelCommand
 {
     protected readonly IGrainFactory _factory;
-    protected IGrainReadModelGrain _grainReadModel = default!;
+    protected IProjectRegistryGrain _projectRegistry = default!;
 
     private ParseResult _parseResult = default!;
 
@@ -56,7 +57,7 @@ public abstract class AbstractChannelCommand : IChannelCommand
                 return CommandResult.SyntaxError(msg);
             }
 
-            _grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(ctx.ProjectId);
+            _projectRegistry = _factory.GetGrain<IProjectRegistryGrain>(ctx.ProjectId);
 
             return await ExecuteInternal(ctx);
         }
@@ -90,7 +91,7 @@ public abstract class AbstractChannelCommand : IChannelCommand
 
     protected abstract Task<CommandResult> ExecuteInternal(ChannelCommandContext context);
 
-    protected async Task<GrainDetails> CheckGrain(
+    protected async Task<GrainRegistryDetails> CheckGrain(
         string grainName,
         string? grainType = null)
     {
@@ -99,7 +100,7 @@ public abstract class AbstractChannelCommand : IChannelCommand
             throw new CommandSyntaxErrorException("Empty grain name");
         }
 
-        var grainDetails = await _grainReadModel.GetGrainDetailsByName(grainName);
+        var grainDetails = await _projectRegistry.GetGrainDetailsByName(grainName);
 
         if (grainDetails == null)
         {
@@ -109,24 +110,6 @@ public abstract class AbstractChannelCommand : IChannelCommand
         if (grainType != null && grainDetails.GrainType != grainType)
         {
             throw new CommandLogicErrorException($"Object {grainName} have bad type");
-        }
-
-        return grainDetails;
-    }
-
-    protected async Task<GrainDetails> CheckGrain<T>(string grainName) 
-        where T: class, IGrainWithGuidKey 
-    {
-        if (string.IsNullOrWhiteSpace(grainName))
-        {
-            throw new CommandSyntaxErrorException("Empty grain name");
-        }
-
-        var grainDetails = await _grainReadModel.GetGrainDetailsByNameAndInterface<T>(grainName);
-
-        if (grainDetails == null)
-        {
-            throw new CommandLogicErrorException($"Object {grainName} of required type not found");
         }
 
         return grainDetails;

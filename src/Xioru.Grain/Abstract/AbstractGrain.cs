@@ -9,6 +9,7 @@ using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.AbstractGrain;
 using Xioru.Grain.Contracts.Exception;
 using Xioru.Grain.Contracts.Messages;
+using Xioru.Grain.Contracts.ProjectRegistry;
 
 namespace Xioru.Grain.AbstractGrain;
 
@@ -50,13 +51,46 @@ public abstract class AbstractGrain<
 
     public virtual async Task CreateAsync(T_CREATE_COMMAND createCommand)
     {
-        // 0. Check state
-        if (IsCreated)
+        try
         {
-            throw new Exception("Grain already exists");
+            if (IsCreated)
+            {
+                throw new Exception("Grain already exists");
+            }
+
+            await ThrowIfValidationFailsAsync(createCommand);
+
+            await UpdateStateAsync(createCommand);
+            await GrainFactory.GetGrain<IProjectRegistryWriterGrain>(State.ProjectId)
+                .OnGrainCreated(State.Name, this.GetPrimaryKey(), this.GetType().FullName!);
+        }
+        catch
+        {
+            _log.LogError("Error encountered, removing grain");
+            var name = State.Name;
+            await _state.ClearStateAsync();
+            await GrainFactory.GetGrain<IProjectRegistryWriterGrain>(State.ProjectId)
+                .OnGrainDeleted(name, this.GetPrimaryKey(), this.GetType().FullName!);
+            throw;
         }
 
-        // 1. Validate command
+        // 3. Event sourcing
+        await OnCreateEmitEvent(createCommand);
+
+        _log.LogInformation($"Grain {createCommand.Name} created in project {createCommand.ProjectId}");
+    }
+
+    private async Task UpdateStateAsync(T_CREATE_COMMAND createCommand)
+    {
+        _mapper.Map(createCommand, State);
+        State.Id = this.GetPrimaryKey();
+        State.CreatedUtc = DateTime.UtcNow;
+        State.UpdatedUtc = DateTime.UtcNow;
+        await _state.WriteStateAsync();
+    }
+
+    private async Task ThrowIfValidationFailsAsync(T_CREATE_COMMAND createCommand)
+    {
         var vcontext = new ValidationContext<T_CREATE_COMMAND>(createCommand);
         vcontext.RootContextData["state"] = State;
         var vr = await _createValidator.ValidateAsync(vcontext);
@@ -66,18 +100,6 @@ public abstract class AbstractGrain<
             var msg = string.Join(';', vr.Errors.Select(x => x.ErrorMessage));
             throw new Exception(msg);
         }
-
-        // 2. Update local state and force save
-        _mapper.Map(createCommand, State);
-        State.Id = this.GetPrimaryKey();
-        State.CreatedUtc = DateTime.UtcNow;
-        State.UpdatedUtc= DateTime.UtcNow;
-        await _state.WriteStateAsync();
-
-        // 3. Event sourcing
-        await OnCreateEmitEvent(createCommand);
-
-        _log.LogInformation($"Grain {createCommand.Name} created in project {createCommand.ProjectId}");
     }
 
     protected abstract Task OnCreateEmitEvent(T_CREATE_COMMAND createCommand);
@@ -93,6 +115,8 @@ public abstract class AbstractGrain<
 
         var name = State.Name;
         var projectId = State.ProjectId;
+        await GrainFactory.GetGrain<IProjectRegistryWriterGrain>(State.ProjectId)
+            .OnGrainDeleted(State.Name, this.GetPrimaryKey(), this.GetType().FullName!);
 
         // 2. Delete state after emit event!!!
         await _state.ClearStateAsync();

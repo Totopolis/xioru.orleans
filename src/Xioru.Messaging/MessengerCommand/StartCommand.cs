@@ -2,9 +2,10 @@
 using System.CommandLine;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.ClusterRegistry;
 using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Grain.Contracts.Project;
-using Xioru.Grain.Contracts.ProjectReadModel;
+using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
@@ -60,8 +61,8 @@ public class StartCommand : AbstractMessengerCommand
         }
 
         // 3. check project name already used
-        var readModel = _factory.GetGrain<IProjectReadModelGrain>(GrainConstants.ClusterStreamId);
-        var projectDescription = await readModel.GetProjectByName(projectName);
+        var readModel = _factory.GetGrain<IClusterRegistryGrain>(GrainConstants.ClusterStreamId);
+        var projectDescription = await readModel.GetProjectIdByNameOrDefaultAsync(projectName);
 
         if (projectDescription != default)
         {
@@ -76,14 +77,9 @@ public class StartCommand : AbstractMessengerCommand
             DisplayName: projectName,
             Description: string.Empty));
 
-        var checkProjectReadModel = async () =>
-        {
-            var grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(projectId);
-            var projectDescription = await grainReadModel.GetGrainById(projectId);
-            return projectDescription != null;
-        };
+        var success = await _factory.CheckGrainExistsInProjectAsync(projectId, projectId);
 
-        if (!await checkProjectReadModel.CheckTimeoutedAsync())
+        if (!success)
         {
             throw new Exception("Project not created");
         }
@@ -101,14 +97,9 @@ public class StartCommand : AbstractMessengerCommand
             MessengerType: context.MessengerType,
             ChatId: context.ChatId));
 
-        var checkChannelCreated = async () =>
-        {
-            var grainReadModel = _factory.GetGrain<IGrainReadModelGrain>(projectId);
-            var channelDetails = await grainReadModel.GetGrainById(channelId);
-            return channelDetails != null;
-        };
+        var channelCreationSuccess = await _factory.CheckGrainExistsInProjectAsync(projectId, channelId);
 
-        if (!await checkChannelCreated.CheckTimeoutedAsync())
+        if (!channelCreationSuccess)
         {
             throw new Exception("Channel not created");
         }
