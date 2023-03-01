@@ -45,6 +45,7 @@ namespace Xioru.Grain.ProjectRegistry
             }
             
             _state.State.RegistryDetails.Add(new(name, projectId));
+            await _state.WriteStateAsync();
             return true;
         }
 
@@ -54,6 +55,7 @@ namespace Xioru.Grain.ProjectRegistry
             var countRemoved = _state.State.RegistryDetails.RemoveAll(
                 x => x.Name == name
                 && x.Id == projectId);
+            await _state.WriteStateAsync();
             if (countRemoved != 1)
             {
                 _logger.LogWarning($"Project {name} had to be removed from the registry, but removed {countRemoved}");

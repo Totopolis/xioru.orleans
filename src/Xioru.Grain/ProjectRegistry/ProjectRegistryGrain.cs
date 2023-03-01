@@ -42,6 +42,7 @@ namespace Xioru.Grain.ProjectRegistry
         {
             await Task.CompletedTask;
             _state.State.RegistryDetails.Add(new(name, typeName, guid));
+            await _state.WriteStateAsync();
         }
 
         public async Task OnGrainDeleted(string name, Guid guid, string typeName)
@@ -51,6 +52,7 @@ namespace Xioru.Grain.ProjectRegistry
                 x => x.GrainName == name
                 && x.GrainId == guid
                 && x.GrainType == typeName);
+            await _state.WriteStateAsync();
             if (countRemoved != 1)
             {
                 _logger.LogWarning($"Grain {name} had to be removed from registry, but removed {countRemoved}");
