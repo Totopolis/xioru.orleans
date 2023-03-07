@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Orleans;
+using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.ClusterRegistry;
 using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Grain.Contracts.ProjectRegistry;
@@ -23,7 +24,7 @@ public class BaseTest : AbstractTest
     {
         await PrepareAsync();
 
-        var projectId = await _factory.GetGrain<IClusterRegistryGrain>(Guid.Empty)
+        var projectId = await _factory.GetGrain<IClusterRegistryGrain>(GrainConstants.ClusterStreamId)
             .GetProjectIdByNameOrDefaultAsync(_projectName);
         Assert.NotNull(projectId);
         var channel = await _factory.GetGrain<IProjectRegistryGrain>(projectId.Value)
@@ -73,7 +74,7 @@ public class BaseTest : AbstractTest
     {
         await PrepareAsync();
 
-        var name = await _factory.GetGrain<IClusterRegistryGrain>(Guid.Empty)
+        var name = await _factory.GetGrain<IClusterRegistryGrain>(GrainConstants.ClusterStreamId)
             .GetProjectNameByIdOrDefaultAsync(_projectId);
         Assert.NotNull(name);
     }
