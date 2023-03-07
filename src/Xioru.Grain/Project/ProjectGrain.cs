@@ -52,8 +52,7 @@ public class ProjectGrain : Orleans.Grain, IProjectGrain
             throw new Exception("Empty string in name or project");
         }
 
-        var clusterRegistry = _grainFactory
-            .GetGrain<IClusterRegistryWriterGrain>(Guid.Empty);
+        var clusterRegistry = _grainFactory.GetGrain<IClusterRegistryWriterGrain>(GrainConstants.ClusterStreamId);
         if (!await clusterRegistry.OnProjectCreatedAsync(projectId, createCommand.Name))
         {
             throw new Exception("Project name already exists");
