@@ -54,6 +54,30 @@ public static class Helpers
         return stream;
     }
 
+    public static async Task<IAsyncStream<T>> GetStreamAndSingleSubscribe<T>(
+        this IStreamProvider provider,
+        Guid streamId,
+        string streamNamespace,
+        IAsyncBatchObserver<T> observer)
+    {
+        var stream = provider.GetStream<T>(StreamId.Create(
+            ns: streamNamespace,
+            key: streamId));
+
+        var handles = await stream.GetAllSubscriptionHandles();
+
+        if (handles == null || !handles.Any())
+        {
+            await stream.SubscribeAsync(observer);
+        }
+        else
+        {
+            await handles.First().ResumeAsync(observer);
+        }
+
+        return stream;
+    }
+
     public static async Task UnSubscribeFromAll<T>(
         this IStreamProvider provider,
         Guid streamId,
