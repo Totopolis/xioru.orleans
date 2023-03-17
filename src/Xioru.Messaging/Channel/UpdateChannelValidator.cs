@@ -1,5 +1,4 @@
-﻿using Orleans;
-using Xioru.Grain.AbstractGrain;
+﻿using Xioru.Grain.AbstractGrain;
 using Xioru.Messaging.Contracts.Channel;
 
 namespace Xioru.Messaging.Channel;

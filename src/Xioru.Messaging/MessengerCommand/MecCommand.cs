@@ -1,5 +1,4 @@
-﻿using Orleans;
-using System.CommandLine;
+﻿using System.CommandLine;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;

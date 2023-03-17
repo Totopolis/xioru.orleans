@@ -1,6 +1,4 @@
-﻿using Orleans;
-
-namespace Xioru.Grain.Contracts.Project;
+﻿namespace Xioru.Grain.Contracts.Project;
 
 public interface IProjectGrain : IGrainWithGuidKey
 {

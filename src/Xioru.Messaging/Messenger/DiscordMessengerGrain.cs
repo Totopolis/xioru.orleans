@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Orleans;
 using Xioru.Messaging.Contracts.Config;
 using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;

@@ -1,6 +1,4 @@
-﻿using Orleans;
-
-namespace Xioru.Grain.Contracts.GrainReadModel;
+﻿namespace Xioru.Grain.Contracts.GrainReadModel;
 
 public interface IGrainReadModelGrain : IGrainWithGuidKey
 {
