@@ -1,6 +1,4 @@
-﻿using Orleans;
-
-namespace Xioru.Grain.Contracts.Mailer;
+﻿namespace Xioru.Grain.Contracts.Mailer;
 
 public interface IMailerGrain : IGrainWithGuidKey
 {

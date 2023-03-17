@@ -1,6 +1,4 @@
-﻿using Orleans;
-
-namespace Xioru.Grain.Contracts.Account;
+﻿namespace Xioru.Grain.Contracts.Account;
 
 /// <summary>
 /// GrainId = email (john@domain.com) or phone number (79031234567)

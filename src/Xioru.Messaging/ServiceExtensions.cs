@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Orleans;
 using Xioru.Messaging.Channel;
 using Xioru.Messaging.ChannelCommand;
 using Xioru.Messaging.Contracts.Channel;

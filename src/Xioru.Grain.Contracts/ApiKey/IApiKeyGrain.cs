@@ -1,6 +1,4 @@
-﻿using Orleans;
-
-namespace Xioru.Grain.Contracts.ApiKey;
+﻿namespace Xioru.Grain.Contracts.ApiKey;
 
 public interface IApiKeyGrain : IGrainWithGuidKey
 {

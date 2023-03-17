@@ -1,5 +1,4 @@
 ﻿using ConsoleTables;
-using Orleans;
 using System.CommandLine;
 using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Messaging.Contracts.Channel;

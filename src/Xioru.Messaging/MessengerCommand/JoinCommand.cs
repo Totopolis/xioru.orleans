@@ -1,13 +1,10 @@
-﻿using Orleans;
-using System.CommandLine;
-using Xioru.Grain.Contracts.GrainReadModel;
-using Xioru.Grain;
+﻿using System.CommandLine;
 using Xioru.Grain.Contracts.Project;
+using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Messaging.Messenger;
-using Xioru.Grain.Contracts.ProjectRegistry;
 
 namespace Xioru.Messaging.MessengerCommand;
 
