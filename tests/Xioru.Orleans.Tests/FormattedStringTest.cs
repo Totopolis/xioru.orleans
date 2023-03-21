@@ -1,11 +1,9 @@
 ﻿using System.Linq;
 using Xioru.Messaging.Contracts.Formatting;
-using Xioru.Orleans.Tests.Common;
 using Xunit;
 
 namespace Xioru.Orleans.Tests;
 
-[Collection(TestsCollection.Name)]
 public class FormattedStringTest
 {
     [Theory]

@@ -1,6 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using Orleans;
+using System.Threading.Tasks;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.ClusterRegistry;
 using Xioru.Grain.Contracts.GrainReadModel;
@@ -12,13 +11,8 @@ using Xunit;
 
 namespace Xioru.Orleans.Tests;
 
-[Collection(TestsCollection.Name)]
 public class BaseTest : AbstractTest
 {
-    public BaseTest(TestsFixture fixture) : base(fixture)
-    {
-    }
-
     [Fact]
     public async Task CreateChannel_InExistedProject_ChannelCreated()
     {

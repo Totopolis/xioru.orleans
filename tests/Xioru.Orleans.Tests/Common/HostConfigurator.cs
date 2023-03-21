@@ -1,7 +1,7 @@
-﻿using FluentValidation;
+﻿using EphemeralMongo;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Mongo2Go;
 using MongoDB.Driver;
 using Orleans;
 using Orleans.TestingHost;
@@ -18,15 +18,6 @@ namespace Xioru.Orleans.Tests.Common;
 
 public class HostConfigurator : IHostConfigurator
 {
-    private static readonly MongoDbRunner _mongoRunner;
-    private static readonly MongoClient _mongoClient;
-
-    static HostConfigurator()
-    {
-        _mongoRunner = MongoDbRunner.Start();
-        _mongoClient = new MongoClient(_mongoRunner.ConnectionString);
-    }
-
     public void Configure(IHostBuilder hostBuilder)
     {
         hostBuilder.ConfigureServices((hbc, services) =>
@@ -40,12 +31,25 @@ public class HostConfigurator : IHostConfigurator
                 sb => sb.GetService<IGrainFactory>()!.GetGrain<IVirtualMessengerGrain>(Guid.Empty));
 
             services.AddTransient<IChannelCommand, UpsertFooCommand>();
-
             services.AddTransient<IVersionProvider, VersionProvider>();
 
-            var db = _mongoClient.GetDatabase(
-                $"IntegrationTest_{Guid.NewGuid().ToString("N")}");
-            services.AddSingleton<IMongoDatabase>(db);
+            // get proxy-runner (provider increase internal useCounter)
+            // proxy will be disposed by DI when the silos goes to down
+            // TODO: BUT IT (dispose) DOES NOT WORK
+            services.AddSingleton<IMongoRunner>(sp => MongoRunnerProvider.Get());
+
+            services.AddSingleton<IMongoClient>(sp =>
+            {
+                var runner = sp.GetRequiredService<IMongoRunner>();
+                return new MongoClient(runner.ConnectionString);
+            });
+
+            var dbName = $"IntegrationTest_{Guid.NewGuid().ToString("N")}";
+            services.AddSingleton<IMongoDatabase>(sp =>
+            {
+                var client = sp.GetRequiredService<IMongoClient>();
+                return client.GetDatabase(dbName);
+            });
 
             services.AddValidatorsFromAssemblyContaining<FooGrain>();
             services.AddAutoMapper(typeof(FooGrain));

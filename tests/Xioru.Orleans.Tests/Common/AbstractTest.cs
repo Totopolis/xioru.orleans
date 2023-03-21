@@ -1,11 +1,8 @@
 ﻿using Orleans;
+using Orleans.TestingHost;
 using System;
-using System.Threading.Channels;
+using System.Linq;
 using System.Threading.Tasks;
-using Xioru.Grain;
-using Xioru.Grain.Contracts;
-using Xioru.Grain.Contracts.ClusterRegistry;
-using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Grain.Contracts.Project;
 using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Messaging.Contracts.Channel;
@@ -14,8 +11,10 @@ using Xioru.Orleans.Tests.Contracts;
 
 namespace Xioru.Orleans.Tests.Common;
 
-public abstract class AbstractTest
+public abstract class AbstractTest : IDisposable
 {
+    private readonly TestCluster _cluster;
+
     protected readonly IGrainFactory _factory;
 
     protected readonly Guid _projectId;
@@ -26,9 +25,16 @@ public abstract class AbstractTest
     protected readonly IChannelGrain _channel;
     protected readonly string _channelName;
 
-    public AbstractTest(TestsFixture fixture)
+    public AbstractTest()
     {
-        _factory = fixture.Cluster.GrainFactory;
+        _cluster = new TestClusterBuilder(initialSilosCount: 1)
+            .AddSiloBuilderConfigurator<HostConfigurator>()
+            .AddSiloBuilderConfigurator<SiloConfigurator>()
+            .Build();
+
+        _cluster.Deploy();
+
+        _factory = _cluster.GrainFactory;
 
         _projectId = Guid.NewGuid();
         _projectName = $"IntegrationProject_{_projectId.ToString("N")}";
@@ -37,6 +43,17 @@ public abstract class AbstractTest
         _channelId = Guid.NewGuid();
         _channelName = _channelId.ToString("N");
         _channel = _factory.GetGrain<IChannelGrain>(_channelId);
+    }
+
+    public void Dispose()
+    {
+        // just kill, no expectations!!
+        _cluster.GetActiveSilos()
+            .ToList()
+            .ForEach(x => _cluster.KillSiloAsync(x).Wait());
+
+        // _cluster.StopAllSilos();
+        _cluster.Dispose();
     }
 
     protected async Task PrepareAsync()

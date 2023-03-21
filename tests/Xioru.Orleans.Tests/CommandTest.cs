@@ -1,8 +1,6 @@
-﻿using System;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.Linq;
 using System.Threading.Tasks;
-using Xioru.Grain;
 using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Orleans.Tests.Common;
 using Xioru.Orleans.Tests.Contracts;
@@ -10,13 +8,8 @@ using Xunit;
 
 namespace Xioru.Orleans.Tests;
 
-[Collection(TestsCollection.Name)]
 public class CommandTest : AbstractTest
 {
-    public CommandTest(TestsFixture fixture) : base(fixture)
-    {
-    }
-
     [Fact]
     public async Task ListCommand_ReadModelContainsGrains_ReturnsTheGrains()
     {
