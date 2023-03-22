@@ -6,9 +6,9 @@ using System.Text;
 using System.Web;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.Account;
+using Xioru.Grain.Contracts.ClusterRegistry;
 using Xioru.Grain.Contracts.Config;
 using Xioru.Grain.Contracts.Exception;
-using Xioru.Grain.Contracts.ProjectReadModel;
 
 namespace Xioru.Grain.Account;
 
@@ -152,8 +152,9 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
     {
         CheckConfirmed();
 
-        var projectReadModel = _grainFactory.GetGrain<IProjectReadModelGrain>(GrainConstants.ClusterStreamId);
-        var projectList = await projectReadModel.GetProjectsByFilter(string.Empty);
+        var clusterRegistry = _grainFactory.GetGrain<IClusterRegistryGrain>(GrainConstants.ClusterStreamId);
+        var projectList = await clusterRegistry.GetProjectsByFilter(string.Empty);
+
         return new AccountProjection(
             AccountId: AccountId,
             AccessibleProjects: projectList.Where(x => State.AccessibleProjects.Contains(x.Id)).ToArray());

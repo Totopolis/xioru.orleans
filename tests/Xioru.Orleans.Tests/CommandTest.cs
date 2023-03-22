@@ -1,8 +1,6 @@
-﻿using System;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.Linq;
 using System.Threading.Tasks;
-using Xioru.Grain;
 using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Orleans.Tests.Common;
 using Xioru.Orleans.Tests.Contracts;
@@ -10,19 +8,13 @@ using Xunit;
 
 namespace Xioru.Orleans.Tests;
 
-[Collection(TestsCollection.Name)]
 public class CommandTest : AbstractTest
 {
-    public CommandTest(TestsFixture fixture) : base(fixture)
-    {
-    }
-
     [Fact]
     public async Task ListCommand_ReadModelContainsGrains_ReturnsTheGrains()
     {
         await PrepareAsync();
         var foo = await InternalCreateFoo("Foo1");
-        await Task.Delay(300);
 
         var result = await _channel.ExecuteCommand("/list");
         var text = result.Message.ToString();
@@ -82,8 +74,6 @@ public class CommandTest : AbstractTest
 
         var result = await _channel.ExecuteCommand("/upsert foo1 data=666 meta=111");
         Assert.True(result.IsSuccess, result.Message);
-
-        await Task.Delay(500);
 
         var grain = await _factory.GetGrainFromProjectAsync<IFooGrain>(_projectId, "foo1");
         var projection = await grain.GetProjection();

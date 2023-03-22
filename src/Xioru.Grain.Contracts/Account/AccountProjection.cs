@@ -1,4 +1,4 @@
-﻿using Xioru.Grain.Contracts.ProjectReadModel;
+﻿using Xioru.Grain.Contracts.ClusterRegistry;
 
 namespace Xioru.Grain.Contracts.Account;
 

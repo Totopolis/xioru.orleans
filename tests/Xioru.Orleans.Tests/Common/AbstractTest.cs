@@ -1,21 +1,21 @@
 ﻿using Orleans;
+using Orleans.TestingHost;
 using System;
-using System.Threading.Channels;
+using System.Linq;
 using System.Threading.Tasks;
-using Xioru.Grain;
-using Xioru.Grain.Contracts;
-using Xioru.Grain.Contracts.ClusterRegistry;
-using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Grain.Contracts.Project;
-using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Orleans.Tests.Contracts;
+using Xunit;
 
 namespace Xioru.Orleans.Tests.Common;
 
-public abstract class AbstractTest
+public abstract class AbstractTest : IAsyncLifetime
 {
+    private readonly TestCluster _cluster;
+    private readonly SiloHandle _silo;
+
     protected readonly IGrainFactory _factory;
 
     protected readonly Guid _projectId;
@@ -26,9 +26,17 @@ public abstract class AbstractTest
     protected readonly IChannelGrain _channel;
     protected readonly string _channelName;
 
-    public AbstractTest(TestsFixture fixture)
+    public AbstractTest()
     {
-        _factory = fixture.Cluster.GrainFactory;
+        _cluster = new TestClusterBuilder(initialSilosCount: 1)
+            .AddSiloBuilderConfigurator<HostConfigurator>()
+            .AddSiloBuilderConfigurator<SiloConfigurator>()
+            .Build();
+
+        _cluster.Deploy();
+
+        _silo = _cluster.GetActiveSilos().First();
+        _factory = _cluster.GrainFactory;
 
         _projectId = Guid.NewGuid();
         _projectName = $"IntegrationProject_{_projectId.ToString("N")}";
@@ -37,6 +45,24 @@ public abstract class AbstractTest
         _channelId = Guid.NewGuid();
         _channelName = _channelId.ToString("N");
         _channel = _factory.GetGrain<IChannelGrain>(_channelId);
+    }
+
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        // If you want correct dispose all services, use dispose
+        // await _silo.DisposeAsync();
+
+        // just kill, no expectations!!
+        await _cluster.KillSiloAsync(_silo);
+
+        // Regular stop method
+        // await _cluster.StopAllSilosAsync();
+        // await _cluster.DisposeAsync();
     }
 
     protected async Task PrepareAsync()
@@ -69,13 +95,6 @@ public abstract class AbstractTest
             Tags: Array.Empty<string>(),
             FooData: $"Hello {name}",
         FooMeta: $"By {name}"));
-
-        var success = await _factory.CheckGrainExistsInProjectAsync(_projectId, fooId);
-
-        if (!success)
-        {
-            throw new Exception("Foo not created");
-        }
 
         return foo;
     }
