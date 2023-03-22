@@ -8,7 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EphemeralMongo6" Version="1.1.0" />
+		<PackageReference Include="EphemeralMongo.Core" Version="1.1.0" />
+		<PackageReference Include="EphemeralMongo6.runtime.linux-x64" Version="1.1.0" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+		<PackageReference Include="EphemeralMongo6.runtime.osx-x64" Version="1.1.0" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+		<PackageReference Include="EphemeralMongo6.runtime.win-x64" Version="1.1.0" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
 		
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
 		<PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="7.1.0" />

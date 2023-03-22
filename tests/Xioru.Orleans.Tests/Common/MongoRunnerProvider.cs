@@ -20,7 +20,7 @@ public static class MongoRunnerProvider
                     /*UseSingleNodeReplicaSet = true,
                     ReplicaSetSetupTimeout = TimeSpan.FromSeconds(30),*/
                     AdditionalArguments = "--quiet",
-                    //KillMongoProcessesWhenCurrentProcessExits = true
+                    KillMongoProcessesWhenCurrentProcessExits = true
                 });
             }
 
