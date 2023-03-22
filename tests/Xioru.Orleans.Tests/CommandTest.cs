@@ -15,7 +15,6 @@ public class CommandTest : AbstractTest
     {
         await PrepareAsync();
         var foo = await InternalCreateFoo("Foo1");
-        await Task.Delay(300);
 
         var result = await _channel.ExecuteCommand("/list");
         var text = result.Message.ToString();
@@ -75,8 +74,6 @@ public class CommandTest : AbstractTest
 
         var result = await _channel.ExecuteCommand("/upsert foo1 data=666 meta=111");
         Assert.True(result.IsSuccess, result.Message);
-
-        await Task.Delay(500);
 
         var grain = await _factory.GetGrainFromProjectAsync<IFooGrain>(_projectId, "foo1");
         var projection = await grain.GetProjection();

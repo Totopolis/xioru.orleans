@@ -1,4 +1,4 @@
-﻿namespace Xioru.Grain.Contracts.ProjectReadModel;
+﻿namespace Xioru.Grain.Contracts.ClusterRegistry;
 
 [GenerateSerializer]
 public record ProjectDescription(

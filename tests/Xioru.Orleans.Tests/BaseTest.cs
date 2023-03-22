@@ -2,7 +2,6 @@ using Orleans;
 using System.Threading.Tasks;
 using Xioru.Grain.Contracts;
 using Xioru.Grain.Contracts.ClusterRegistry;
-using Xioru.Grain.Contracts.GrainReadModel;
 using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Orleans.Tests.Common;
 using Xioru.Orleans.Tests.Contracts;
@@ -13,6 +12,17 @@ namespace Xioru.Orleans.Tests;
 
 public class BaseTest : AbstractTest
 {
+    [Fact]
+    public async Task CreateProject_InClusterRegistry_ProjectCreated()
+    {
+        await PrepareAsync();
+
+        var name = await _factory.GetGrain<IClusterRegistryGrain>(GrainConstants.ClusterStreamId)
+            .GetProjectNameByIdOrDefaultAsync(_projectId);
+
+        Assert.NotNull(name);
+    }
+
     [Fact]
     public async Task CreateChannel_InExistedProject_ChannelCreated()
     {
@@ -38,18 +48,6 @@ public class BaseTest : AbstractTest
     }
 
     [Fact]
-    public async Task CreateChannel_ExistedProject_ReadModelUpdated()
-    {
-        await PrepareAsync();
-
-        await Task.Delay(400);
-        var details = await _factory.GetGrain<IGrainReadModelGrain>(_projectId)
-            .GetGrains();
-
-        Assert.Equal(2, details.Count);
-    }
-
-    [Fact]
     public async Task CreateFooGrain_ExistedProject_GrainCreatedInRegistry()
     {
         await PrepareAsync();
@@ -61,16 +59,6 @@ public class BaseTest : AbstractTest
         Assert.NotNull(details);
         Assert.Equal("Foo", details!.GrainName);
         Assert.Equal(typeof(FooGrain).FullName, details!.GrainType);
-    }
-
-    [Fact]
-    public async Task FindProjectById()
-    {
-        await PrepareAsync();
-
-        var name = await _factory.GetGrain<IClusterRegistryGrain>(GrainConstants.ClusterStreamId)
-            .GetProjectNameByIdOrDefaultAsync(_projectId);
-        Assert.NotNull(name);
     }
 
     [Fact]

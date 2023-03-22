@@ -1,4 +1,4 @@
-﻿namespace Xioru.Grain.ProjectRegistry;
+﻿namespace Xioru.Grain.ClusterRegistry;
 
 [GenerateSerializer]
 public class ClusterRegistryState
@@ -6,6 +6,3 @@ public class ClusterRegistryState
     [Id(0)]
     public List<ProjectDetails> RegistryDetails { get; set; } = new List<ProjectDetails>();
 }
-
-[GenerateSerializer]
-public record class ProjectDetails(string Name, Guid Id);

@@ -33,6 +33,5 @@ public partial class DetailsCommand : AbstractChannelCommand
         result.Append(serializedDetails);
 
         return CommandResult.Success(result);
-
     }
 }

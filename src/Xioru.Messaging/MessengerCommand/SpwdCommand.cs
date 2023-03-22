@@ -1,7 +1,7 @@
 ﻿using ConsoleTables;
 using System.CommandLine;
 using Xioru.Grain.Contracts;
-using Xioru.Grain.Contracts.ProjectReadModel;
+using Xioru.Grain.Contracts.ClusterRegistry;
 using Xioru.Messaging.Contracts.Command;
 using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
@@ -37,10 +37,10 @@ public class SpwdCommand : AbstractMessengerCommand
 
         var filter = GetArgumentValue(_filterArgument);
 
-        var readModel = _factory.GetGrain<IProjectReadModelGrain>(
+        var clusterRegistry = _factory.GetGrain<IClusterRegistryGrain>(
             GrainConstants.ClusterStreamId);
 
-        var projects = await readModel.GetProjectsByFilter(filter);
+        var projects = await clusterRegistry.GetProjectsByFilter(filter);
 
         var fString = new FormattedString("List of all user projects", StringFormatting.BoxedLine);
 

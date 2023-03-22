@@ -4,16 +4,17 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xioru.Grain.Contracts.Project;
-using Xioru.Grain.Contracts.ProjectRegistry;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Messenger;
 using Xioru.Orleans.Tests.Contracts;
+using Xunit;
 
 namespace Xioru.Orleans.Tests.Common;
 
-public abstract class AbstractTest : IDisposable
+public abstract class AbstractTest : IAsyncLifetime
 {
     private readonly TestCluster _cluster;
+    private readonly SiloHandle _silo;
 
     protected readonly IGrainFactory _factory;
 
@@ -34,6 +35,7 @@ public abstract class AbstractTest : IDisposable
 
         _cluster.Deploy();
 
+        _silo = _cluster.GetActiveSilos().First();
         _factory = _cluster.GrainFactory;
 
         _projectId = Guid.NewGuid();
@@ -45,15 +47,22 @@ public abstract class AbstractTest : IDisposable
         _channel = _factory.GetGrain<IChannelGrain>(_channelId);
     }
 
-    public void Dispose()
+    public Task InitializeAsync()
     {
-        // just kill, no expectations!!
-        _cluster.GetActiveSilos()
-            .ToList()
-            .ForEach(x => _cluster.KillSiloAsync(x).Wait());
+        return Task.CompletedTask;
+    }
 
-        // _cluster.StopAllSilos();
-        _cluster.Dispose();
+    public async Task DisposeAsync()
+    {
+        // If you want correct dispose all services, use dispose
+        // await _silo.DisposeAsync();
+
+        // just kill, no expectations!!
+        await _cluster.KillSiloAsync(_silo);
+
+        // Regular stop method
+        // await _cluster.StopAllSilosAsync();
+        // await _cluster.DisposeAsync();
     }
 
     protected async Task PrepareAsync()
@@ -86,13 +95,6 @@ public abstract class AbstractTest : IDisposable
             Tags: Array.Empty<string>(),
             FooData: $"Hello {name}",
         FooMeta: $"By {name}"));
-
-        var success = await _factory.CheckGrainExistsInProjectAsync(_projectId, fooId);
-
-        if (!success)
-        {
-            throw new Exception("Foo not created");
-        }
 
         return foo;
     }

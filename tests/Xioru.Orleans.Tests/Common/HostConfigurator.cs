@@ -35,7 +35,6 @@ public class HostConfigurator : IHostConfigurator
 
             // get proxy-runner (provider increase internal useCounter)
             // proxy will be disposed by DI when the silos goes to down
-            // TODO: BUT IT (dispose) DOES NOT WORK
             services.AddSingleton<IMongoRunner>(sp => MongoRunnerProvider.Get());
 
             services.AddSingleton<IMongoClient>(sp =>

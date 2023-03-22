@@ -13,19 +13,23 @@ public static class MongoRunnerProvider
     {
         lock (_lockObj)
         {
-            _runner ??= MongoRunner.Run(new MongoRunnerOptions
+            if (_runner == null)
             {
-                /*UseSingleNodeReplicaSet = true,
-                ReplicaSetSetupTimeout = TimeSpan.FromSeconds(30),
-                AdditionalArguments = "--quiet",*/
-                KillMongoProcessesWhenCurrentProcessExits = true
-            });
+                _runner = MongoRunner.Run(new MongoRunnerOptions
+                {
+                    /*UseSingleNodeReplicaSet = true,
+                    ReplicaSetSetupTimeout = TimeSpan.FromSeconds(30),*/
+                    AdditionalArguments = "--quiet",
+                    KillMongoProcessesWhenCurrentProcessExits = true
+                });
+            }
+
             _useCounter++;
             return new MongoRunnerWrapper(_runner);
         }
     }
 
-    private sealed class MongoRunnerWrapper : IMongoRunner
+    public sealed class MongoRunnerWrapper : IMongoRunner
     {
         private IMongoRunner? _underlyingMongoRunner;
 
