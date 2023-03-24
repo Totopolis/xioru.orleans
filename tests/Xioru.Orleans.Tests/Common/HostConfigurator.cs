@@ -8,6 +8,7 @@ using Orleans.TestingHost;
 using System;
 using Xioru.Grain;
 using Xioru.Grain.Contracts;
+using Xioru.Grain.Contracts.Config;
 using Xioru.Messaging;
 using Xioru.Messaging.Contracts.Channel;
 using Xioru.Messaging.Contracts.Messenger;
@@ -52,6 +53,13 @@ public class HostConfigurator : IHostConfigurator
 
             services.AddValidatorsFromAssemblyContaining<FooGrain>();
             services.AddAutoMapper(typeof(FooGrain));
+
+            services.Configure<AuthSection>(section =>
+            {
+                section.Issuer = "xioru";
+                section.Audience = "*";
+                section.SecretKey = "liHLSfGebYvXGTDx0vWb53JhyUpnw6HvgRwOJ6h/hUs=";
+            });
         });
     }
 }

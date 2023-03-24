@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using HashDepot;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -15,7 +16,7 @@ public partial class AccountGrain
     {
         CheckConfirmed();
 
-        if (State.Password != password)
+        if (State.PasswordHash != CalculateHash(password))
         {
             var msg = $"Bad password for account '{AccountId}'";
             _log.LogError(msg);
@@ -49,5 +50,15 @@ public partial class AccountGrain
         CheckConfirmed();
 
         throw new NotImplementedException();
+    }
+
+    private ulong CalculateHash(string password)
+    {
+        byte[] _zeroHashKey = new byte[16];
+
+        var buffer = Encoding.UTF8.GetBytes(password);
+        var hash = SipHash24.Hash64(buffer, _zeroHashKey);
+
+        return hash;
     }
 }

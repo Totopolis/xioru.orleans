@@ -129,7 +129,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
         State.ConfirmCode = string.Empty;
         State.LastTouch = DateTime.UtcNow;
         State.BillingEmail = AccountId;
-        State.Password = password;
+        State.PasswordHash = CalculateHash(password);
 
         await _state.WriteStateAsync();
 
@@ -157,6 +157,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
 
         return new AccountProjection(
             AccountId: AccountId,
+            IsConfirmed: State.IsConfirmed,
             AccessibleProjects: projectList.Where(x => State.AccessibleProjects.Contains(x.Id)).ToArray());
     }
 
@@ -168,7 +169,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
         State.ConfirmCode = string.Empty;
         State.LastTouch = DateTime.MinValue;
         State.BillingEmail = AccountId;
-        State.Password = password;
+        State.PasswordHash = CalculateHash(password);
 
         await _state.WriteStateAsync();
     }
