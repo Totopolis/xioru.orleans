@@ -59,6 +59,7 @@ public class HostConfigurator : IHostConfigurator
                 section.Issuer = "xioru";
                 section.Audience = "*";
                 section.SecretKey = "liHLSfGebYvXGTDx0vWb53JhyUpnw6HvgRwOJ6h/hUs=";
+                section.HashSalt = "mysalt";
             });
         });
     }

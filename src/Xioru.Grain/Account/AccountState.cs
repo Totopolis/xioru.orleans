@@ -12,7 +12,7 @@ public class AccountState
 
     public string BillingEmail { get; set; } = default!;
 
-    public ulong PasswordHash { get; set; }
+    public byte[] PasswordHash { get; set; } = default!;
 
     public HashSet<Guid> AccessibleProjects { get; set; } = new();
 }

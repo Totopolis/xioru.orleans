@@ -15,8 +15,8 @@ public partial class AccountGrain
     public Task<Token> Login(string password)
     {
         CheckConfirmed();
-
-        if (State.PasswordHash != CalculateHash(password))
+        
+        if (!State.PasswordHash.SequenceEqual<byte>(CalculateHash(password)))
         {
             var msg = $"Bad password for account '{AccountId}'";
             _log.LogError(msg);
@@ -52,13 +52,30 @@ public partial class AccountGrain
         throw new NotImplementedException();
     }
 
-    private ulong CalculateHash(string password)
+    private byte[] CalculateHash(string password)
     {
-        byte[] _zeroHashKey = new byte[16];
+        byte[] _hashSalt = new byte[16];
+
+        if (!string.IsNullOrWhiteSpace(_authConfig.HashSalt))
+        {
+            var saltLen = _authConfig.HashSalt.Length < 16 ?
+                _authConfig.HashSalt.Length :
+                16;
+
+            var salt = _authConfig.HashSalt.Substring(0, saltLen);
+            var saltBuf = Encoding.ASCII.GetBytes(salt);
+
+            Buffer.BlockCopy(
+                src: saltBuf,
+                srcOffset: 0,
+                dst: _hashSalt,
+                dstOffset: 0,
+                count: saltLen);
+        }
 
         var buffer = Encoding.UTF8.GetBytes(password);
-        var hash = SipHash24.Hash64(buffer, _zeroHashKey);
+        var hash = SipHash24.Hash64(buffer, _hashSalt);
 
-        return hash;
+        return BitConverter.GetBytes(hash);
     }
 }

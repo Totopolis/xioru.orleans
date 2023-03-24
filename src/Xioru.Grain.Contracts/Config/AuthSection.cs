@@ -15,4 +15,6 @@ public class AuthSection
     public TimeSpan RefreshLifetime { get; set; }
 
     public string SecretKey { get; set; } = default!;
+
+    public string HashSalt { get; set; } = default!;
 }
