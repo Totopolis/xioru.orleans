@@ -19,7 +19,12 @@ public class DiscordMessengerGrain : MessengerGrain, IDiscordMessengerGrain
         IEnumerable<IMessengerCommand> commands,
         IOptions<BotsSection> options) : base(logger, grainFactory, repository, commands, options)
     {
-        _discordClient = new DiscordSocketClient();
+        var config = new DiscordSocketConfig
+        {
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+        };
+
+        _discordClient = new DiscordSocketClient(config);
     }
 
     protected override MessengerType MessengerType => MessengerType.Discord;
@@ -69,20 +74,26 @@ public class DiscordMessengerGrain : MessengerGrain, IDiscordMessengerGrain
     // reading over the Commands Framework sample.
     private async Task MessageReceivedAsync(SocketMessage message)
     {
-        // The bot should never respond to itself.
-        if (message.Author.Id == _discordClient.CurrentUser.Id)
+        var userMessage = message as SocketUserMessage;
+        if (userMessage == null)
         {
             return;
         }
 
-        _logger.LogInformation($"Received message from {message.Author.Username} user");
+        // The bot should never respond to itself.
+        if (userMessage.Author.Id == _discordClient.CurrentUser.Id)
+        {
+            return;
+        }
+
+        _logger.LogInformation($"Received message from {userMessage.Author.Username} user");
 
         try
         {
             await OnMessage(
-                message: message.Content,
-                chatId: message.Channel.Id.ToString(),
-                userName: message.Author.Username);
+                message: userMessage.Content,
+                chatId: userMessage.Channel.Id.ToString(),
+                userName: userMessage.Author.Username);
         }
         catch (Exception ex)
         {
