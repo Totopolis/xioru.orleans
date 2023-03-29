@@ -69,6 +69,8 @@ public class DiscordMessengerGrain : MessengerGrain, IDiscordMessengerGrain
     // reading over the Commands Framework sample.
     private async Task MessageReceivedAsync(SocketMessage message)
     {
+        _logger.LogInformation($"Received message from {message.Author.Username} user");
+
         // The bot should never respond to itself.
         if (message.Author.Id == _discordClient.CurrentUser.Id)
         {
@@ -83,6 +85,8 @@ public class DiscordMessengerGrain : MessengerGrain, IDiscordMessengerGrain
 
     protected override async Task SendDirectMessage(string chatId, FormattedString message)
     {
+        _logger.LogInformation($"Try sent message to {chatId} chat");
+
         if (_discordClient.LoginState != LoginState.LoggedIn)
         {
             return;
