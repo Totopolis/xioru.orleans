@@ -69,18 +69,25 @@ public class DiscordMessengerGrain : MessengerGrain, IDiscordMessengerGrain
     // reading over the Commands Framework sample.
     private async Task MessageReceivedAsync(SocketMessage message)
     {
-        _logger.LogInformation($"Received message from {message.Author.Username} user");
-
         // The bot should never respond to itself.
         if (message.Author.Id == _discordClient.CurrentUser.Id)
         {
             return;
         }
 
-        await OnMessage(
-            message: message.Content,
-            chatId: message.Channel.Id.ToString(),
-            userName: message.Author.Username);
+        _logger.LogInformation($"Received message from {message.Author.Username} user");
+
+        try
+        {
+            await OnMessage(
+                message: message.Content,
+                chatId: message.Channel.Id.ToString(),
+                userName: message.Author.Username);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error at the handling incoming message");
+        }
     }
 
     protected override async Task SendDirectMessage(string chatId, FormattedString message)
