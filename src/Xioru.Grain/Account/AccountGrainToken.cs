@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using HashDepot;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -14,8 +15,8 @@ public partial class AccountGrain
     public Task<Token> Login(string password)
     {
         CheckConfirmed();
-
-        if (State.Password != password)
+        
+        if (!State.PasswordHash.SequenceEqual<byte>(CalculateHash(password)))
         {
             var msg = $"Bad password for account '{AccountId}'";
             _log.LogError(msg);
@@ -48,6 +49,35 @@ public partial class AccountGrain
     {
         CheckConfirmed();
 
+        ArgumentException.ThrowIfNullOrEmpty(refreshToken, nameof(refreshToken));
+
         throw new NotImplementedException();
+    }
+
+    private byte[] CalculateHash(string password)
+    {
+        byte[] _hashSalt = new byte[16];
+
+        if (!string.IsNullOrWhiteSpace(_authConfig.HashSalt))
+        {
+            var saltLen = _authConfig.HashSalt.Length < 16 ?
+                _authConfig.HashSalt.Length :
+                16;
+
+            var salt = _authConfig.HashSalt.Substring(0, saltLen);
+            var saltBuf = Encoding.ASCII.GetBytes(salt);
+
+            Buffer.BlockCopy(
+                src: saltBuf,
+                srcOffset: 0,
+                dst: _hashSalt,
+                dstOffset: 0,
+                count: saltLen);
+        }
+
+        var buffer = Encoding.UTF8.GetBytes(password);
+        var hash = SipHash24.Hash64(buffer, _hashSalt);
+
+        return BitConverter.GetBytes(hash);
     }
 }

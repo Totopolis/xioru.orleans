@@ -12,7 +12,7 @@ public class AccountState
 
     public string BillingEmail { get; set; } = default!;
 
-    public string Password { get; set; } = default!;
+    public byte[] PasswordHash { get; set; } = default!;
 
     public HashSet<Guid> AccessibleProjects { get; set; } = new();
 }
