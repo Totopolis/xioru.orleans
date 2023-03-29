@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Xioru.Grain.Contracts.Account;
+using Xioru.Grain.Contracts.Exception;
 using Xioru.Orleans.Tests.Common;
 using Xunit;
 
@@ -32,5 +33,23 @@ public class AccountTest : AbstractTest
 
         var token = await account.Login(_password);
         Assert.NotEmpty(token.AccessToken);
+    }
+
+    [Fact]
+    public async Task Login_WrongPassword_AccountBadPasswordException()
+    {
+        await PrepareAsync();
+
+        var account = _factory.GetGrain<IAccountGrain>(_email);
+        await account.ForceCreate(_password);
+
+        try
+        {
+            var token = await account.Login(_password + "_trash");
+            Assert.Fail("Must be exception");
+        }
+        catch (AccountBadPasswordException)
+        {
+        }
     }
 }

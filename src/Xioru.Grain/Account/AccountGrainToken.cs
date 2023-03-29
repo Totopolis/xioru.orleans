@@ -49,6 +49,8 @@ public partial class AccountGrain
     {
         CheckConfirmed();
 
+        ArgumentException.ThrowIfNullOrEmpty(refreshToken, nameof(refreshToken));
+
         throw new NotImplementedException();
     }
 
