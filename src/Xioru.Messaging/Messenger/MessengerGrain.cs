@@ -134,5 +134,5 @@ public abstract partial class MessengerGrain :
 
     public Task ReceiveReminder(string reminderName, TickStatus status) => Task.CompletedTask;
 
-    protected abstract Task SendDirectMessage(string chatId, FormattedString message);
+    public abstract Task SendDirectMessage(string chatId, FormattedString message);
 }

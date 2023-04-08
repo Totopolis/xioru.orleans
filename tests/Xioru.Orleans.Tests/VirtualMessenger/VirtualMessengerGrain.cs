@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xioru.Messaging.Contracts.Command;
+using Xioru.Messaging.Contracts.Formatting;
 using Xioru.Messaging.Contracts.Messenger;
 using MicrosoftGrain = Orleans.Grain;
 
@@ -58,4 +59,8 @@ public class VirtualMessengerGrain :
     {
         await _repository.StartAsync(MessengerType.Virtual);
     }
+
+    public Task SendDirectMessage(
+        string chatId,
+        FormattedString message) => throw new NotImplementedException();
 }
