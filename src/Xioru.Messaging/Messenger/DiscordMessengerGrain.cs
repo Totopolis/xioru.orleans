@@ -101,7 +101,7 @@ public class DiscordMessengerGrain : MessengerGrain, IDiscordMessengerGrain
         }
     }
 
-    protected override async Task SendDirectMessage(string chatId, FormattedString message)
+    public override async Task SendDirectMessage(string chatId, FormattedString message)
     {
         _logger.LogInformation($"Try sent message to {chatId} chat");
 

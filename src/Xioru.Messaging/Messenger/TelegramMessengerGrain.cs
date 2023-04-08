@@ -65,7 +65,7 @@ public class TelegramMessengerGrain : MessengerGrain, ITelegramMessengerGrain
         _logger.LogInformation($"Start listening for @{self.Username}");
     }
 
-    protected override async Task SendDirectMessage(string chatId, FormattedString message)
+    public override async Task SendDirectMessage(string chatId, FormattedString message)
     {
         if (_telegramClient == null)
         {

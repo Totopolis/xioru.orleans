@@ -17,6 +17,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
     private readonly IPersistentState<AccountState> _state;
     private readonly ILogger<AccountGrain> _log;
     private readonly IGrainFactory _grainFactory;
+    private readonly IHashCalculator _hashCalculator;
 
     private readonly MailerSection _mailerConfig;
     private readonly AuthSection _authConfig;
@@ -28,6 +29,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
         [PersistentState("State", GrainConstants.StateStorageName)] IPersistentState<AccountState> state,
         ILogger<AccountGrain> log,
         IGrainFactory grainFactory,
+        IHashCalculator hashCalculator,
         IOptions<AuthSection> authOptions,
         IOptions<MailerSection> mailerOptions,
         IOptions<ApiSection> apiOptions)
@@ -35,6 +37,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
         _state = state;
         _log = log;
         _grainFactory = grainFactory;
+        _hashCalculator = hashCalculator;
 
         _mailerConfig = mailerOptions.Value;
         _authConfig = authOptions.Value;
@@ -129,7 +132,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
         State.ConfirmCode = string.Empty;
         State.LastTouch = DateTime.UtcNow;
         State.BillingEmail = AccountId;
-        State.PasswordHash = CalculateHash(password);
+        State.PasswordHash = _hashCalculator.Calculate(password, _authConfig.HashSalt);
 
         await _state.WriteStateAsync();
 
@@ -169,7 +172,7 @@ public partial class AccountGrain : Orleans.Grain, IAccountGrain
         State.ConfirmCode = string.Empty;
         State.LastTouch = DateTime.MinValue;
         State.BillingEmail = AccountId;
-        State.PasswordHash = CalculateHash(password);
+        State.PasswordHash = _hashCalculator.Calculate(password, _authConfig.HashSalt);
 
         await _state.WriteStateAsync();
     }

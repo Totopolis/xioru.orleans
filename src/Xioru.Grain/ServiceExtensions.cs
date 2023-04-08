@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Xioru.Grain.Account;
+using Xioru.Grain.Contracts.Account;
 using Xioru.Grain.Contracts.Config;
 using Xioru.Grain.Project;
 
@@ -13,6 +15,9 @@ public static class ServiceExtensions
         this IServiceCollection services,
         IConfiguration config)
     {
+        // register default hash calculator
+        services.AddSingleton<IHashCalculator, HashCalculator>();
+
         // validators
         services.AddValidatorsFromAssemblyContaining<ProjectGrain>();
 
