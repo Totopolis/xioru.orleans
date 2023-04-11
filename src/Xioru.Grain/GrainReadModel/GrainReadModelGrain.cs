@@ -62,12 +62,19 @@ public class GrainReadModelGrain :
     public async Task<T?> GetGrainByNameOrDefault<T>(string name) where T : class, IGrainWithGuidKey
     {
         var details = await GetDocumentByNameOrDefaultAsync(name);
-        if(details == null)
+        if (details is null)
         {
             return null;
         }
 
-        return GrainFactory.GetGrain<T>(details!.GrainId, details.GrainType);
+        try
+        {
+            return GrainFactory.GetGrain<T>(details.GrainId, details.GrainType);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
     }
 
     public async Task<T?> GetGrainByIdOrDefault<T>(Guid id) where T : class, IGrainWithGuidKey
